@@ -5,8 +5,7 @@ import { MainLayout } from '@ui/layout/MainLayout'
 import { theme } from '@/styles/theme'
 import { useCatalogStore } from '@state/catalogStore'
 import catalogData from '@/assets/mock/catalog.v0.json'
-
-// Root component: initialize stores, load catalog
+import type { CatalogDocument } from '@domain/catalog/CatalogTypes'
 
 function App() {
   const { setCatalog, setLoading, setError } = useCatalogStore()
@@ -15,8 +14,7 @@ function App() {
     const loadCatalog = async () => {
       setLoading(true)
       try {
-        // In dev, use mock catalog data
-        setCatalog(catalogData)
+        setCatalog(catalogData as unknown as CatalogDocument)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load catalog')
       } finally {

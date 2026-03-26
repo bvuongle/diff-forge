@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Grid2 as Grid } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import { Topbar } from './Topbar'
 import { LeftCatalogPanel } from './LeftCatalogPanel'
 import { CanvasPanel } from './CanvasPanel'
