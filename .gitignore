@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+dist-electron/
+.vite/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE & local tooling
+.vscode/
+.idea/
+.claude/
+.agents/
+skills-lock.json
+*.swp
+*.swo
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Playwright
+/test-results/
+/playwright/.cache/
