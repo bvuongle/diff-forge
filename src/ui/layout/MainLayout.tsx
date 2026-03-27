@@ -1,36 +1,22 @@
-import React from 'react'
-import { Box, Grid } from '@mui/material'
+import { Box, Divider } from '@mui/material'
 import { Topbar } from './Topbar'
 import { LeftCatalogPanel } from './LeftCatalogPanel'
 import { CanvasPanel } from './CanvasPanel'
-import { RightInspectorPanel } from './RightInspectorPanel'
 
 function MainLayout() {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <Box display="flex" flexDirection="column" height="100vh" bgcolor="var(--app-bg)">
       <Topbar />
-
-      <Grid
-        container
-        sx={{
-          flex: 1,
-          overflow: 'hidden',
-          gap: 0,
-          p: 1
-        }}
+      <Divider />
+      <Box
+        flex={1}
+        display="grid"
+        gridTemplateColumns="260px 1fr"
+        minHeight={0}
       >
-        <Grid size={{ xs: 12, sm: 3 }} sx={{ display: 'flex', minHeight: 0 }}>
-          <LeftCatalogPanel />
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', minHeight: 0 }}>
-          <CanvasPanel />
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 3 }} sx={{ display: 'flex', minHeight: 0 }}>
-          <RightInspectorPanel />
-        </Grid>
-      </Grid>
+        <LeftCatalogPanel />
+        <CanvasPanel />
+      </Box>
     </Box>
   )
 }

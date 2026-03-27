@@ -64,7 +64,7 @@ const useGraphStore = create<GraphStore>((set) => ({
     set({ selectedNodeId: nodeId, selectedEdgeId: null }),
 
   selectEdge: (edgeId) =>
-    set({ selectedEdgeId: edgeId, selectedNodeId: null })
+    set({ selectedEdgeId: edgeId })
 }))
 
 export { useGraphStore }

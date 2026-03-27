@@ -1,4 +1,3 @@
-import React from 'react'
 import { TextField, InputAdornment } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import { useUIStore } from '@state/uiStore'
@@ -12,24 +11,23 @@ function SearchInput({ placeholder = 'Search components...' }: SearchInputProps)
 
   return (
     <TextField
-      fullWidth
-      size="small"
-      placeholder={placeholder}
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
+      placeholder={placeholder}
+      size="small"
+      fullWidth
+      variant="outlined"
+      sx={{
+        '& .MuiOutlinedInput-root': {
+          bgcolor: 'var(--input-background)'
+        }
+      }}
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
-            <SearchIcon />
+            <SearchIcon fontSize="small" />
           </InputAdornment>
         )
-      }}
-      sx={{
-        backgroundColor: '#fafafa',
-        borderRadius: 1,
-        '& .MuiOutlinedInput-root': {
-          backgroundColor: '#fafafa'
-        }
       }}
     />
   )

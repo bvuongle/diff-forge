@@ -1,54 +1,63 @@
 import { createTheme } from '@mui/material/styles'
 
-// Material-UI theme configuration for diff-forge
-
 const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#1976d2',
-      light: '#42a5f5',
-      dark: '#1565c0'
-    },
-    secondary: {
-      main: '#dc004e',
-      light: '#ff5983',
-      dark: '#9a0036'
+      main: '#0969da'
     },
     background: {
-      default: '#f5f5f5',
+      default: '#f8f9fa',
       paper: '#ffffff'
     },
-    divider: '#e0e0e0'
+    text: {
+      primary: '#24292f',
+      secondary: '#57606a'
+    }
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontSize: '2.5rem',
-      fontWeight: 700
+    fontFamily: '"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif',
+    h6: {
+      fontWeight: 600,
+      fontSize: '0.95rem'
     },
-    h2: {
-      fontSize: '2rem',
-      fontWeight: 700
-    },
-    body1: {
-      fontSize: '1rem',
-      lineHeight: 1.5
+    body2: {
+      fontSize: '0.85rem'
     }
+  },
+  shape: {
+    borderRadius: 10
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
-          fontWeight: 600
+          fontWeight: 500,
+          borderRadius: 8
+        },
+        sizeSmall: {
+          paddingInline: 12,
+          height: 32
         }
       }
     },
-    MuiCard: {
+    MuiTextField: {
+      defaultProps: {
+        size: 'small'
+      }
+    },
+    MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          backgroundColor: 'var(--input-background)'
+        }
+      }
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8
         }
       }
     }
