@@ -78,7 +78,6 @@ function useCanvasInteraction() {
 
   return {
     transform,
-    isPanning: isPanning.current,
     onWheel,
     onPanStart,
     onPanMove,

@@ -1,32 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { addNode, removeNode, addEdge, removeEdge, moveNode } from '@domain/graph/GraphOperations'
-import type { Graph, GraphNode, GraphEdge } from '@domain/graph/GraphTypes'
+import type { Graph } from '@domain/graph/GraphTypes'
+import { makeNode, makeEdge } from '../../fixtures'
 
 function emptyGraph(): Graph {
   return { nodes: [], edges: [] }
-}
-
-function makeNode(id: string): GraphNode {
-  return {
-    id,
-    instanceId: id,
-    componentType: 'LinkEth',
-    module: 'link',
-    version: '1.0.0',
-    position: { x: 0, y: 0 },
-    config: {},
-    slots: []
-  }
-}
-
-function makeEdge(id: string, src: string, tgt: string): GraphEdge {
-  return {
-    id,
-    sourceNodeId: src,
-    sourceSlot: 'ILink',
-    targetNodeId: tgt,
-    targetSlot: 'transport'
-  }
 }
 
 describe('addNode', () => {

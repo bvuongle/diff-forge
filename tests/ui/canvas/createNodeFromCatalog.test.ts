@@ -1,34 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { createNodeFromCatalog } from '@ui/canvas/createNodeFromCatalog'
-import type { CatalogComponent } from '@domain/catalog/CatalogTypes'
-import type { GraphNode } from '@domain/graph/GraphTypes'
-
-function makeCatalog(overrides?: Partial<CatalogComponent>): CatalogComponent {
-  return {
-    type: 'LinkEth',
-    module: 'link',
-    versions: ['1.0.0'],
-    implements: ['ILink'],
-    requires: [
-      { slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }
-    ],
-    configSchema: {},
-    ...overrides
-  }
-}
-
-function makeNode(id: string): GraphNode {
-  return {
-    id,
-    instanceId: id,
-    componentType: 'LinkEth',
-    module: 'link',
-    version: '1.0.0',
-    position: { x: 0, y: 0 },
-    config: {},
-    slots: []
-  }
-}
+import { makeNode, makeCatalog } from '../../fixtures'
 
 describe('createNodeFromCatalog', () => {
   it('creates camelCase instanceId from type', () => {

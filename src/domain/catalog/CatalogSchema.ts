@@ -29,18 +29,12 @@ const CatalogDocumentZ = z.object({
   components: z.array(CatalogComponentZ)
 })
 
-// Type inference from schemas
 type ConfigValueSchema = z.infer<typeof ConfigValueSchemaZ>
 type CatalogRequirement = z.infer<typeof CatalogRequirementZ>
 type CatalogComponent = z.infer<typeof CatalogComponentZ>
 type CatalogDocument = z.infer<typeof CatalogDocumentZ>
 
-export {
-  ConfigValueSchemaZ,
-  CatalogRequirementZ,
-  CatalogComponentZ,
-  CatalogDocumentZ
-}
+export { CatalogDocumentZ }
 
 export type {
   ConfigValueSchema,

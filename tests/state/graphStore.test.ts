@@ -1,29 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGraphStore } from '@state/graphStore'
-import type { GraphNode, GraphEdge } from '@domain/graph/GraphTypes'
-
-function makeNode(id: string): GraphNode {
-  return {
-    id,
-    instanceId: id,
-    componentType: 'LinkEth',
-    module: 'link',
-    version: '1.0.0',
-    position: { x: 0, y: 0 },
-    config: {},
-    slots: []
-  }
-}
-
-function makeEdge(id: string, src: string, tgt: string): GraphEdge {
-  return {
-    id,
-    sourceNodeId: src,
-    sourceSlot: 'ILink',
-    targetNodeId: tgt,
-    targetSlot: 'transport'
-  }
-}
+import { makeNode, makeEdge } from '../fixtures'
 
 describe('graphStore', () => {
   beforeEach(() => {
