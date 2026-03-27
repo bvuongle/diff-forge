@@ -38,7 +38,6 @@ function useCanvasInteraction() {
   }, [])
 
   const onPanStart = useCallback((e: React.MouseEvent) => {
-    // Only pan on left click on empty canvas
     if (e.button !== 0) return
     isPanning.current = true
     panStart.current = { x: e.clientX - transformRef.current.panX, y: e.clientY - transformRef.current.panY }
@@ -57,7 +56,6 @@ function useCanvasInteraction() {
     isPanning.current = false
   }, [])
 
-  // Keyboard shortcuts for zoom
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey

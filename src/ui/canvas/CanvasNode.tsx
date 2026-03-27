@@ -80,7 +80,6 @@ function CanvasNode({ node, isSelected, connectedSlots, onSelect, onMoveStart, o
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      // Ignore if clicking a port
       if ((e.target as HTMLElement).closest('[data-port-handle]')) return
       e.stopPropagation()
       onSelect(node.id)
@@ -112,7 +111,6 @@ function CanvasNode({ node, isSelected, connectedSlots, onSelect, onMoveStart, o
         }
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           px: 1.5,
@@ -128,9 +126,7 @@ function CanvasNode({ node, isSelected, connectedSlots, onSelect, onMoveStart, o
         </Typography>
       </Box>
 
-      {/* Ports body */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1.5, py: 1, minHeight: 32 }}>
-        {/* Input ports (left) */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           {inputSlots.map((slot) => (
             <PortCircle
@@ -144,7 +140,6 @@ function CanvasNode({ node, isSelected, connectedSlots, onSelect, onMoveStart, o
           ))}
         </Box>
 
-        {/* Output ports (right) */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-end' }}>
           {outputSlots.map((slot) => (
             <PortCircle

@@ -7,24 +7,14 @@ import { useEdgeDrawing } from '@ui/canvas/useEdgeDrawing'
 import { useNodeDrag } from '@ui/canvas/useNodeDrag'
 import { createNodeFromCatalog } from '@ui/canvas/createNodeFromCatalog'
 import { CanvasNode } from '@ui/canvas/CanvasNode'
-import { CanvasEdge, PendingEdge } from '@ui/canvas/CanvasEdge'
-import type { GraphEdge } from '@domain/graph/GraphTypes'
-
-function getConnectedSlots(nodeId: string, edges: GraphEdge[]): Set<string> {
-  const slots = new Set<string>()
-  for (const e of edges) {
-    if (e.sourceNodeId === nodeId) slots.add(e.sourceSlot)
-    if (e.targetNodeId === nodeId) slots.add(e.targetSlot)
-  }
-  return slots
-}
+import { CanvasEdge, PendingEdge, NODE_WIDTH } from '@ui/canvas/CanvasEdge'
+import { getConnectedSlots } from '@ui/canvas/getConnectedSlots'
 
 function CanvasPanel() {
   const canvasRef = useRef<HTMLDivElement>(null)
   const { graph, selectedNodeId, selectedEdgeId, addNode, removeNode, removeEdge, selectNode, selectEdge } =
     useGraphStore()
 
-  // Nodes connected to the selected edge should also highlight
   const selectedEdgeObj = selectedEdgeId ? graph.edges.find((e) => e.id === selectedEdgeId) : null
   const highlightedNodeIds = new Set<string>()
   if (selectedEdgeObj) {
@@ -37,7 +27,6 @@ function CanvasPanel() {
   const { dragEdge, onPortMouseDown } = useEdgeDrawing(canvasRef, transform.zoom, transform.panX, transform.panY)
   const { onMoveStart } = useNodeDrag(transform.zoom)
 
-  // Drop handler for catalog components
   const onDragOver = useCallback((e: React.DragEvent) => {
     if (e.dataTransfer.types.includes('application/x-diff-component')) {
       e.preventDefault()
@@ -56,7 +45,7 @@ function CanvasPanel() {
       if (!rect) return
 
       const position = {
-        x: (e.clientX - rect.left - transform.panX) / transform.zoom - 110,
+        x: (e.clientX - rect.left - transform.panX) / transform.zoom - NODE_WIDTH / 2,
         y: (e.clientY - rect.top - transform.panY) / transform.zoom - 30
       }
 
@@ -66,11 +55,9 @@ function CanvasPanel() {
     [transform, graph.nodes, addNode]
   )
 
-  // Delete key removes selected node or edge
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        // Don't intercept if user is typing in an input
         if ((e.target as HTMLElement).tagName === 'INPUT') return
         if (selectedNodeId) {
           removeNode(selectedNodeId)
@@ -112,7 +99,6 @@ function CanvasPanel() {
       onMouseLeave={onPanEnd}
       onClick={handleCanvasClick}
     >
-      {/* Transformed layer */}
       <Box
         data-canvas-bg="true"
         sx={{
@@ -126,7 +112,6 @@ function CanvasPanel() {
           minHeight: '200%'
         }}
       >
-        {/* SVG layer for edges */}
         <svg
           style={{
             position: 'absolute',
@@ -154,7 +139,6 @@ function CanvasPanel() {
           )}
         </svg>
 
-        {/* Nodes */}
         {graph.nodes.map((node) => (
           <CanvasNode
             key={node.id}
@@ -168,7 +152,6 @@ function CanvasPanel() {
         ))}
       </Box>
 
-      {/* Empty state hint */}
       {graph.nodes.length === 0 && (
         <Box
           position="absolute"
@@ -188,7 +171,6 @@ function CanvasPanel() {
         </Box>
       )}
 
-      {/* Zoom indicator */}
       <Box
         position="absolute"
         bottom={8}

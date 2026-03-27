@@ -9,7 +9,6 @@ type CanvasEdgeProps = {
 
 type PortPosition = { x: number; y: number }
 
-// Port geometry constants — must match CanvasNode layout
 const NODE_WIDTH = 220
 const PORT_RADIUS = 6
 const HEADER_HEIGHT = 52
@@ -50,7 +49,6 @@ function CanvasEdge({ edge, nodes, isSelected, onSelect }: CanvasEdgeProps) {
 
   return (
     <g onClick={(e) => { e.stopPropagation(); onSelect(edge.id) }}>
-      {/* Wider invisible path for easier click targeting */}
       <path d={path} fill="none" stroke="transparent" strokeWidth={12} style={{ cursor: 'pointer' }} />
       {isSelected && (
         <path d={path} fill="none" stroke="var(--accent-blue)" strokeWidth={6} strokeLinecap="round" opacity={0.2} />
@@ -66,7 +64,6 @@ function CanvasEdge({ edge, nodes, isSelected, onSelect }: CanvasEdgeProps) {
   )
 }
 
-// Used for the temporary drag edge (gray dashed)
 type PendingEdgeProps = {
   fromX: number
   fromY: number
@@ -91,4 +88,4 @@ function PendingEdge({ fromX, fromY, toX, toY }: PendingEdgeProps) {
   )
 }
 
-export { CanvasEdge, PendingEdge, getPortPosition, NODE_WIDTH, PORT_RADIUS, HEADER_HEIGHT, PORT_SPACING, PORT_TOP_OFFSET }
+export { CanvasEdge, PendingEdge, NODE_WIDTH }

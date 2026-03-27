@@ -68,9 +68,7 @@ function useEdgeDrawing(canvasRef: React.RefObject<HTMLDivElement | null>, zoom:
           const targetNodeId = handle.getAttribute('data-node-id')
           const targetSlot = handle.getAttribute('data-slot-name')
           const targetDir = handle.getAttribute('data-direction')
-          const sourceDir = handle.getAttribute('data-direction') === 'in' ? 'out' : 'in'
 
-          // We started from output, target must be input (or vice versa)
           if (
             targetNodeId &&
             targetSlot &&
@@ -78,7 +76,6 @@ function useEdgeDrawing(canvasRef: React.RefObject<HTMLDivElement | null>, zoom:
             targetNodeId !== dragRef.current.sourceNodeId
           ) {
             const src = dragRef.current
-            // Determine which is source (out) and which is target (in)
             const isSourceOutput = targetDir === 'in'
             const edgeId = `${isSourceOutput ? src.sourceNodeId : targetNodeId}:${isSourceOutput ? src.sourceSlot : targetSlot}->${isSourceOutput ? targetNodeId : src.sourceNodeId}:${isSourceOutput ? targetSlot : src.sourceSlot}`
 

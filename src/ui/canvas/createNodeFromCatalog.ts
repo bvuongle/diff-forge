@@ -1,7 +1,6 @@
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { GraphNode, Slot, Position } from '@domain/graph/GraphTypes'
 
-// "LinkEth" -> "linkEth", "MessageSource" -> "messageSource"
 function toCamelCase(typeName: string): string {
   return typeName.charAt(0).toLowerCase() + typeName.slice(1)
 }
@@ -18,7 +17,6 @@ function getNextIndex(existingNodes: GraphNode[], camelType: string): number {
 function buildSlots(component: CatalogComponent): Slot[] {
   const slots: Slot[] = []
 
-  // Output ports from implements[]
   for (const iface of component.implements) {
     slots.push({
       name: iface,
@@ -28,7 +26,6 @@ function buildSlots(component: CatalogComponent): Slot[] {
     })
   }
 
-  // Input ports from requires[]
   for (const req of component.requires) {
     slots.push({
       name: req.slot,
