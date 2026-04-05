@@ -1,4 +1,4 @@
-import { CatalogComponent } from '@domain/catalog/CatalogTypes'
+import { CatalogComponent, VersionSchema } from '@domain/catalog/CatalogTypes'
 import { GraphNode, Slot, Position } from '@domain/graph/GraphTypes'
 
 function toCamelCase(typeName: string): string {
@@ -14,10 +14,10 @@ function getNextIndex(existingNodes: GraphNode[], camelType: string): number {
   return idx
 }
 
-function buildSlots(component: CatalogComponent): Slot[] {
+function buildSlots(versionSchema: VersionSchema): Slot[] {
   const slots: Slot[] = []
 
-  for (const iface of component.implements) {
+  for (const iface of versionSchema.implements) {
     slots.push({
       name: iface,
       interface: iface,
@@ -26,7 +26,7 @@ function buildSlots(component: CatalogComponent): Slot[] {
     })
   }
 
-  for (const req of component.requires) {
+  for (const req of versionSchema.requires) {
     slots.push({
       name: req.slot,
       interface: req.interface,
@@ -38,6 +38,11 @@ function buildSlots(component: CatalogComponent): Slot[] {
   return slots
 }
 
+function getDefaultVersion(component: CatalogComponent): string {
+  const keys = Object.keys(component.versions)
+  return keys[0] ?? '0.0.0'
+}
+
 function createNodeFromCatalog(
   component: CatalogComponent,
   position: Position,
@@ -46,17 +51,19 @@ function createNodeFromCatalog(
   const camelType = toCamelCase(component.type)
   const idx = getNextIndex(existingNodes, camelType)
   const instanceId = `${camelType}${idx}`
+  const version = getDefaultVersion(component)
+  const versionSchema = component.versions[version]
 
   return {
     id: instanceId,
     instanceId,
     componentType: component.type,
     module: component.module,
-    version: component.versions[0] ?? '0.0.0',
+    version,
     position,
     config: {},
-    slots: buildSlots(component)
+    slots: versionSchema ? buildSlots(versionSchema) : []
   }
 }
 
-export { createNodeFromCatalog }
+export { createNodeFromCatalog, buildSlots }

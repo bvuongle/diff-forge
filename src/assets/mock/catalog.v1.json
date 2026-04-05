@@ -1,0 +1,186 @@
+{
+  "schema": "diff.catalog.v1",
+  "components": [
+    {
+      "type": "LinkEth",
+      "module": "diff_broker",
+      "versions": {
+        "1.0.0": {
+          "implements": ["ILink"],
+          "requires": [],
+          "configSchema": {}
+        }
+      }
+    },
+    {
+      "type": "LinkGsm",
+      "module": "diff_broker",
+      "versions": {
+        "1.0.0": {
+          "implements": ["ILink"],
+          "requires": [],
+          "configSchema": {
+            "linkReliability": { "type": "uint", "min": 0, "max": 100, "default": 95 }
+          }
+        }
+      }
+    },
+    {
+      "type": "LinkSat",
+      "module": "diff_broker",
+      "versions": {
+        "1.0.0": {
+          "implements": ["ILink"],
+          "requires": [],
+          "configSchema": {
+            "latencyMs": { "type": "uint", "min": 100, "max": 10000, "default": 3500 },
+            "bandwidthKbps": { "type": "uint", "min": 1, "max": 1024, "default": 64 }
+          }
+        }
+      }
+    },
+    {
+      "type": "Sensor",
+      "module": "diff_io",
+      "versions": {
+        "1.0.0": {
+          "implements": ["IDataSource"],
+          "requires": [],
+          "configSchema": {
+            "sampleRate": { "type": "uint", "min": 1, "max": 10000, "default": 100 }
+          }
+        },
+        "2.0.0": {
+          "implements": ["IDataSource", "IMonitorable"],
+          "requires": [],
+          "configSchema": {
+            "sampleRate": { "type": "uint", "min": 1, "max": 10000, "default": 100 },
+            "calibrationOffset": { "type": "int", "min": -1000, "max": 1000, "default": 0 },
+            "isCalibrated": { "type": "bool", "default": true }
+          }
+        }
+      }
+    },
+    {
+      "type": "Timer",
+      "module": "diff_core",
+      "versions": {
+        "1.0.0": {
+          "implements": ["IDataSource"],
+          "requires": [],
+          "configSchema": {
+            "intervalMs": { "type": "uint", "min": 1, "max": 60000, "default": 1000 }
+          }
+        }
+      }
+    },
+    {
+      "type": "MessageSource",
+      "module": "diff_broker",
+      "versions": {
+        "1.0.0": {
+          "implements": ["IProcessable"],
+          "requires": [
+            { "slot": "link", "interface": "ILink", "min": 1, "max": 1, "order": 0 },
+            { "slot": "backupLink", "interface": "ILink", "min": 1, "max": 1, "order": 1 }
+          ],
+          "configSchema": {
+            "count": { "type": "uint", "min": 1, "max": 1000, "default": 10 },
+            "content": { "type": "string", "default": "default message" }
+          }
+        }
+      }
+    },
+    {
+      "type": "DataCollector",
+      "module": "diff_io",
+      "versions": {
+        "1.0.0": {
+          "implements": ["IProcessable"],
+          "requires": [
+            { "slot": "source", "interface": "IDataSource", "min": 1, "max": 1, "order": 0 },
+            { "slot": "link", "interface": "ILink", "min": 1, "max": 1, "order": 1 }
+          ],
+          "configSchema": {
+            "bufferSize": { "type": "uint", "min": 64, "max": 8192, "default": 1024 }
+          }
+        }
+      }
+    },
+    {
+      "type": "Router",
+      "module": "diff_net",
+      "versions": {
+        "1.0.0": {
+          "implements": ["IRoutable"],
+          "requires": [
+            { "slot": "links", "interface": "ILink", "min": 1, "max": 8, "order": 0 }
+          ],
+          "configSchema": {
+            "maxRoutes": { "type": "uint", "min": 1, "max": 256, "default": 64 }
+          }
+        },
+        "2.0.0": {
+          "implements": ["IRoutable", "IMonitorable"],
+          "requires": [
+            { "slot": "links", "interface": "ILink", "min": 1, "max": 8, "order": 0 }
+          ],
+          "configSchema": {
+            "maxRoutes": { "type": "uint", "min": 1, "max": 256, "default": 64 },
+            "enableMetrics": { "type": "bool", "default": false },
+            "logLevel": { "type": "uint", "min": 0, "max": 3, "default": 1 }
+          }
+        }
+      }
+    },
+    {
+      "type": "Dispatcher",
+      "module": "diff_net",
+      "versions": {
+        "1.0.0": {
+          "implements": ["IProcessable"],
+          "requires": [
+            { "slot": "processable", "interface": "IProcessable", "min": 1, "max": 1, "order": 0 },
+            { "slot": "routable", "interface": "IRoutable", "min": 1, "max": 1, "order": 1 }
+          ],
+          "configSchema": {
+            "maxQueueSize": { "type": "uint", "min": 1, "max": 4096, "default": 256 }
+          }
+        }
+      }
+    },
+    {
+      "type": "Aggregator",
+      "module": "diff_net",
+      "versions": {
+        "1.0.0": {
+          "implements": ["IProcessable", "IDataSource"],
+          "requires": [
+            { "slot": "inputs", "interface": "IDataSource", "min": 2, "max": 16, "order": 0 }
+          ],
+          "configSchema": {
+            "windowMs": { "type": "uint", "min": 10, "max": 60000, "default": 1000 },
+            "strategy": { "type": "string", "default": "average" }
+          }
+        }
+      }
+    },
+    {
+      "type": "SystemController",
+      "module": "diff_core",
+      "versions": {
+        "1.0.0": {
+          "implements": ["IMonitorable"],
+          "requires": [
+            { "slot": "workers", "interface": "IProcessable", "min": 1, "max": 4, "order": 0 },
+            { "slot": "monitors", "interface": "IMonitorable", "min": 0, "max": 8, "order": 1 }
+          ],
+          "configSchema": {
+            "heartbeatMs": { "type": "uint", "min": 100, "max": 30000, "default": 5000 },
+            "failoverEnabled": { "type": "bool", "default": true }
+          }
+        }
+      }
+    }
+  ]
+}

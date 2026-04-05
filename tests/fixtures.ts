@@ -30,12 +30,15 @@ function makeCatalog(overrides?: Partial<CatalogComponent>): CatalogComponent {
   return {
     type: 'LinkEth',
     module: 'link',
-    versions: ['1.0.0'],
-    implements: ['ILink'],
-    requires: [
-      { slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }
-    ],
-    configSchema: {},
+    versions: {
+      '1.0.0': {
+        implements: ['ILink'],
+        requires: [
+          { slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }
+        ],
+        configSchema: {}
+      }
+    },
     ...overrides
   }
 }

@@ -5,7 +5,7 @@ import { MainLayout } from '@ui/layout/MainLayout'
 import { theme } from '@/styles/theme'
 import { useCatalogStore } from '@state/catalogStore'
 import { CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
-import catalogData from '@/assets/mock/catalog.v0.json'
+import catalogData from '@/assets/mock/catalog.v1.json'
 
 function App() {
   const { setCatalog, setLoading, setError } = useCatalogStore()

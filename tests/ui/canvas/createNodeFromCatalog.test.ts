@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { createNodeFromCatalog } from '@ui/canvas/createNodeFromCatalog'
+import type { Slot } from '@domain/graph/GraphTypes'
 import { makeNode, makeCatalog } from '../../fixtures'
 
 describe('createNodeFromCatalog', () => {
@@ -22,12 +23,17 @@ describe('createNodeFromCatalog', () => {
   })
 
   it('builds output slots from implements', () => {
-    const node = createNodeFromCatalog(
-      makeCatalog({ implements: ['ILink', 'IMonitor'] }),
-      { x: 0, y: 0 },
-      []
-    )
-    const outSlots = node.slots.filter(s => s.direction === 'out')
+    const catalog = makeCatalog({
+      versions: {
+        '1.0.0': {
+          implements: ['ILink', 'IMonitor'],
+          requires: [],
+          configSchema: {}
+        }
+      }
+    })
+    const node = createNodeFromCatalog(catalog, { x: 0, y: 0 }, [])
+    const outSlots = node.slots.filter((s: Slot) => s.direction === 'out')
     expect(outSlots).toHaveLength(2)
     expect(outSlots[0].name).toBe('ILink')
     expect(outSlots[1].name).toBe('IMonitor')
@@ -35,7 +41,7 @@ describe('createNodeFromCatalog', () => {
 
   it('builds input slots from requires', () => {
     const node = createNodeFromCatalog(makeCatalog(), { x: 0, y: 0 }, [])
-    const inSlots = node.slots.filter(s => s.direction === 'in')
+    const inSlots = node.slots.filter((s: Slot) => s.direction === 'in')
     expect(inSlots).toHaveLength(1)
     expect(inSlots[0].name).toBe('transport')
     expect(inSlots[0].interface).toBe('ITransport')
@@ -55,12 +61,14 @@ describe('createNodeFromCatalog', () => {
     expect(node.config).toEqual({})
   })
 
-  it('defaults version to 0.0.0 when versions array is empty', () => {
-    const node = createNodeFromCatalog(
-      makeCatalog({ versions: [] }),
-      { x: 0, y: 0 },
-      []
-    )
-    expect(node.version).toBe('0.0.0')
+  it('defaults version to first key in versions record', () => {
+    const catalog = makeCatalog({
+      versions: {
+        '2.0.0': { implements: ['ILink'], requires: [], configSchema: {} },
+        '1.0.0': { implements: ['ILink'], requires: [], configSchema: {} }
+      }
+    })
+    const node = createNodeFromCatalog(catalog, { x: 0, y: 0 }, [])
+    expect(node.version).toBe('2.0.0')
   })
 })

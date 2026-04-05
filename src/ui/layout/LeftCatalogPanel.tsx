@@ -93,7 +93,10 @@ function LeftCatalogPanel() {
                     <Box mt={1}>
                       <Chip
                         size="small"
-                        label={`v${component.versions[0] ?? '0.0.0'}`}
+                        label={(() => {
+                          const keys = Object.keys(component.versions)
+                          return keys.length === 1 ? `v${keys[0]}` : `${keys.length} versions`
+                        })()}
                         sx={{ bgcolor: 'var(--input-background)', height: 22 }}
                       />
                     </Box>

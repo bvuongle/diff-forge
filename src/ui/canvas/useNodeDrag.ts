@@ -24,8 +24,8 @@ function useNodeDrag(zoom: number) {
         const dx = (e.clientX - dragInfo.current.startX) / zoom
         const dy = (e.clientY - dragInfo.current.startY) / zoom
         moveNode(dragInfo.current.nodeId, {
-          x: Math.max(0, dragInfo.current.origX + dx),
-          y: Math.max(0, dragInfo.current.origY + dy)
+          x: dragInfo.current.origX + dx,
+          y: dragInfo.current.origY + dy
         })
       }
 
