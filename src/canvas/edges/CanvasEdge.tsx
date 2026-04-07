@@ -2,7 +2,7 @@ import { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
 import {
   NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED, PORT_RADIUS,
   HEADER_HEIGHT_COMPACT, PORT_SPACING, COMPACT_PORT_TOP, EXPANDED_PORT_TOP
-} from '../canvasConstants'
+} from '@canvas/canvasConstants'
 
 type CanvasEdgeProps = {
   edge: GraphEdge

@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react'
 import { CanvasNode } from './CanvasNode'
 import { makeNode, makeCatalog } from '@testing/fixtures'
 import { renderWithTheme } from '@testing/test-utils'
+import type { EdgeSourceMap } from './slotUtils'
 
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -19,7 +20,7 @@ const defaultProps = (): {
   connectedSlots: Set<string>
   catalogComponent: ReturnType<typeof makeCatalog> | null
   dragInfo: null
-  edgeSourceMap: Record<string, string[]>
+  edgeSourceMap: EdgeSourceMap
   onSelect: ReturnType<typeof vi.fn>
   onMoveStart: ReturnType<typeof vi.fn>
   onPortMouseDown: ReturnType<typeof vi.fn>
