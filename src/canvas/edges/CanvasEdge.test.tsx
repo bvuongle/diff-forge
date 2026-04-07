@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { makeNode, makeEdge } from '@testing/fixtures'
 
-import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED, EXPANDED_PORT_TOP } from '../canvasConstants'
+import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED, EXPANDED_PORT_TOP } from '@canvas/canvasConstants'
 
 describe('CanvasEdge constants', () => {
   it('NODE_WIDTH_COMPACT is 180', () => {

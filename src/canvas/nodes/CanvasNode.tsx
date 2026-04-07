@@ -4,10 +4,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import { GraphNode, Slot } from '@domain/graph/GraphTypes'
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
-import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '../canvasConstants'
+import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
 import { NodeExpandedContent } from './NodeExpandedContent'
 import { PortRow } from './PortRow'
 import type { DragInfo } from './PortRow'
+import { getSlotTooltip } from './slotUtils'
+import type { EdgeSourceMap } from './slotUtils'
 
 type CanvasNodeProps = {
   node: GraphNode
@@ -17,7 +19,7 @@ type CanvasNodeProps = {
   connectedSlots: Set<string>
   catalogComponent: CatalogComponent | null
   dragInfo: DragInfo | null
-  edgeSourceMap: Record<string, string[]>
+  edgeSourceMap: EdgeSourceMap
   onSelect: (nodeId: string) => void
   onMoveStart: (nodeId: string, startX: number, startY: number) => void
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
@@ -60,11 +62,6 @@ function CanvasNode({
     },
     [node.id, onSelect, onMoveStart]
   )
-
-  const getTooltip = (slot: Slot): string => {
-    const sources = edgeSourceMap[slot.name]
-    return sources?.length ? sources.join(', ') : ''
-  }
 
   const isOutputConnected = outputSlots.some(s => connectedSlots.has(s.name))
   const outputRef = useRef<HTMLDivElement>(null)
@@ -157,7 +154,7 @@ function CanvasNode({
             <PortRow
               key={slot.name} slot={slot} nodeId={node.id} side="left"
               isConnected={connectedSlots.has(slot.name)} dragInfo={dragInfo}
-              tooltipText={getTooltip(slot)} onMouseDown={onPortMouseDown}
+              tooltipText={getSlotTooltip(edgeSourceMap, slot.name)} onMouseDown={onPortMouseDown}
             />
           ))}
           {hasOutput && (

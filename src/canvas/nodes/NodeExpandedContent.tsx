@@ -8,13 +8,15 @@ import { JsonConfigEditor } from './JsonConfigEditor'
 import { PortRow } from './PortRow'
 import { buildSlots } from './createNodeFromCatalog'
 import type { DragInfo } from './PortRow'
+import { getSlotTooltip } from './slotUtils'
+import type { EdgeSourceMap } from './slotUtils'
 
 type NodeExpandedContentProps = {
   node: GraphNode
   catalogComponent: CatalogComponent
   connectedSlots: Set<string>
   dragInfo: DragInfo | null
-  edgeSourceMap: Record<string, string[]>
+  edgeSourceMap: EdgeSourceMap
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
   onVersionChange: (nodeId: string, version: string) => void
 }
@@ -82,11 +84,6 @@ function NodeExpandedContent({
     updateNodeConfig(node.id, { ...node.config, [name]: value })
   }
 
-  const getTooltip = (slot: Slot): string => {
-    const sources = edgeSourceMap[slot.name]
-    return sources?.length ? sources.join(', ') : ''
-  }
-
   return (
     <Box data-no-drag="true" sx={{ px: 1.5, py: 1.5, cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
       {/* INFO */}
@@ -137,7 +134,7 @@ function NodeExpandedContent({
           <PortRow
             key={slot.name} slot={slot} nodeId={node.id} side="left"
             isConnected={connectedSlots.has(slot.name)} dragInfo={dragInfo}
-            tooltipText={getTooltip(slot)} onMouseDown={onPortMouseDown}
+            tooltipText={getSlotTooltip(edgeSourceMap, slot.name)} onMouseDown={onPortMouseDown}
           />
         ))}
         {outputSlots.length > 0 && <OutputPortRow nodeId={node.id} outputSlots={outputSlots} connectedSlots={connectedSlots} onPortMouseDown={onPortMouseDown} />}

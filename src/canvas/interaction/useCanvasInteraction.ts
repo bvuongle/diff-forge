@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { GraphNode } from '@domain/graph/GraphTypes'
-import { NODE_WIDTH_COMPACT } from '../canvasConstants'
+import { NODE_WIDTH_COMPACT } from '@canvas/canvasConstants'
 
 type ViewTransform = {
   zoom: number

@@ -1,4 +1,4 @@
-import { Graph } from '../graph/GraphTypes'
+import { Graph } from '@domain/graph/GraphTypes'
 import { Topology, TopologyEntry } from './TopologyTypes'
 
 function graphToTopology(graph: Graph): Topology {
