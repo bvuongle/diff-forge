@@ -20,9 +20,10 @@
       "@ports/*": ["src/ports/*"],
       "@adapters/*": ["src/adapters/*"],
       "@state/*": ["src/state/*"],
-      "@ui/*": ["src/ui/*"]
+      "@canvas/*": ["src/canvas/*"],
+      "@testing/*": ["src/testing/*"]
     }
   },
-  "include": ["src", "electron", "src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src", "src/**/*.ts", "src/**/*.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,6 +1,4 @@
-import { CatalogDocument } from '../domain/catalog/CatalogTypes'
-
-// Port: defines how catalog data enters the system
+import { CatalogDocument } from '@domain/catalog/CatalogTypes'
 
 type CatalogSource = {
   loadCatalog(): Promise<CatalogDocument>

@@ -1,13 +1,15 @@
 import { create } from 'zustand'
-import { Graph, GraphNode, GraphEdge, Position } from '../domain/graph/GraphTypes'
+import { Graph, GraphNode, GraphEdge, Slot, Position } from '@domain/graph/GraphTypes'
 import {
   addNode,
   removeNode,
   addEdge,
   removeEdge,
   moveNode,
-  updateNodeConfig
-} from '../domain/graph/GraphOperations'
+  updateNodeConfig,
+  renameNode,
+  updateNodeVersion
+} from '@domain/graph/GraphOperations'
 
 type GraphStore = {
   graph: Graph
@@ -19,6 +21,8 @@ type GraphStore = {
   removeEdge: (edgeId: string) => void
   moveNode: (nodeId: string, position: Position) => void
   updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void
+  renameNode: (oldId: string, newId: string) => void
+  updateNodeVersion: (nodeId: string, version: string, newSlots: Slot[], newConfigSchema: Record<string, unknown>) => void
   selectNode: (nodeId: string | null) => void
   selectEdge: (edgeId: string | null) => void
 }
@@ -58,6 +62,17 @@ const useGraphStore = create<GraphStore>((set) => ({
   updateNodeConfig: (nodeId, config) =>
     set((state) => ({
       graph: updateNodeConfig(state.graph, nodeId, config)
+    })),
+
+  renameNode: (oldId, newId) =>
+    set((state) => ({
+      graph: renameNode(state.graph, oldId, newId),
+      selectedNodeId: state.selectedNodeId === oldId ? newId : state.selectedNodeId
+    })),
+
+  updateNodeVersion: (nodeId, version, newSlots, newConfigSchema) =>
+    set((state) => ({
+      graph: updateNodeVersion(state.graph, nodeId, version, newSlots, newConfigSchema)
     })),
 
   selectNode: (nodeId) =>

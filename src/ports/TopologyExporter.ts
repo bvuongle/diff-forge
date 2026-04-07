@@ -1,6 +1,4 @@
-import { Topology } from '../domain/topology/TopologyTypes'
-
-// Port: defines how topology data leaves the system
+import { Topology } from '@domain/topology/TopologyTypes'
 
 type TopologyExporter = {
   export(topology: Topology): Promise<void>

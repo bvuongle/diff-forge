@@ -1,6 +1,4 @@
-import { Graph, GraphNode, GraphEdge, Position } from './GraphTypes'
-
-// Pure functional operations on graph structure
+import { Graph, GraphNode, GraphEdge, Slot, Position } from './GraphTypes'
 
 function addNode(
   graph: Graph,
@@ -78,11 +76,100 @@ function updateNodeConfig(
   }
 }
 
+function renameNode(
+  graph: Graph,
+  oldId: string,
+  newId: string
+): Graph {
+  if (!newId.trim()) throw new Error('Node id cannot be empty')
+  if (oldId === newId) return graph
+  if (graph.nodes.some(n => n.id === newId)) {
+    throw new Error(`Node with id ${newId} already exists`)
+  }
+  return {
+    nodes: graph.nodes.map(n =>
+      n.id === oldId ? { ...n, id: newId, instanceId: newId } : n
+    ),
+    edges: graph.edges.map(e => ({
+      ...e,
+      sourceNodeId: e.sourceNodeId === oldId ? newId : e.sourceNodeId,
+      targetNodeId: e.targetNodeId === oldId ? newId : e.targetNodeId
+    }))
+  }
+}
+
+function updateNodeVersion(
+  graph: Graph,
+  nodeId: string,
+  version: string,
+  newSlots: Slot[],
+  newConfigSchema: Record<string, unknown>
+): Graph {
+  return {
+    ...graph,
+    nodes: graph.nodes.map(n => {
+      if (n.id !== nodeId) return n
+      const migratedConfig: Record<string, unknown> = {}
+      for (const key of Object.keys(newConfigSchema)) {
+        if (key in n.config) migratedConfig[key] = n.config[key]
+      }
+      return { ...n, version, slots: newSlots, config: migratedConfig }
+    })
+  }
+}
+
+function isEdgeInvalid(edge: GraphEdge, nodes: GraphNode[]): boolean {
+  const src = nodes.find(n => n.id === edge.sourceNodeId)
+  const tgt = nodes.find(n => n.id === edge.targetNodeId)
+  if (!src || !tgt) return true
+  const srcSlot = src.slots.find(s => s.name === edge.sourceSlot && s.direction === 'out')
+  const tgtSlot = tgt.slots.find(s => s.name === edge.targetSlot && s.direction === 'in')
+  return !srcSlot || !tgtSlot
+}
+
+type EdgeValidation = { valid: boolean; reason?: string }
+
+function validateEdge(
+  graph: Graph,
+  sourceNodeId: string,
+  sourceSlot: string,
+  targetNodeId: string,
+  targetSlot: string
+): EdgeValidation {
+  if (sourceNodeId === targetNodeId) return { valid: false, reason: 'Self-connection' }
+
+  const src = graph.nodes.find(n => n.id === sourceNodeId)
+  const tgt = graph.nodes.find(n => n.id === targetNodeId)
+  if (!src || !tgt) return { valid: false, reason: 'Node not found' }
+
+  const srcSlot = src.slots.find(s => s.name === sourceSlot && s.direction === 'out')
+  const tgtSlot = tgt.slots.find(s => s.name === targetSlot && s.direction === 'in')
+  if (!srcSlot || !tgtSlot) return { valid: false, reason: 'Slot not found' }
+
+  if (srcSlot.interface !== tgtSlot.interface) {
+    return { valid: false, reason: 'Interface mismatch' }
+  }
+
+  const existing = graph.edges.filter(
+    e => e.targetNodeId === targetNodeId && e.targetSlot === targetSlot
+  )
+  if (existing.length >= tgtSlot.maxConnections) {
+    return { valid: false, reason: 'Max connections reached' }
+  }
+
+  return { valid: true }
+}
+
 export {
   addNode,
   removeNode,
   addEdge,
   removeEdge,
   moveNode,
-  updateNodeConfig
+  updateNodeConfig,
+  renameNode,
+  updateNodeVersion,
+  isEdgeInvalid,
+  validateEdge
 }
+export type { EdgeValidation }
