@@ -1,5 +1,3 @@
-// Internal representation of a dependency graph being composed
-
 type Position = {
   x: number
   y: number

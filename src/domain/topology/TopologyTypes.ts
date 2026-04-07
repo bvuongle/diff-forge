@@ -1,5 +1,3 @@
-// Topology format matches diff framework serialization format
-
 type TopologyEntry = {
   type: string
   id: string
