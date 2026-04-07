@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Graph, GraphNode, GraphEdge, Slot, Position } from '../domain/graph/GraphTypes'
+import { Graph, GraphNode, GraphEdge, Slot, Position } from '@domain/graph/GraphTypes'
 import {
   addNode,
   removeNode,
@@ -9,7 +9,7 @@ import {
   updateNodeConfig,
   renameNode,
   updateNodeVersion
-} from '../domain/graph/GraphOperations'
+} from '@domain/graph/GraphOperations'
 
 type GraphStore = {
   graph: Graph

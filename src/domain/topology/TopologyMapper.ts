@@ -1,10 +1,7 @@
 import { Graph } from '../graph/GraphTypes'
 import { Topology, TopologyEntry } from './TopologyTypes'
 
-// Convert internal Graph representation to diff framework Topology format
-
 function graphToTopology(graph: Graph): Topology {
-  // Build edge lookup for quick dependency resolution
   const outgoingEdges = new Map<string, string[]>()
   graph.nodes.forEach(node => {
     outgoingEdges.set(node.id, [])
@@ -16,7 +13,6 @@ function graphToTopology(graph: Graph): Topology {
     outgoingEdges.set(edge.sourceNodeId, deps)
   })
 
-  // Convert nodes to topology entries
   const topology: Topology = graph.nodes.map(node => ({
     type: node.componentType,
     id: node.instanceId,
@@ -28,10 +24,7 @@ function graphToTopology(graph: Graph): Topology {
 }
 
 function topologyToGraph(topology: Topology): Graph {
-  // Inverse mapping: topology format back to Graph
-  // Note: topology format loses positional and versioning info
-  // This is primarily for round-trip serialization
-
+  // Topology lacks position and version data — synthesize defaults for round-trip support
   const nodes = topology.map((entry, index) => ({
     id: entry.id,
     instanceId: entry.id,

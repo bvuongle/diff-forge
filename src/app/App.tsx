@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { ThemeProvider } from '@mui/material/styles'
 import { CssBaseline } from '@mui/material'
-import { MainLayout } from '@ui/layout/MainLayout'
+import { MainLayout } from './MainLayout'
 import { theme } from '@/styles/theme'
 import { useCatalogStore } from '@state/catalogStore'
 import { CatalogDocumentZ } from '@domain/catalog/CatalogSchema'

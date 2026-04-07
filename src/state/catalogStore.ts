@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { CatalogDocument } from '../domain/catalog/CatalogTypes'
+import { CatalogDocument } from '@domain/catalog/CatalogTypes'
 
 type CatalogStore = {
   catalog: CatalogDocument | null

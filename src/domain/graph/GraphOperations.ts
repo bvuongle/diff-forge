@@ -1,7 +1,5 @@
 import { Graph, GraphNode, GraphEdge, Slot, Position } from './GraphTypes'
 
-// Pure functional operations on graph structure
-
 function addNode(
   graph: Graph,
   node: GraphNode
