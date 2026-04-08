@@ -25,7 +25,7 @@ describe('useEdgeDrawing', () => {
   beforeEach(() => {
     useGraphStore.setState({
       graph: { nodes: [], edges: [] },
-      selectedNodeId: null,
+      selectedNodeIds: new Set(),
       selectedEdgeId: null
     })
     useUIStore.setState({ dragInfo: null })

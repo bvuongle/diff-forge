@@ -8,7 +8,7 @@ describe('useNodeDrag', () => {
   beforeEach(() => {
     useGraphStore.setState({
       graph: { nodes: [], edges: [] },
-      selectedNodeId: null,
+      selectedNodeIds: new Set(),
       selectedEdgeId: null
     })
   })

@@ -53,7 +53,7 @@ describe('NodeExpandedContent', () => {
     const props = defaultProps()
     useGraphStore.setState({
       graph: { nodes: [props.node], edges: [] },
-      selectedNodeId: null,
+      selectedNodeIds: new Set(),
       selectedEdgeId: null
     })
   })
