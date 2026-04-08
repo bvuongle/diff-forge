@@ -139,7 +139,7 @@ describe('CanvasNode', () => {
     renderWithTheme(<CanvasNode {...props} />)
     const instanceId = screen.getByText('linkEth0')
     fireEvent.mouseDown(instanceId)
-    expect(props.onSelect).toHaveBeenCalledWith('n1')
+    expect(props.onSelect).toHaveBeenCalledWith('n1', false)
     expect(props.onMoveStart).toHaveBeenCalledWith('n1', expect.any(Number), expect.any(Number))
   })
 

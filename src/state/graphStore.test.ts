@@ -6,7 +6,7 @@ describe('graphStore', () => {
   beforeEach(() => {
     useGraphStore.setState({
       graph: { nodes: [], edges: [] },
-      selectedNodeId: null,
+      selectedNodeIds: new Set(),
       selectedEdgeId: null
     })
   })
@@ -34,7 +34,7 @@ describe('graphStore', () => {
       useGraphStore.getState().addNode(makeNode('n1'))
       useGraphStore.getState().selectNode('n1')
       useGraphStore.getState().removeNode('n1')
-      expect(useGraphStore.getState().selectedNodeId).toBeNull()
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(0)
     })
 
     it('preserves selection of other nodes', () => {
@@ -42,7 +42,7 @@ describe('graphStore', () => {
       useGraphStore.getState().addNode(makeNode('n2'))
       useGraphStore.getState().selectNode('n2')
       useGraphStore.getState().removeNode('n1')
-      expect(useGraphStore.getState().selectedNodeId).toBe('n2')
+      expect(useGraphStore.getState().selectedNodeIds.has('n2')).toBe(true)
     })
 
     it('removes edges where node is source', () => {
@@ -128,34 +128,86 @@ describe('graphStore', () => {
   })
 
   describe('selectNode', () => {
-    it('sets selectedNodeId and clears selectedEdgeId', () => {
+    it('selects a single node and clears selectedEdgeId', () => {
       useGraphStore.setState({ selectedEdgeId: 'e1' })
       useGraphStore.getState().selectNode('n1')
       const state = useGraphStore.getState()
-      expect(state.selectedNodeId).toBe('n1')
+      expect(state.selectedNodeIds.has('n1')).toBe(true)
+      expect(state.selectedNodeIds.size).toBe(1)
       expect(state.selectedEdgeId).toBeNull()
     })
 
-    it('deselects when null is passed', () => {
+    it('clears all selection when null is passed', () => {
       useGraphStore.getState().selectNode('n1')
       useGraphStore.getState().selectNode(null)
-      expect(useGraphStore.getState().selectedNodeId).toBeNull()
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(0)
+    })
+
+    it('additive mode toggles node into selection', () => {
+      useGraphStore.getState().selectNode('n1')
+      useGraphStore.getState().selectNode('n2', true)
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(2)
+      expect(useGraphStore.getState().selectedNodeIds.has('n1')).toBe(true)
+      expect(useGraphStore.getState().selectedNodeIds.has('n2')).toBe(true)
+    })
+
+    it('additive mode toggles node out of selection', () => {
+      useGraphStore.getState().selectNode('n1')
+      useGraphStore.getState().selectNode('n2', true)
+      useGraphStore.getState().selectNode('n1', true)
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(1)
+      expect(useGraphStore.getState().selectedNodeIds.has('n2')).toBe(true)
+    })
+  })
+
+  describe('selectNodes', () => {
+    it('selects multiple nodes at once', () => {
+      useGraphStore.getState().selectNodes(['n1', 'n2', 'n3'])
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(3)
+    })
+
+    it('clears selectedEdgeId', () => {
+      useGraphStore.setState({ selectedEdgeId: 'e1' })
+      useGraphStore.getState().selectNodes(['n1'])
+      expect(useGraphStore.getState().selectedEdgeId).toBeNull()
     })
   })
 
   describe('selectEdge', () => {
-    it('sets selectedEdgeId without clearing selectedNodeId', () => {
-      useGraphStore.getState().selectNode('n1')
+    it('sets selectedEdgeId', () => {
       useGraphStore.getState().selectEdge('e1')
-      const state = useGraphStore.getState()
-      expect(state.selectedEdgeId).toBe('e1')
-      expect(state.selectedNodeId).toBe('n1')
+      expect(useGraphStore.getState().selectedEdgeId).toBe('e1')
     })
 
     it('deselects when null is passed', () => {
       useGraphStore.getState().selectEdge('e1')
       useGraphStore.getState().selectEdge(null)
       expect(useGraphStore.getState().selectedEdgeId).toBeNull()
+    })
+  })
+
+  describe('clearSelection', () => {
+    it('clears both node and edge selection', () => {
+      useGraphStore.getState().selectNode('n1')
+      useGraphStore.getState().selectEdge('e1')
+      useGraphStore.getState().clearSelection()
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(0)
+      expect(useGraphStore.getState().selectedEdgeId).toBeNull()
+    })
+  })
+
+  describe('removeSelectedNodes', () => {
+    it('removes all selected nodes and their edges', () => {
+      useGraphStore.getState().addNode(makeNode('n1'))
+      useGraphStore.getState().addNode(makeNode('n2'))
+      useGraphStore.getState().addNode(makeNode('n3'))
+      useGraphStore.getState().addEdge(makeEdge('e1', 'n1', 'n2'))
+      useGraphStore.getState().selectNodes(['n1', 'n2'])
+      useGraphStore.getState().removeSelectedNodes()
+      expect(useGraphStore.getState().graph.nodes).toHaveLength(1)
+      expect(useGraphStore.getState().graph.nodes[0].id).toBe('n3')
+      expect(useGraphStore.getState().graph.edges).toHaveLength(0)
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(0)
     })
   })
 
@@ -168,19 +220,20 @@ describe('graphStore', () => {
       expect(node.instanceId).toBe('renamedNode')
     })
 
-    it('updates selectedNodeId when the selected node is renamed', () => {
+    it('updates selectedNodeIds when the selected node is renamed', () => {
       useGraphStore.getState().addNode(makeNode('n1'))
       useGraphStore.getState().selectNode('n1')
       useGraphStore.getState().renameNode('n1', 'n1-new')
-      expect(useGraphStore.getState().selectedNodeId).toBe('n1-new')
+      expect(useGraphStore.getState().selectedNodeIds.has('n1-new')).toBe(true)
+      expect(useGraphStore.getState().selectedNodeIds.has('n1')).toBe(false)
     })
 
-    it('preserves selectedNodeId when a different node is renamed', () => {
+    it('preserves selection when a different node is renamed', () => {
       useGraphStore.getState().addNode(makeNode('n1'))
       useGraphStore.getState().addNode(makeNode('n2'))
       useGraphStore.getState().selectNode('n2')
       useGraphStore.getState().renameNode('n1', 'n1-new')
-      expect(useGraphStore.getState().selectedNodeId).toBe('n2')
+      expect(useGraphStore.getState().selectedNodeIds.has('n2')).toBe(true)
     })
 
     it('updates edge references when node is renamed', () => {

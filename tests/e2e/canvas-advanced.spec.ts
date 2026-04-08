@@ -61,7 +61,7 @@ test.describe('Node drag repositioning', () => {
   })
 })
 
-test.describe('Multi-node selection dimming', () => {
+test.describe('Multi-node selection', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
     await page.waitForSelector('text=Component Catalog')
@@ -69,80 +69,35 @@ test.describe('Multi-node selection dimming', () => {
     await dragComponentToCanvas(page, 'MessageSource', 400, 450)
   })
 
-  test('clicking a node dims unrelated nodes', async ({ page }) => {
+  test('clicking a node does not dim other nodes', async ({ page }) => {
     await page.getByRole('heading', { name: 'linkEth0' }).click()
-    // Wait for CSS opacity transition (0.2s ease) to complete → target is 0.3
-    await page.waitForFunction((id) => {
-      const headings = document.querySelectorAll('h6')
-      for (const h of headings) {
-        if (h.textContent?.trim() === id) {
-          let el: HTMLElement | null = h as HTMLElement
-          while (el) {
-            const s = getComputedStyle(el)
-            if (s.cursor === 'grab' && parseFloat(s.opacity) < 0.5) return true
-            el = el.parentElement
-          }
-        }
-      }
-      return false
-    }, 'messageSource0', { timeout: 3000 })
     const opacity = await getNodeOpacity(page, 'messageSource0')
-    expect(Number(opacity)).toBeLessThan(0.5)
+    expect(opacity).toBe('1')
   })
 
-  test('clicking empty canvas restores all nodes to full opacity', async ({ page }) => {
+  test('clicking empty canvas clears selection', async ({ page }) => {
     await page.getByRole('heading', { name: 'linkEth0' }).click()
-    // Wait for dimming
-    await page.waitForFunction((id) => {
-      const headings = document.querySelectorAll('h6')
-      for (const h of headings) {
-        if (h.textContent?.trim() === id) {
-          let el: HTMLElement | null = h as HTMLElement
-          while (el) {
-            const s = getComputedStyle(el)
-            if (s.cursor === 'grab' && s.opacity !== '1') return true
-            el = el.parentElement
-          }
-        }
-      }
-      return false
-    }, 'messageSource0', { timeout: 3000 })
-
-    // Click empty canvas to deselect
     const canvas = page.locator('[data-canvas-bg]')
     await canvas.click({ position: { x: 50, y: 50 } })
-
-    // Wait for opacity to restore — all grab-cursor ancestors should be opacity 1
-    await page.waitForFunction((id) => {
-      const headings = document.querySelectorAll('h6')
-      for (const h of headings) {
-        if (h.textContent?.trim() === id) {
-          let el: HTMLElement | null = h as HTMLElement
-          while (el) {
-            const s = getComputedStyle(el)
-            if (s.cursor === 'grab' && s.opacity !== '1') return false
-            el = el.parentElement
-          }
-          return true
-        }
-      }
-      return false
-    }, 'messageSource0', { timeout: 3000 })
+    // Both nodes at full opacity, no selection glow
+    expect(await getNodeOpacity(page, 'linkEth0')).toBe('1')
     expect(await getNodeOpacity(page, 'messageSource0')).toBe('1')
   })
 
-  test('connected nodes are NOT dimmed when one is selected', async ({ page }) => {
-    // Connect LinkEth → MessageSource
-    const outputPort = page.locator('[data-port-handle][data-direction="out"]').first()
-    const inputPort = page.locator('[data-port-handle][data-slot-name="link"]').first()
-    await outputPort.dragTo(inputPort)
-
-    // Select LinkEth
+  test('Ctrl+click adds to selection and Delete removes all', async ({ page }) => {
     await page.getByRole('heading', { name: 'linkEth0' }).click()
+    await page.getByRole('heading', { name: 'messageSource0' }).click({ modifiers: ['Meta'] })
+    // Both selected — Delete removes both
+    await page.keyboard.press('Delete')
+    await expect(page.getByRole('heading', { name: 'linkEth0' })).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'messageSource0' })).toHaveCount(0)
+  })
 
-    // MessageSource is connected — should NOT be dimmed
-    const opacity = await getNodeOpacity(page, 'messageSource0')
-    expect(opacity).not.toBe('0.3')
+  test('single Delete removes only the selected node', async ({ page }) => {
+    await page.getByRole('heading', { name: 'linkEth0' }).click()
+    await page.keyboard.press('Delete')
+    await expect(page.getByRole('heading', { name: 'linkEth0' })).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'messageSource0' })).toHaveCount(1)
   })
 })
 

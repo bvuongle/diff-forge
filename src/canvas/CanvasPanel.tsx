@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useGraphStore } from '@state/graphStore'
 import { useCatalogStore } from '@state/catalogStore'
@@ -14,11 +14,13 @@ import { CanvasEdge, PendingEdge } from './edges/CanvasEdge'
 import { NODE_WIDTH_COMPACT } from './canvasConstants'
 import { getConnectedSlots } from './nodes/getConnectedSlots'
 
+type MarqueeRect = { startX: number; startY: number; endX: number; endY: number }
+
 function CanvasPanel() {
   const canvasRef = useRef<HTMLDivElement>(null)
   const {
-    graph, selectedNodeId, selectedEdgeId,
-    addNode, removeNode, removeEdge, selectNode, selectEdge, updateNodeVersion
+    graph, selectedNodeIds, selectedEdgeId,
+    addNode, removeNode, removeEdge, selectNode, selectNodes, selectEdge, clearSelection, removeSelectedNodes, updateNodeVersion
   } = useGraphStore()
   const catalog = useCatalogStore((s) => s.catalog)
   const { expandedNodeIds, toggleNodeExpanded, dragInfo, nodeWidths, setNodeWidth } = useUIStore()
@@ -26,39 +28,36 @@ function CanvasPanel() {
   const { dragEdge, onPortMouseDown } = useEdgeDrawing(canvasRef, transform.zoom, transform.panX, transform.panY)
   const { onMoveStart } = useNodeDrag(transform.zoom)
 
-  const relatedNodeIds = useMemo(() => {
-    const related = new Set<string>()
-    if (selectedNodeId) {
-      related.add(selectedNodeId)
-      for (const e of graph.edges) {
-        if (e.sourceNodeId === selectedNodeId) related.add(e.targetNodeId)
-        if (e.targetNodeId === selectedNodeId) related.add(e.sourceNodeId)
-      }
-    }
-    if (selectedEdgeId) {
-      const edge = graph.edges.find(e => e.id === selectedEdgeId)
-      if (edge) {
-        related.add(edge.sourceNodeId)
-        related.add(edge.targetNodeId)
-      }
-    }
-    return related
-  }, [selectedNodeId, selectedEdgeId, graph.edges])
+  const [marquee, setMarquee] = useState<MarqueeRect | null>(null)
 
-  const hasSelection = selectedNodeId !== null || selectedEdgeId !== null
-
-  const relatedEdgeIds = useMemo(() => {
-    const related = new Set<string>()
-    if (selectedEdgeId) related.add(selectedEdgeId)
-    if (selectedNodeId) {
+  const selectedEdgeIds = useMemo(() => {
+    const ids = new Set<string>()
+    if (selectedEdgeId) ids.add(selectedEdgeId)
+    for (const nodeId of selectedNodeIds) {
       for (const e of graph.edges) {
-        if (e.sourceNodeId === selectedNodeId || e.targetNodeId === selectedNodeId) {
-          related.add(e.id)
-        }
+        if (e.sourceNodeId === nodeId || e.targetNodeId === nodeId) ids.add(e.id)
       }
     }
+    return ids
+  }, [selectedNodeIds, selectedEdgeId, graph.edges])
+
+  // Dim logic: only active when an edge is selected, to highlight the connected cluster
+  const edgeDimNodeIds = useMemo(() => {
+    if (!selectedEdgeId) return null
+    const edge = graph.edges.find(e => e.id === selectedEdgeId)
+    if (!edge) return null
+    const related = new Set<string>()
+    related.add(edge.sourceNodeId)
+    related.add(edge.targetNodeId)
     return related
-  }, [selectedNodeId, selectedEdgeId, graph.edges])
+  }, [selectedEdgeId, graph.edges])
+
+  const edgeDimEdgeIds = useMemo(() => {
+    if (!selectedEdgeId) return null
+    const related = new Set<string>()
+    related.add(selectedEdgeId)
+    return related
+  }, [selectedEdgeId])
 
   const edgeSourceMaps = useMemo(() => {
     const maps: Record<string, Record<string, string[]>> = {}
@@ -117,22 +116,72 @@ function CanvasPanel() {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const tag = (e.target as HTMLElement).tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-        if (selectedNodeId) removeNode(selectedNodeId)
+        if (selectedNodeIds.size > 0) removeSelectedNodes()
         else if (selectedEdgeId) removeEdge(selectedEdgeId)
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [selectedNodeId, selectedEdgeId, removeNode, removeEdge])
+  }, [selectedNodeIds, selectedEdgeId, removeSelectedNodes, removeEdge])
 
-  const handleCanvasClick = useCallback(
+  const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget || (e.target as HTMLElement).closest('[data-canvas-bg]')) {
-        selectNode(null)
-        selectEdge(null)
+      const target = e.target as HTMLElement
+      if (target === e.currentTarget || target.hasAttribute('data-canvas-bg')) {
+        if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+          const rect = canvasRef.current?.getBoundingClientRect()
+          if (!rect) return
+          const x = (e.clientX - rect.left - transform.panX) / transform.zoom
+          const y = (e.clientY - rect.top - transform.panY) / transform.zoom
+          setMarquee({ startX: x, startY: y, endX: x, endY: y })
+        } else {
+          onPanStart(e)
+        }
       }
     },
-    [selectNode, selectEdge]
+    [transform, onPanStart]
+  )
+
+  const handleCanvasMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (marquee) {
+        const rect = canvasRef.current?.getBoundingClientRect()
+        if (!rect) return
+        const x = (e.clientX - rect.left - transform.panX) / transform.zoom
+        const y = (e.clientY - rect.top - transform.panY) / transform.zoom
+        setMarquee(prev => prev ? { ...prev, endX: x, endY: y } : null)
+      } else {
+        onPanMove(e)
+      }
+    },
+    [marquee, transform, onPanMove]
+  )
+
+  const handleCanvasMouseUp = useCallback(
+    () => {
+      if (marquee) {
+        const left = Math.min(marquee.startX, marquee.endX)
+        const right = Math.max(marquee.startX, marquee.endX)
+        const top = Math.min(marquee.startY, marquee.endY)
+        const bottom = Math.max(marquee.startY, marquee.endY)
+        const width = right - left
+        const height = bottom - top
+
+        if (width > 5 || height > 5) {
+          const enclosed = graph.nodes
+            .filter(n => n.position.x >= left && n.position.x + NODE_WIDTH_COMPACT <= right
+              && n.position.y >= top && n.position.y + 60 <= bottom)
+            .map(n => n.id)
+          selectNodes(enclosed)
+        } else {
+          clearSelection()
+        }
+        setMarquee(null)
+      } else {
+        onPanEnd()
+      }
+    },
+    [marquee, graph.nodes, selectNodes, clearSelection, onPanEnd]
   )
 
   const handleFitToView = useCallback(() => {
@@ -147,6 +196,13 @@ function CanvasPanel() {
     return () => { delete w.__canvasFitToView; delete w.__canvasResetView }
   }, [handleFitToView, resetView])
 
+  const marqueeStyle = marquee ? {
+    left: Math.min(marquee.startX, marquee.endX),
+    top: Math.min(marquee.startY, marquee.endY),
+    width: Math.abs(marquee.endX - marquee.startX),
+    height: Math.abs(marquee.endY - marquee.startY)
+  } : null
+
   return (
     <Box
       ref={canvasRef}
@@ -155,15 +211,10 @@ function CanvasPanel() {
       sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget || (e.target as HTMLElement).hasAttribute('data-canvas-bg')) {
-          onPanStart(e)
-        }
-      }}
-      onMouseMove={onPanMove}
-      onMouseUp={onPanEnd}
-      onMouseLeave={onPanEnd}
-      onClick={handleCanvasClick}
+      onMouseDown={handleCanvasMouseDown}
+      onMouseMove={handleCanvasMouseMove}
+      onMouseUp={handleCanvasMouseUp}
+      onMouseLeave={() => { setMarquee(null); onPanEnd() }}
     >
       <Box
         data-canvas-bg="true"
@@ -181,9 +232,9 @@ function CanvasPanel() {
                 key={edge.id} edge={edge} nodes={graph.nodes}
                 expandedNodeIds={expandedNodeIds}
                 nodeWidths={nodeWidths}
-                isSelected={selectedEdgeId === edge.id}
+                isSelected={selectedEdgeIds.has(edge.id)}
                 isInvalid={isEdgeInvalid(edge, graph.nodes)}
-                isDimmed={hasSelection && !relatedEdgeIds.has(edge.id)}
+                isDimmed={edgeDimEdgeIds !== null && !edgeDimEdgeIds.has(edge.id)}
                 onSelect={selectEdge}
               />
             ))}
@@ -194,9 +245,9 @@ function CanvasPanel() {
         {graph.nodes.map((node) => (
           <CanvasNode
             key={node.id} node={node}
-            isSelected={hasSelection ? relatedNodeIds.has(node.id) : false}
+            isSelected={selectedNodeIds.has(node.id)}
             isExpanded={expandedNodeIds.has(node.id)}
-            isDimmed={hasSelection && !relatedNodeIds.has(node.id)}
+            isDimmed={edgeDimNodeIds !== null && !edgeDimNodeIds.has(node.id)}
             connectedSlots={getConnectedSlots(node.id, graph.edges)}
             catalogComponent={catalog?.components.find((c) => c.type === node.componentType) ?? null}
             dragInfo={dragInfo}
@@ -209,6 +260,15 @@ function CanvasPanel() {
             onWidthChange={handleWidthChange}
           />
         ))}
+
+        {marqueeStyle && (
+          <Box sx={{
+            position: 'absolute', ...marqueeStyle,
+            border: '1px solid var(--accent-blue)',
+            bgcolor: 'rgba(59, 130, 246, 0.08)',
+            pointerEvents: 'none'
+          }} />
+        )}
       </Box>
 
       {graph.nodes.length === 0 && (

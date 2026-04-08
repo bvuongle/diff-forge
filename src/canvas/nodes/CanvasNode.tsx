@@ -20,7 +20,7 @@ type CanvasNodeProps = {
   catalogComponent: CatalogComponent | null
   dragInfo: DragInfo | null
   edgeSourceMap: EdgeSourceMap
-  onSelect: (nodeId: string) => void
+  onSelect: (nodeId: string | null, additive?: boolean) => void
   onMoveStart: (nodeId: string, startX: number, startY: number) => void
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
   onToggleExpand: (nodeId: string) => void
@@ -57,7 +57,7 @@ function CanvasNode({
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
       e.stopPropagation()
-      onSelect(node.id)
+      onSelect(node.id, e.ctrlKey || e.metaKey)
       onMoveStart(node.id, e.clientX, e.clientY)
     },
     [node.id, onSelect, onMoveStart]
@@ -80,7 +80,12 @@ function CanvasNode({
     <Box
       ref={nodeRef}
       onMouseDown={handleMouseDown}
-      onDoubleClick={(e) => { e.stopPropagation(); onToggleExpand(node.id) }}
+      onDoubleClick={(e) => {
+        e.stopPropagation()
+        const target = e.target as HTMLElement
+        if (target.closest('input, textarea, select')) return
+        onToggleExpand(node.id)
+      }}
       onClick={(e) => e.stopPropagation()}
       sx={{
         position: 'absolute', left: node.position.x, top: node.position.y,
