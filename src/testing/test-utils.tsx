@@ -1,5 +1,6 @@
-import { render } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
+import { render } from '@testing-library/react'
+
 import { theme } from '@/styles/theme'
 
 // jsdom lacks ResizeObserver

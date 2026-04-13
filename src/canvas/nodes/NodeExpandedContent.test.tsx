@@ -1,19 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
-import { NodeExpandedContent } from './NodeExpandedContent'
-import { useGraphStore } from '@state/graphStore'
-import { makeNode, makeCatalog } from '@testing/fixtures'
+import { makeCatalog, makeNode } from '@testing/fixtures'
 import { renderWithTheme } from '@testing/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import type { CatalogComponent } from '@domain/catalog/CatalogTypes'
+import { useGraphStore } from '@state/graphStore'
+
+import { NodeExpandedContent } from './NodeExpandedContent'
 
 function makeCatalogWithConfig(): CatalogComponent {
   return makeCatalog({
     versions: {
       '1.0.0': {
         implements: ['ILink'],
-        requires: [
-          { slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }
-        ],
+        requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
         configSchema: {
           count: { type: 'int', default: 1 },
           enabled: { type: 'bool', default: false }

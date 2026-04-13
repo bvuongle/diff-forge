@@ -1,4 +1,5 @@
 import { FormControlLabel, Switch, TextField } from '@mui/material'
+
 import { ConfigValueSchema } from '@domain/catalog/CatalogTypes'
 
 type ConfigFieldRendererProps = {

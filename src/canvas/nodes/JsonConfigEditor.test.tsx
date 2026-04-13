@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
-import { JsonConfigEditor } from './JsonConfigEditor'
 import { renderWithTheme } from '@testing/test-utils'
+import { describe, expect, it, vi } from 'vitest'
+
+import { JsonConfigEditor } from './JsonConfigEditor'
 
 describe('JsonConfigEditor', () => {
   it('renders textarea with JSON content', () => {
@@ -39,9 +40,7 @@ describe('JsonConfigEditor', () => {
     fireEvent.blur(textarea)
     expect(screen.getByText('Invalid JSON')).toBeTruthy()
     // Rerender with new config
-    rerender(
-      <JsonConfigEditor config={{ newKey: 'val' }} onSave={onSave} />
-    )
+    rerender(<JsonConfigEditor config={{ newKey: 'val' }} onSave={onSave} />)
     expect(screen.queryByText('Invalid JSON')).toBeNull()
   })
 

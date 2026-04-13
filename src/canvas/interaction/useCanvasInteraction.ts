@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { GraphNode } from '@domain/graph/GraphTypes'
 import { NODE_WIDTH_COMPACT } from '@canvas/canvasConstants'
 
@@ -18,7 +19,9 @@ function useCanvasInteraction(canvasRef: React.RefObject<HTMLDivElement | null>)
   const isPanning = useRef(false)
   const panStart = useRef({ x: 0, y: 0 })
   const transformRef = useRef(transform)
-  transformRef.current = transform
+  useEffect(() => {
+    transformRef.current = transform
+  }, [transform])
 
   const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
 
@@ -59,7 +62,10 @@ function useCanvasInteraction(canvasRef: React.RefObject<HTMLDivElement | null>)
       setTransform({ zoom: 1, panX: 0, panY: 0 })
       return
     }
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity
     for (const n of nodes) {
       minX = Math.min(minX, n.position.x)
       minY = Math.min(minY, n.position.y)

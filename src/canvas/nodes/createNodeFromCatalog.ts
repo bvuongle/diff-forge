@@ -1,5 +1,5 @@
 import { CatalogComponent, VersionSchema } from '@domain/catalog/CatalogTypes'
-import { GraphNode, Slot, Position } from '@domain/graph/GraphTypes'
+import { GraphNode, Position, Slot } from '@domain/graph/GraphTypes'
 
 function toCamelCase(typeName: string): string {
   return typeName.charAt(0).toLowerCase() + typeName.slice(1)
@@ -43,11 +43,7 @@ function getDefaultVersion(component: CatalogComponent): string {
   return keys[0] ?? '0.0.0'
 }
 
-function createNodeFromCatalog(
-  component: CatalogComponent,
-  position: Position,
-  existingNodes: GraphNode[]
-): GraphNode {
+function createNodeFromCatalog(component: CatalogComponent, position: Position, existingNodes: GraphNode[]): GraphNode {
   const camelType = toCamelCase(component.type)
   const idx = getNextIndex(existingNodes, camelType)
   const instanceId = `${camelType}${idx}`

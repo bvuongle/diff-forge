@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
-import { useNodeDrag } from './useNodeDrag'
-import { useGraphStore } from '@state/graphStore'
+import { act, renderHook } from '@testing-library/react'
 import { makeNode } from '@testing/fixtures'
+import { beforeEach, describe, expect, it } from 'vitest'
+
+import { useGraphStore } from '@state/graphStore'
+
+import { useNodeDrag } from './useNodeDrag'
 
 describe('useNodeDrag', () => {
   beforeEach(() => {

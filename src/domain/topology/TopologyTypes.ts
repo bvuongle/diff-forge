@@ -7,7 +7,4 @@ type TopologyEntry = {
 
 type Topology = TopologyEntry[]
 
-export type {
-  TopologyEntry,
-  Topology
-}
+export type { TopologyEntry, Topology }

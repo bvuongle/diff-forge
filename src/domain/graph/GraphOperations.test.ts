@@ -1,18 +1,19 @@
-import { describe, it, expect } from 'vitest'
+import { makeEdge, makeNode } from '@testing/fixtures'
+import { describe, expect, it } from 'vitest'
+
 import {
-  addNode,
-  removeNode,
   addEdge,
-  removeEdge,
-  moveNode,
-  updateNodeConfig,
-  validateEdge,
+  addNode,
   isEdgeInvalid,
+  moveNode,
+  removeEdge,
+  removeNode,
   renameNode,
-  updateNodeVersion
+  updateNodeConfig,
+  updateNodeVersion,
+  validateEdge
 } from '@domain/graph/GraphOperations'
 import type { Graph, Slot } from '@domain/graph/GraphTypes'
-import { makeNode, makeEdge } from '@testing/fixtures'
 
 function emptyGraph(): Graph {
   return { nodes: [], edges: [] }
@@ -200,10 +201,7 @@ describe('validateEdge', () => {
   const tgtSlot: Slot = { name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }
 
   const graph: Graph = {
-    nodes: [
-      makeNode('a', { slots: [srcSlot] }),
-      makeNode('b', { slots: [tgtSlot] })
-    ],
+    nodes: [makeNode('a', { slots: [srcSlot] }), makeNode('b', { slots: [tgtSlot] })],
     edges: []
   }
 
@@ -214,10 +212,7 @@ describe('validateEdge', () => {
 
   it('allows connection when target slot below max connections', () => {
     const multiSlotGraph: Graph = {
-      nodes: [
-        makeNode('a', { slots: [srcSlot] }),
-        makeNode('b', { slots: [{ ...tgtSlot, maxConnections: 3 }] })
-      ],
+      nodes: [makeNode('a', { slots: [srcSlot] }), makeNode('b', { slots: [{ ...tgtSlot, maxConnections: 3 }] })],
       edges: [makeEdge('e1', 'a', 'b')]
     }
     const result = validateEdge(multiSlotGraph, 'a', 'ILink', 'b', 'transport')
@@ -225,12 +220,15 @@ describe('validateEdge', () => {
   })
 
   it('rejects self-connections', () => {
-    const selfGraph = addNode(emptyGraph(), makeNode('n1', {
-      slots: [
-        { name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: 99 },
-        { name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }
-      ]
-    }))
+    const selfGraph = addNode(
+      emptyGraph(),
+      makeNode('n1', {
+        slots: [
+          { name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: 99 },
+          { name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }
+        ]
+      })
+    )
     const result = validateEdge(selfGraph, 'n1', 'ILink', 'n1', 'transport')
     expect(result.valid).toBe(false)
     expect(result.reason).toBe('Self-connection')

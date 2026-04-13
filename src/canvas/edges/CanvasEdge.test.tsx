@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
-import { makeNode, makeEdge } from '@testing/fixtures'
+import { makeEdge, makeNode } from '@testing/fixtures'
+import { describe, expect, it } from 'vitest'
 
-import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED, EXPANDED_PORT_TOP } from '@canvas/canvasConstants'
+import { EXPANDED_PORT_TOP, NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
 
 describe('CanvasEdge constants', () => {
   it('NODE_WIDTH_COMPACT is 180', () => {
@@ -21,16 +21,12 @@ describe('CanvasEdge constants', () => {
 describe('CanvasEdge rendering', () => {
   const sourceNode = makeNode('src', {
     position: { x: 100, y: 50 },
-    slots: [
-      { name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }
-    ]
+    slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }]
   })
 
   const targetNode = makeNode('tgt', {
     position: { x: 400, y: 50 },
-    slots: [
-      { name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }
-    ]
+    slots: [{ name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }]
   })
 
   const edge = makeEdge('e1', 'src', 'tgt', {
@@ -260,7 +256,9 @@ describe('CanvasEdge rendering', () => {
           isSelected={false}
           isInvalid={false}
           isDimmed={false}
-          onSelect={(id) => { selectedId = id }}
+          onSelect={(id) => {
+            selectedId = id
+          }}
         />
       </svg>
     )
