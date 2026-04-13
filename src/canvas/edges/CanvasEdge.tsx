@@ -1,7 +1,12 @@
 import { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
 import {
-  NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED, PORT_RADIUS,
-  HEADER_HEIGHT_COMPACT, PORT_SPACING, COMPACT_PORT_TOP, EXPANDED_PORT_TOP
+  COMPACT_PORT_TOP,
+  EXPANDED_PORT_TOP,
+  HEADER_HEIGHT_COMPACT,
+  NODE_WIDTH_COMPACT,
+  NODE_WIDTH_EXPANDED,
+  PORT_RADIUS,
+  PORT_SPACING
 } from '@canvas/canvasConstants'
 
 type CanvasEdgeProps = {
@@ -48,26 +53,48 @@ function buildCurvePath(from: PortPosition, to: PortPosition): string {
   return `M ${from.x} ${from.y} C ${from.x + dx} ${from.y}, ${to.x - dx} ${to.y}, ${to.x} ${to.y}`
 }
 
-function CanvasEdge({ edge, nodes, expandedNodeIds, nodeWidths, isSelected, isInvalid, isDimmed, onSelect }: CanvasEdgeProps) {
+function CanvasEdge({
+  edge,
+  nodes,
+  expandedNodeIds,
+  nodeWidths,
+  isSelected,
+  isInvalid,
+  isDimmed,
+  onSelect
+}: CanvasEdgeProps) {
   const sourceNode = nodes.find((n) => n.id === edge.sourceNodeId)
   const targetNode = nodes.find((n) => n.id === edge.targetNodeId)
   if (!sourceNode || !targetNode) return null
 
-  const from = getPortPosition(sourceNode, edge.sourceSlot, 'out', expandedNodeIds.has(edge.sourceNodeId), nodeWidths[edge.sourceNodeId])
-  const to = getPortPosition(targetNode, edge.targetSlot, 'in', expandedNodeIds.has(edge.targetNodeId), nodeWidths[edge.targetNodeId])
+  const from = getPortPosition(
+    sourceNode,
+    edge.sourceSlot,
+    'out',
+    expandedNodeIds.has(edge.sourceNodeId),
+    nodeWidths[edge.sourceNodeId]
+  )
+  const to = getPortPosition(
+    targetNode,
+    edge.targetSlot,
+    'in',
+    expandedNodeIds.has(edge.targetNodeId),
+    nodeWidths[edge.targetNodeId]
+  )
   const path = buildCurvePath(from, to)
 
-  const strokeColor = isInvalid
-    ? '#ef4444'
-    : isSelected ? 'var(--accent-blue)' : '#9ca3af'
+  const strokeColor = isInvalid ? '#ef4444' : isSelected ? 'var(--accent-blue)' : '#9ca3af'
 
-  const srcOutputSlots = sourceNode.slots.filter(s => s.direction === 'out')
+  const srcOutputSlots = sourceNode.slots.filter((s) => s.direction === 'out')
   const showEdgeLabel = srcOutputSlots.length > 1
-  const edgeLabelIndex = srcOutputSlots.findIndex(s => s.name === edge.sourceSlot)
+  const edgeLabelIndex = srcOutputSlots.findIndex((s) => s.name === edge.sourceSlot)
 
   return (
     <g
-      onClick={(e) => { e.stopPropagation(); onSelect(edge.id) }}
+      onClick={(e) => {
+        e.stopPropagation()
+        onSelect(edge.id)
+      }}
       opacity={isDimmed ? 0.15 : 1}
       style={{ transition: 'opacity 0.2s ease' }}
     >
@@ -107,8 +134,15 @@ function PendingEdge({ fromX, fromY, toX, toY }: PendingEdgeProps) {
   const dx = Math.abs(toX - fromX) * 0.5
   const path = `M ${fromX} ${fromY} C ${fromX + dx} ${fromY}, ${toX - dx} ${toY}, ${toX} ${toY}`
   return (
-    <path d={path} fill="none" stroke="#9ca3af" strokeWidth={2}
-      strokeDasharray="6,4" strokeLinecap="round" pointerEvents="none" />
+    <path
+      d={path}
+      fill="none"
+      stroke="#9ca3af"
+      strokeWidth={2}
+      strokeDasharray="6,4"
+      strokeLinecap="round"
+      pointerEvents="none"
+    />
   )
 }
 

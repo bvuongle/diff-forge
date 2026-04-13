@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
-import { useCanvasInteraction } from './useCanvasInteraction'
+import { act, renderHook } from '@testing-library/react'
 import { makeNode } from '@testing/fixtures'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { useCanvasInteraction } from './useCanvasInteraction'
 
 function makeCanvasRef() {
   const div = document.createElement('div')
@@ -123,10 +123,7 @@ describe('useCanvasInteraction', () => {
 
     it('handles widely spread nodes', () => {
       const { result } = renderHook(() => useCanvasInteraction(canvasRef))
-      const nodes = [
-        makeNode('n1', { position: { x: 0, y: 0 } }),
-        makeNode('n2', { position: { x: 2000, y: 2000 } })
-      ]
+      const nodes = [makeNode('n1', { position: { x: 0, y: 0 } }), makeNode('n2', { position: { x: 2000, y: 2000 } })]
       act(() => {
         result.current.fitToView(nodes, 800, 600)
       })
@@ -136,10 +133,7 @@ describe('useCanvasInteraction', () => {
 
     it('handles nodes clustered together in small area', () => {
       const { result } = renderHook(() => useCanvasInteraction(canvasRef))
-      const nodes = [
-        makeNode('n1', { position: { x: 100, y: 100 } }),
-        makeNode('n2', { position: { x: 120, y: 120 } })
-      ]
+      const nodes = [makeNode('n1', { position: { x: 100, y: 100 } }), makeNode('n2', { position: { x: 120, y: 120 } })]
       act(() => {
         result.current.fitToView(nodes, 800, 600)
       })

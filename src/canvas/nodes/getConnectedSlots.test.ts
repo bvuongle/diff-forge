@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { getConnectedSlots } from './getConnectedSlots'
 import { makeEdge } from '@testing/fixtures'
+import { describe, expect, it } from 'vitest'
+import { getConnectedSlots } from './getConnectedSlots'
 
 describe('getConnectedSlots', () => {
   it('returns empty set when no edges', () => {
@@ -29,10 +29,7 @@ describe('getConnectedSlots', () => {
   })
 
   it('collects slots from multiple edges', () => {
-    const edges = [
-      makeEdge('e1', 'nodeA', 'nodeB'),
-      makeEdge('e2', 'nodeC', 'nodeA', { targetSlot: 'data' })
-    ]
+    const edges = [makeEdge('e1', 'nodeA', 'nodeB'), makeEdge('e2', 'nodeC', 'nodeA', { targetSlot: 'data' })]
     const result = getConnectedSlots('nodeA', edges)
     expect(result.has('ILink')).toBe(true)
     expect(result.has('data')).toBe(true)

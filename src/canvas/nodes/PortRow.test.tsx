@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from 'vitest'
 import { screen } from '@testing-library/react'
-import { getPortDragState, PortRow } from './PortRow'
 import { renderWithTheme } from '@testing/test-utils'
+import { describe, expect, it, vi } from 'vitest'
 import type { Slot } from '@domain/graph/GraphTypes'
+import { getPortDragState, PortRow } from './PortRow'
 
 function makeSlot(overrides?: Partial<Slot>): Slot {
   return {

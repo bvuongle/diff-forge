@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
-import { createNodeFromCatalog } from './createNodeFromCatalog'
+import { makeCatalog, makeNode } from '@testing/fixtures'
+import { describe, expect, it } from 'vitest'
 import type { Slot } from '@domain/graph/GraphTypes'
-import { makeNode, makeCatalog } from '@testing/fixtures'
+import { createNodeFromCatalog } from './createNodeFromCatalog'
 
 describe('createNodeFromCatalog', () => {
   it('creates camelCase instanceId from type', () => {

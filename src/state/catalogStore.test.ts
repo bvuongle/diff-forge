@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { useCatalogStore } from '@state/catalogStore'
+import { beforeEach, describe, expect, it } from 'vitest'
 import type { CatalogDocument } from '@domain/catalog/CatalogTypes'
+import { useCatalogStore } from '@state/catalogStore'
 
 const mockCatalog: CatalogDocument = {
   schema: 'diff.catalog.v1',

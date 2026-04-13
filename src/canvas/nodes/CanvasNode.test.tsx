@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
-import { CanvasNode } from './CanvasNode'
-import { makeNode, makeCatalog } from '@testing/fixtures'
+import { makeCatalog, makeNode } from '@testing/fixtures'
 import { renderWithTheme } from '@testing/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { CanvasNode } from './CanvasNode'
 import type { EdgeSourceMap } from './slotUtils'
 
 beforeEach(() => {
@@ -154,16 +154,14 @@ describe('CanvasNode', () => {
   it('does not render collapsed ports when expanded', () => {
     const props = defaultProps()
     props.isExpanded = true
-    const { container } = renderWithTheme(<CanvasNode {...props} />)
+    renderWithTheme(<CanvasNode {...props} />)
     expect(screen.queryByText('INFO')).toBeTruthy()
   })
 
   it('does not render output section when no output slots', () => {
     const props = defaultProps()
     props.node = makeNode('n1', {
-      slots: [
-        { name: 'transport', interface: 'ITransport', direction: 'in', maxConnections: 1 }
-      ]
+      slots: [{ name: 'transport', interface: 'ITransport', direction: 'in', maxConnections: 1 }]
     })
     const { container } = renderWithTheme(<CanvasNode {...props} />)
     const outputPort = container.querySelector('[data-slot-name="__out__"]')

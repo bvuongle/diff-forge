@@ -1,5 +1,5 @@
-import { CatalogSource } from '@ports/CatalogSource'
 import { CatalogDocument, CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
+import { CatalogSource } from '@ports/CatalogSource'
 
 type FileCatalogSourceDeps = {
   filePath: string

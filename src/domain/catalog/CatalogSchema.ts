@@ -40,10 +40,4 @@ type CatalogDocument = z.infer<typeof CatalogDocumentZ>
 
 export { CatalogComponentZ, CatalogDocumentZ }
 
-export type {
-  ConfigValueSchema,
-  CatalogRequirement,
-  VersionSchema,
-  CatalogComponent,
-  CatalogDocument
-}
+export type { ConfigValueSchema, CatalogRequirement, VersionSchema, CatalogComponent, CatalogDocument }

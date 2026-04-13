@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
-import { useEdgeDrawing } from './useEdgeDrawing'
+import { act, renderHook } from '@testing-library/react'
+import { makeNode } from '@testing/fixtures'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
-import { makeNode } from '@testing/fixtures'
+import { useEdgeDrawing } from './useEdgeDrawing'
 
 function makeCanvasRef() {
   const div = document.createElement('div')
@@ -16,7 +16,14 @@ function makeCanvasRef() {
 function makePortEl(rect = { left: 10, top: 10, width: 16, height: 16 }) {
   const el = document.createElement('div')
   Object.defineProperty(el, 'getBoundingClientRect', {
-    value: () => ({ ...rect, right: rect.left + rect.width, bottom: rect.top + rect.height, x: rect.left, y: rect.top, toJSON: () => {} })
+    value: () => ({
+      ...rect,
+      right: rect.left + rect.width,
+      bottom: rect.top + rect.height,
+      x: rect.left,
+      y: rect.top,
+      toJSON: () => {}
+    })
   })
   return el
 }
@@ -39,9 +46,7 @@ describe('useEdgeDrawing', () => {
 
   it('starts drag edge on port mouse down', () => {
     const node = makeNode('n1', {
-      slots: [
-        { name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }
-      ]
+      slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }]
     })
     useGraphStore.getState().addNode(node)
 
@@ -66,9 +71,7 @@ describe('useEdgeDrawing', () => {
 
   it('sets dragInfo in uiStore during drag', () => {
     const node = makeNode('n1', {
-      slots: [
-        { name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }
-      ]
+      slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }]
     })
     useGraphStore.getState().addNode(node)
 
@@ -96,9 +99,7 @@ describe('useEdgeDrawing', () => {
     document.elementFromPoint = vi.fn().mockReturnValue(null)
 
     const node = makeNode('n1', {
-      slots: [
-        { name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }
-      ]
+      slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }]
     })
     useGraphStore.getState().addNode(node)
 

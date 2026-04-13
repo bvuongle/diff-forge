@@ -1,5 +1,5 @@
-import { TextField, InputAdornment } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
+import { InputAdornment, TextField } from '@mui/material'
 import { useUIStore } from '@state/uiStore'
 
 type SearchInputProps = {
