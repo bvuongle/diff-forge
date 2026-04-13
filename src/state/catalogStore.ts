@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+
 import { CatalogDocument } from '@domain/catalog/CatalogTypes'
 
 type CatalogStore = {

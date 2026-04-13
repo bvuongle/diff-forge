@@ -2,8 +2,10 @@ import { fireEvent, screen } from '@testing-library/react'
 import { makeCatalog, makeNode } from '@testing/fixtures'
 import { renderWithTheme } from '@testing/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import type { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { useGraphStore } from '@state/graphStore'
+
 import { NodeExpandedContent } from './NodeExpandedContent'
 
 function makeCatalogWithConfig(): CatalogComponent {

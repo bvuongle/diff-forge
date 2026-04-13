@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { Box, Typography } from '@mui/material'
+
 import { CatalogComponentZ } from '@domain/catalog/CatalogSchema'
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { isEdgeInvalid } from '@domain/graph/GraphOperations'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
+
 import { NODE_WIDTH_COMPACT } from './canvasConstants'
 import { CanvasEdge, PendingEdge } from './edges/CanvasEdge'
 import { useEdgeDrawing } from './edges/useEdgeDrawing'

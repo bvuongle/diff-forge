@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react'
+
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box, Chip, IconButton, MenuItem, Select, Tooltip, Typography } from '@mui/material'
+
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { GraphNode } from '@domain/graph/GraphTypes'
 import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
+
 import { NodeExpandedContent } from './NodeExpandedContent'
 import { PortRow, type DragInfo } from './PortRow'
 import { getSlotTooltip, type EdgeSourceMap } from './slotUtils'

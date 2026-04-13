@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react'
+
 import { Box, Chip, Divider, MenuItem, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { GraphNode, Slot } from '@domain/graph/GraphTypes'
 import { useGraphStore } from '@state/graphStore'
+
 import { ConfigFieldRenderer } from './ConfigFieldRenderer'
 import { JsonConfigEditor } from './JsonConfigEditor'
 import { PortRow, type DragInfo } from './PortRow'

@@ -1,5 +1,6 @@
 import { makeEdge } from '@testing/fixtures'
 import { describe, expect, it } from 'vitest'
+
 import { getConnectedSlots } from './getConnectedSlots'
 
 describe('getConnectedSlots', () => {

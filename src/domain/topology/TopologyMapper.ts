@@ -1,4 +1,5 @@
 import { Graph, GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
+
 import { Topology } from './TopologyTypes'
 
 function graphToTopology(graph: Graph): Topology {

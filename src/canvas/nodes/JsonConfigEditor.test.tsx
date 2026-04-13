@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { renderWithTheme } from '@testing/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+
 import { JsonConfigEditor } from './JsonConfigEditor'
 
 describe('JsonConfigEditor', () => {

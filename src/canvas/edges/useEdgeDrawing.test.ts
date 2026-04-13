@@ -1,8 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
 import { makeNode } from '@testing/fixtures'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
+
 import { useEdgeDrawing } from './useEdgeDrawing'
 
 function makeCanvasRef() {

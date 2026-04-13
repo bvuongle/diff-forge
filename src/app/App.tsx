@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
+
 import { CssBaseline } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { ZodError } from 'zod'
+
 import { CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
 import { useCatalogStore } from '@state/catalogStore'
+
 import catalogData from '@/assets/mock/catalog.v1.json'
 import { theme } from '@/styles/theme'
 import { MainLayout } from './MainLayout'

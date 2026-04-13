@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { makeNode } from '@testing/fixtures'
 import { beforeEach, describe, expect, it } from 'vitest'
+
 import { useCanvasInteraction } from './useCanvasInteraction'
 
 function makeCanvasRef() {

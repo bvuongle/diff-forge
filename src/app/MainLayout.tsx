@@ -1,5 +1,7 @@
 import { Box, Divider } from '@mui/material'
+
 import { CanvasPanel } from '@canvas/CanvasPanel'
+
 import { LeftCatalogPanel } from './LeftCatalogPanel'
 import { Topbar } from './Topbar'
 

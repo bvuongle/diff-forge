@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import { makeEdge, makeNode } from '@testing/fixtures'
 import { describe, expect, it } from 'vitest'
+
 import { EXPANDED_PORT_TOP, NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
 
 describe('CanvasEdge constants', () => {

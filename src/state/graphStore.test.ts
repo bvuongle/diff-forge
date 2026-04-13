@@ -1,5 +1,6 @@
 import { makeEdge, makeNode } from '@testing/fixtures'
 import { beforeEach, describe, expect, it } from 'vitest'
+
 import { useGraphStore } from '@state/graphStore'
 
 describe('graphStore', () => {
