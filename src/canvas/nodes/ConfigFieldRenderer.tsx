@@ -49,7 +49,7 @@ function ConfigFieldRenderer({ fieldName, schema, value, onChange }: ConfigField
       size="small"
       fullWidth
       value={String(value ?? schema.default ?? '')}
-      slotProps={{ htmlInput: { maxLength: schema.max } }}
+      slotProps={{ htmlInput: schema.max != null ? { maxLength: schema.max } : {} }}
       onChange={(e) => onChange(fieldName, e.target.value)}
     />
   )

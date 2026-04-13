@@ -3,6 +3,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import { CssBaseline } from '@mui/material'
 import { MainLayout } from './MainLayout'
 import { theme } from '@/styles/theme'
+import { ZodError } from 'zod'
 import { useCatalogStore } from '@state/catalogStore'
 import { CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
 import catalogData from '@/assets/mock/catalog.v1.json'
@@ -16,7 +17,11 @@ function App() {
       const catalog = CatalogDocumentZ.parse(catalogData)
       setCatalog(catalog)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load catalog')
+      if (err instanceof ZodError) {
+        setError(`Invalid catalog schema: ${err.issues.length} validation error(s)`)
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to load catalog')
+      }
     } finally {
       setLoading(false)
     }
