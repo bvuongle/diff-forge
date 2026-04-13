@@ -1,30 +1,30 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { ThemeProvider } from '@mui/material/styles'
 import { CssBaseline } from '@mui/material'
-import { MainLayout } from '@ui/layout/MainLayout'
+import { MainLayout } from './MainLayout'
 import { theme } from '@/styles/theme'
+import { ZodError } from 'zod'
 import { useCatalogStore } from '@state/catalogStore'
-import catalogData from '@/assets/mock/catalog.v0.json'
-
-// Root component: initialize stores, load catalog
+import { CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
+import catalogData from '@/assets/mock/catalog.v1.json'
 
 function App() {
   const { setCatalog, setLoading, setError } = useCatalogStore()
 
   useEffect(() => {
-    const loadCatalog = async () => {
-      setLoading(true)
-      try {
-        // In dev, use mock catalog data
-        setCatalog(catalogData)
-      } catch (err) {
+    setLoading(true)
+    try {
+      const catalog = CatalogDocumentZ.parse(catalogData)
+      setCatalog(catalog)
+    } catch (err) {
+      if (err instanceof ZodError) {
+        setError(`Invalid catalog schema: ${err.issues.length} validation error(s)`)
+      } else {
         setError(err instanceof Error ? err.message : 'Failed to load catalog')
-      } finally {
-        setLoading(false)
       }
+    } finally {
+      setLoading(false)
     }
-
-    loadCatalog()
   }, [setCatalog, setLoading, setError])
 
   return (

@@ -1,17 +1,19 @@
 import { create } from 'zustand'
-import { Graph, GraphNode, GraphEdge, Position } from '../domain/graph/GraphTypes'
+import { Graph, GraphNode, GraphEdge, Slot, Position } from '@domain/graph/GraphTypes'
 import {
   addNode,
   removeNode,
   addEdge,
   removeEdge,
   moveNode,
-  updateNodeConfig
-} from '../domain/graph/GraphOperations'
+  updateNodeConfig,
+  renameNode,
+  updateNodeVersion
+} from '@domain/graph/GraphOperations'
 
 type GraphStore = {
   graph: Graph
-  selectedNodeId: string | null
+  selectedNodeIds: Set<string>
   selectedEdgeId: string | null
   addNode: (node: GraphNode) => void
   removeNode: (nodeId: string) => void
@@ -19,13 +21,18 @@ type GraphStore = {
   removeEdge: (edgeId: string) => void
   moveNode: (nodeId: string, position: Position) => void
   updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void
-  selectNode: (nodeId: string | null) => void
+  renameNode: (oldId: string, newId: string) => void
+  updateNodeVersion: (nodeId: string, version: string, newSlots: Slot[], newConfigSchema: Record<string, unknown>) => void
+  selectNode: (nodeId: string | null, additive?: boolean) => void
+  selectNodes: (nodeIds: string[]) => void
   selectEdge: (edgeId: string | null) => void
+  clearSelection: () => void
+  removeSelectedNodes: () => void
 }
 
 const useGraphStore = create<GraphStore>((set) => ({
   graph: { nodes: [], edges: [] },
-  selectedNodeId: null,
+  selectedNodeIds: new Set(),
   selectedEdgeId: null,
 
   addNode: (node) =>
@@ -34,10 +41,14 @@ const useGraphStore = create<GraphStore>((set) => ({
     })),
 
   removeNode: (nodeId) =>
-    set((state) => ({
-      graph: removeNode(state.graph, nodeId),
-      selectedNodeId: state.selectedNodeId === nodeId ? null : state.selectedNodeId
-    })),
+    set((state) => {
+      const next = new Set(state.selectedNodeIds)
+      next.delete(nodeId)
+      return {
+        graph: removeNode(state.graph, nodeId),
+        selectedNodeIds: next
+      }
+    }),
 
   addEdge: (edge) =>
     set((state) => ({
@@ -60,11 +71,53 @@ const useGraphStore = create<GraphStore>((set) => ({
       graph: updateNodeConfig(state.graph, nodeId, config)
     })),
 
-  selectNode: (nodeId) =>
-    set({ selectedNodeId: nodeId, selectedEdgeId: null }),
+  renameNode: (oldId, newId) =>
+    set((state) => {
+      const next = new Set(state.selectedNodeIds)
+      if (next.has(oldId)) {
+        next.delete(oldId)
+        next.add(newId)
+      }
+      return {
+        graph: renameNode(state.graph, oldId, newId),
+        selectedNodeIds: next
+      }
+    }),
+
+  updateNodeVersion: (nodeId, version, newSlots, newConfigSchema) =>
+    set((state) => ({
+      graph: updateNodeVersion(state.graph, nodeId, version, newSlots, newConfigSchema)
+    })),
+
+  selectNode: (nodeId, additive = false) =>
+    set((state) => {
+      if (nodeId === null) return { selectedNodeIds: new Set(), selectedEdgeId: null }
+      if (additive) {
+        const next = new Set(state.selectedNodeIds)
+        if (next.has(nodeId)) next.delete(nodeId)
+        else next.add(nodeId)
+        return { selectedNodeIds: next, selectedEdgeId: null }
+      }
+      return { selectedNodeIds: new Set([nodeId]), selectedEdgeId: null }
+    }),
+
+  selectNodes: (nodeIds) =>
+    set({ selectedNodeIds: new Set(nodeIds), selectedEdgeId: null }),
 
   selectEdge: (edgeId) =>
-    set({ selectedEdgeId: edgeId, selectedNodeId: null })
+    set({ selectedEdgeId: edgeId }),
+
+  clearSelection: () =>
+    set({ selectedNodeIds: new Set(), selectedEdgeId: null }),
+
+  removeSelectedNodes: () =>
+    set((state) => {
+      let g = state.graph
+      for (const nodeId of state.selectedNodeIds) {
+        g = removeNode(g, nodeId)
+      }
+      return { graph: g, selectedNodeIds: new Set(), selectedEdgeId: null }
+    })
 }))
 
 export { useGraphStore }
