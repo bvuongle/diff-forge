@@ -7,13 +7,16 @@
   "plugins": ["@ianvs/prettier-plugin-sort-imports"],
   "importOrder": [
     "^react",
+    "",
     "<THIRD_PARTY_MODULES>",
+    "",
     "^@domain/(.*)$",
     "^@state/(.*)$",
     "^@ports/(.*)$",
     "^@adapters/(.*)$",
     "^@canvas/(.*)$",
     "^@app/(.*)$",
+    "",
     "^@/(.*)$",
     "^[./]"
   ],
