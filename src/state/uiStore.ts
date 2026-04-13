@@ -1,25 +1,50 @@
 import { create } from 'zustand'
 
+type DragInfo = {
+  sourceNodeId: string
+  sourceInterfaces: string[]
+}
+
+type CanvasMode = 'select' | 'pan'
+
 type UIStore = {
-  leftPanelCollapsed: boolean
-  rightPanelCollapsed: boolean
   searchQuery: string
-  notificationMessage: string | null
-  setLeftPanelCollapsed: (collapsed: boolean) => void
-  setRightPanelCollapsed: (collapsed: boolean) => void
   setSearchQuery: (query: string) => void
-  setNotificationMessage: (message: string | null) => void
+  expandedNodeIds: Set<string>
+  toggleNodeExpanded: (nodeId: string) => void
+  expandAll: (nodeIds: string[]) => void
+  collapseAll: () => void
+  dragInfo: DragInfo | null
+  setDragInfo: (info: DragInfo | null) => void
+  nodeWidths: Record<string, number>
+  setNodeWidth: (nodeId: string, width: number) => void
+  canvasMode: CanvasMode
+  setCanvasMode: (mode: CanvasMode) => void
 }
 
 const useUIStore = create<UIStore>((set) => ({
-  leftPanelCollapsed: false,
-  rightPanelCollapsed: false,
   searchQuery: '',
-  notificationMessage: null,
-  setLeftPanelCollapsed: (collapsed) => set({ leftPanelCollapsed: collapsed }),
-  setRightPanelCollapsed: (collapsed) => set({ rightPanelCollapsed: collapsed }),
   setSearchQuery: (query) => set({ searchQuery: query }),
-  setNotificationMessage: (message) => set({ notificationMessage: message })
+  expandedNodeIds: new Set(),
+  toggleNodeExpanded: (nodeId) =>
+    set((s) => {
+      const next = new Set(s.expandedNodeIds)
+      if (next.has(nodeId)) next.delete(nodeId)
+      else next.add(nodeId)
+      return { expandedNodeIds: next }
+    }),
+  expandAll: (nodeIds) => set({ expandedNodeIds: new Set(nodeIds) }),
+  collapseAll: () => set({ expandedNodeIds: new Set() }),
+  dragInfo: null,
+  setDragInfo: (info) => set({ dragInfo: info }),
+  nodeWidths: {},
+  setNodeWidth: (nodeId, width) =>
+    set((s) => {
+      if (s.nodeWidths[nodeId] === width) return s
+      return { nodeWidths: { ...s.nodeWidths, [nodeId]: width } }
+    }),
+  canvasMode: 'select',
+  setCanvasMode: (mode) => set({ canvasMode: mode })
 }))
 
 export { useUIStore }

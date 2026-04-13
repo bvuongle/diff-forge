@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     electron([
       {
-        entry: 'electron/main.ts',
+        entry: 'src/electron/main.ts',
         vite: {
           build: {
             outDir: 'dist-electron',
@@ -19,13 +19,17 @@ export default defineConfig({
         }
       },
       {
-        entry: 'electron/preload.ts',
+        entry: 'src/electron/preload.ts',
         onstart(options) {
           options.reload()
         },
         vite: {
           build: {
             outDir: 'dist-electron',
+            lib: {
+              entry: 'src/electron/preload.ts',
+              formats: ['cjs']
+            },
             rollupOptions: {
               external: ['electron']
             }
@@ -46,7 +50,8 @@ export default defineConfig({
       '@ports': '/src/ports',
       '@adapters': '/src/adapters',
       '@state': '/src/state',
-      '@ui': '/src/ui'
+      '@canvas': '/src/canvas',
+      '@testing': '/src/testing'
     }
   }
 })

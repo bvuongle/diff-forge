@@ -1,6 +1,4 @@
-import { Graph } from '../domain/graph/GraphTypes'
-
-// Port: defines how graph state is persisted and loaded
+import { Graph } from '@domain/graph/GraphTypes'
 
 type GraphPersistence = {
   save(graph: Graph): Promise<void>
