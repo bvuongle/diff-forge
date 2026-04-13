@@ -1,5 +1,6 @@
 import { makeEdge, makeNode } from '@testing/fixtures'
 import { describe, expect, it } from 'vitest'
+
 import {
   addEdge,
   addNode,

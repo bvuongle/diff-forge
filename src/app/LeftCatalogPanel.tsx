@@ -1,7 +1,9 @@
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
 import { Box, Chip, Divider, List, ListItemButton, Stack, Typography } from '@mui/material'
+
 import { useCatalogStore } from '@state/catalogStore'
 import { useUIStore } from '@state/uiStore'
+
 import { SearchInput } from './SearchInput'
 import { SectionHeader } from './SectionHeader'
 

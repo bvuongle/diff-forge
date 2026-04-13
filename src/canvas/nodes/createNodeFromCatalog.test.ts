@@ -1,6 +1,8 @@
 import { makeCatalog, makeNode } from '@testing/fixtures'
 import { describe, expect, it } from 'vitest'
+
 import type { Slot } from '@domain/graph/GraphTypes'
+
 import { createNodeFromCatalog } from './createNodeFromCatalog'
 
 describe('createNodeFromCatalog', () => {

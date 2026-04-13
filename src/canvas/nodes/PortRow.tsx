@@ -1,5 +1,7 @@
 import { useRef } from 'react'
+
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
+
 import { Slot } from '@domain/graph/GraphTypes'
 
 type DragInfo = { sourceNodeId: string; sourceInterfaces: string[] }
