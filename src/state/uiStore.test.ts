@@ -7,7 +7,8 @@ describe('uiStore', () => {
       searchQuery: '',
       expandedNodeIds: new Set(),
       dragInfo: null,
-      nodeWidths: {}
+      nodeWidths: {},
+      canvasMode: 'select'
     })
   })
 
@@ -96,6 +97,23 @@ describe('uiStore', () => {
       useUIStore.getState().setNodeWidth('n1', 240)
       useUIStore.getState().setNodeWidth('n1', 340)
       expect(useUIStore.getState().nodeWidths['n1']).toBe(340)
+    })
+  })
+
+  describe('canvasMode', () => {
+    it('defaults to select', () => {
+      expect(useUIStore.getState().canvasMode).toBe('select')
+    })
+
+    it('setCanvasMode switches to pan', () => {
+      useUIStore.getState().setCanvasMode('pan')
+      expect(useUIStore.getState().canvasMode).toBe('pan')
+    })
+
+    it('setCanvasMode switches back to select', () => {
+      useUIStore.getState().setCanvasMode('pan')
+      useUIStore.getState().setCanvasMode('select')
+      expect(useUIStore.getState().canvasMode).toBe('select')
     })
   })
 })
