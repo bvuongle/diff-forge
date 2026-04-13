@@ -4,6 +4,7 @@ import { useGraphStore } from '@state/graphStore'
 import { useCatalogStore } from '@state/catalogStore'
 import { useUIStore } from '@state/uiStore'
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
+import { CatalogComponentZ } from '@domain/catalog/CatalogSchema'
 import { isEdgeInvalid } from '@domain/graph/GraphOperations'
 import { useCanvasInteraction } from './interaction/useCanvasInteraction'
 import { useEdgeDrawing } from './edges/useEdgeDrawing'
@@ -98,7 +99,9 @@ function CanvasPanel() {
       e.preventDefault()
       const raw = e.dataTransfer.getData('application/x-diff-component')
       if (!raw) return
-      const component = JSON.parse(raw) as CatalogComponent
+      const parsed = CatalogComponentZ.safeParse(JSON.parse(raw))
+      if (!parsed.success) return
+      const component = parsed.data
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
       const position = {

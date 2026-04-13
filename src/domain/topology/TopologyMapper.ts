@@ -1,26 +1,26 @@
-import { Graph } from '@domain/graph/GraphTypes'
+import { Graph, GraphNode, GraphEdge } from '@domain/graph/GraphTypes'
 import { Topology, TopologyEntry } from './TopologyTypes'
 
 function graphToTopology(graph: Graph): Topology {
-  const outgoingEdges = new Map<string, string[]>()
-  graph.nodes.forEach(node => {
-    outgoingEdges.set(node.id, [])
-  })
+  const nodeMap = new Map<string, GraphNode>()
+  for (const node of graph.nodes) nodeMap.set(node.id, node)
 
-  graph.edges.forEach(edge => {
-    const deps = outgoingEdges.get(edge.sourceNodeId) || []
-    deps.push(edge.targetNodeId)
-    outgoingEdges.set(edge.sourceNodeId, deps)
-  })
+  const incomingDeps = new Map<string, string[]>()
+  for (const node of graph.nodes) incomingDeps.set(node.id, [])
 
-  const topology: Topology = graph.nodes.map(node => ({
+  for (const edge of graph.edges) {
+    const sourceNode = nodeMap.get(edge.sourceNodeId)
+    if (!sourceNode) continue
+    const deps = incomingDeps.get(edge.targetNodeId)
+    if (deps) deps.push(sourceNode.instanceId)
+  }
+
+  return graph.nodes.map(node => ({
     type: node.componentType,
     id: node.instanceId,
-    dependencies: outgoingEdges.get(node.id) || [],
+    dependencies: incomingDeps.get(node.id) ?? [],
     config: node.config
   }))
-
-  return topology
 }
 
 function topologyToGraph(topology: Topology): Graph {
@@ -36,22 +36,20 @@ function topologyToGraph(topology: Topology): Graph {
     slots: []
   }))
 
-  const edges: typeof nodes extends (infer T)[] ?
-    Array<{ id: string; sourceNodeId: string; sourceSlot: string; targetNodeId: string; targetSlot: string }> :
-    never = []
+  const edges: GraphEdge[] = []
 
   let edgeId = 0
-  topology.forEach((entry, idx) => {
-    entry.dependencies.forEach(depId => {
+  for (const entry of topology) {
+    for (const depId of entry.dependencies) {
       edges.push({
         id: `edge-${edgeId++}`,
-        sourceNodeId: entry.id,
+        sourceNodeId: depId,
         sourceSlot: '',
-        targetNodeId: depId,
+        targetNodeId: entry.id,
         targetSlot: ''
       })
-    })
-  })
+    }
+  }
 
   return {
     nodes,

@@ -17,7 +17,11 @@ function createFileGraphPersistence(deps: FileGraphPersistenceDeps): GraphPersis
       try {
         const content = await deps.loadFile('graph.json')
         if (!content) return null
-        return JSON.parse(content)
+        const data: unknown = JSON.parse(content)
+        if (!data || typeof data !== 'object') return null
+        const graph = data as Record<string, unknown>
+        if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) return null
+        return data as Graph
       } catch {
         return null
       }

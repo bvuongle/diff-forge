@@ -38,7 +38,7 @@ type VersionSchema = z.infer<typeof VersionSchemaZ>
 type CatalogComponent = z.infer<typeof CatalogComponentZ>
 type CatalogDocument = z.infer<typeof CatalogDocumentZ>
 
-export { CatalogDocumentZ }
+export { CatalogComponentZ, CatalogDocumentZ }
 
 export type {
   ConfigValueSchema,

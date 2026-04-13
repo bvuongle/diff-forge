@@ -17,9 +17,13 @@ function JsonConfigEditor({ config, onSave }: JsonConfigEditorProps) {
 
   const handleBlur = () => {
     try {
-      const parsed = JSON.parse(text) as Record<string, unknown>
+      const parsed: unknown = JSON.parse(text)
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        setError(true)
+        return
+      }
       setError(false)
-      onSave(parsed)
+      onSave(parsed as Record<string, unknown>)
     } catch {
       setError(true)
     }
