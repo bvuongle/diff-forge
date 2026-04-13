@@ -1,17 +1,9 @@
-import {
-  Box,
-  Chip,
-  Divider,
-  List,
-  ListItemButton,
-  Stack,
-  Typography
-} from '@mui/material'
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
-import { SearchInput } from './SearchInput'
-import { SectionHeader } from './SectionHeader'
+import { Box, Chip, Divider, List, ListItemButton, Stack, Typography } from '@mui/material'
 import { useCatalogStore } from '@state/catalogStore'
 import { useUIStore } from '@state/uiStore'
+import { SearchInput } from './SearchInput'
+import { SectionHeader } from './SectionHeader'
 
 function LeftCatalogPanel() {
   const { catalog, loading, error } = useCatalogStore()
@@ -63,10 +55,7 @@ function LeftCatalogPanel() {
                 key={`${component.module}-${component.type}`}
                 draggable
                 onDragStart={(event) => {
-                  event.dataTransfer.setData(
-                    'application/x-diff-component',
-                    JSON.stringify(component)
-                  )
+                  event.dataTransfer.setData('application/x-diff-component', JSON.stringify(component))
                   event.dataTransfer.effectAllowed = 'copy'
                 }}
                 sx={{

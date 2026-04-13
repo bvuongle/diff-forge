@@ -1,5 +1,5 @@
-import { Graph, GraphNode, GraphEdge } from '@domain/graph/GraphTypes'
-import { Topology, TopologyEntry } from './TopologyTypes'
+import { Graph, GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
+import { Topology } from './TopologyTypes'
 
 function graphToTopology(graph: Graph): Topology {
   const nodeMap = new Map<string, GraphNode>()
@@ -15,7 +15,7 @@ function graphToTopology(graph: Graph): Topology {
     if (deps) deps.push(sourceNode.instanceId)
   }
 
-  return graph.nodes.map(node => ({
+  return graph.nodes.map((node) => ({
     type: node.componentType,
     id: node.instanceId,
     dependencies: incomingDeps.get(node.id) ?? [],
@@ -57,7 +57,4 @@ function topologyToGraph(topology: Topology): Graph {
   }
 }
 
-export {
-  graphToTopology,
-  topologyToGraph
-}
+export { graphToTopology, topologyToGraph }

@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
+import { validateEdge } from '@domain/graph/GraphOperations'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
-import { validateEdge } from '@domain/graph/GraphOperations'
 
 type DragEdge = {
   sourceNodeId: string
@@ -43,9 +43,9 @@ function useEdgeDrawing(canvasRef: React.RefObject<HTMLDivElement | null>, zoom:
       const fromX = (rect.left + rect.width / 2 - canvasRect.left - panX) / zoom
       const fromY = (rect.top + rect.height / 2 - canvasRect.top - panY) / zoom
 
-      const node = graph.nodes.find(n => n.id === nodeId)
+      const node = graph.nodes.find((n) => n.id === nodeId)
       if (node) {
-        const outInterfaces = node.slots.filter(s => s.direction === 'out').map(s => s.interface)
+        const outInterfaces = node.slots.filter((s) => s.direction === 'out').map((s) => s.interface)
         setDragInfo({ sourceNodeId: nodeId, sourceInterfaces: outInterfaces })
       }
 
@@ -83,10 +83,12 @@ function useEdgeDrawing(canvasRef: React.RefObject<HTMLDivElement | null>, zoom:
             const tSlot = isSourceOutput ? targetSlot : src.sourceSlot
 
             if (sSlot === '__out__') {
-              const srcNode = graph.nodes.find(n => n.id === sNodeId)
-              const tgtNode = graph.nodes.find(n => n.id === tNodeId)
-              const tgtSlotObj = tgtNode?.slots.find(s => s.name === tSlot && s.direction === 'in')
-              const matchingOut = srcNode?.slots.find(s => s.direction === 'out' && s.interface === tgtSlotObj?.interface)
+              const srcNode = graph.nodes.find((n) => n.id === sNodeId)
+              const tgtNode = graph.nodes.find((n) => n.id === tNodeId)
+              const tgtSlotObj = tgtNode?.slots.find((s) => s.name === tSlot && s.direction === 'in')
+              const matchingOut = srcNode?.slots.find(
+                (s) => s.direction === 'out' && s.interface === tgtSlotObj?.interface
+              )
               if (matchingOut) sSlot = matchingOut.name
             }
 

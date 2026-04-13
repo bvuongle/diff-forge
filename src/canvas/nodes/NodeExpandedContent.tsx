@@ -1,15 +1,12 @@
 import { useRef, useState } from 'react'
-import { Box, Chip, Divider, MenuItem, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material'
-import { GraphNode, Slot } from '@domain/graph/GraphTypes'
+import { Box, Chip, Divider, MenuItem, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
+import { GraphNode, Slot } from '@domain/graph/GraphTypes'
 import { useGraphStore } from '@state/graphStore'
 import { ConfigFieldRenderer } from './ConfigFieldRenderer'
 import { JsonConfigEditor } from './JsonConfigEditor'
-import { PortRow } from './PortRow'
-import { buildSlots } from './createNodeFromCatalog'
-import type { DragInfo } from './PortRow'
-import { getSlotTooltip } from './slotUtils'
-import type { EdgeSourceMap } from './slotUtils'
+import { PortRow, type DragInfo } from './PortRow'
+import { getSlotTooltip, type EdgeSourceMap } from './slotUtils'
 
 type NodeExpandedContentProps = {
   node: GraphNode
@@ -21,12 +18,19 @@ type NodeExpandedContentProps = {
   onVersionChange: (nodeId: string, version: string) => void
 }
 
-function OutputPortRow({ nodeId, outputSlots, connectedSlots, onPortMouseDown }: {
-  nodeId: string; outputSlots: Slot[]; connectedSlots: Set<string>
+function OutputPortRow({
+  nodeId,
+  outputSlots,
+  connectedSlots,
+  onPortMouseDown
+}: {
+  nodeId: string
+  outputSlots: Slot[]
+  connectedSlots: Set<string>
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const isConnected = outputSlots.some(s => connectedSlots.has(s.name))
+  const isConnected = outputSlots.some((s) => connectedSlots.has(s.name))
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, py: 0.5, height: 32 }}>
       {outputSlots.length === 1 && (
@@ -40,12 +44,19 @@ function OutputPortRow({ nodeId, outputSlots, connectedSlots, onPortMouseDown }:
         data-node-id={nodeId}
         data-slot-name="__out__"
         data-direction="out"
-        onMouseDown={(e) => { if (ref.current) onPortMouseDown(e, nodeId, '__out__', ref.current) }}
+        onMouseDown={(e) => {
+          if (ref.current) onPortMouseDown(e, nodeId, '__out__', ref.current)
+        }}
         sx={{
-          width: 16, height: 16, borderRadius: '50%', border: '2px solid',
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          border: '2px solid',
           borderColor: isConnected ? '#22c55e' : 'var(--panel-border)',
           bgcolor: isConnected ? '#22c55e' : '#fff',
-          cursor: 'crosshair', flexShrink: 0, transition: 'all 0.15s ease',
+          cursor: 'crosshair',
+          flexShrink: 0,
+          transition: 'all 0.15s ease',
           '&:hover': { borderColor: 'var(--accent-blue)', bgcolor: 'var(--accent-blue-light)', transform: 'scale(1.2)' }
         }}
       />
@@ -54,7 +65,13 @@ function OutputPortRow({ nodeId, outputSlots, connectedSlots, onPortMouseDown }:
 }
 
 function NodeExpandedContent({
-  node, catalogComponent, connectedSlots, dragInfo, edgeSourceMap, onPortMouseDown, onVersionChange
+  node,
+  catalogComponent,
+  connectedSlots,
+  dragInfo,
+  edgeSourceMap,
+  onPortMouseDown,
+  onVersionChange
 }: NodeExpandedContentProps) {
   const { graph, renameNode, updateNodeConfig } = useGraphStore()
   const [editId, setEditId] = useState(node.instanceId)
@@ -72,9 +89,13 @@ function NodeExpandedContent({
 
   const commitRename = () => {
     const trimmed = editId.trim()
-    if (!trimmed) { setIdError('Cannot be empty'); return }
+    if (!trimmed) {
+      setIdError('Cannot be empty')
+      return
+    }
     if (trimmed !== node.id && graph.nodes.some((n) => n.id === trimmed)) {
-      setIdError('Already in use'); return
+      setIdError('Already in use')
+      return
     }
     setIdError('')
     if (trimmed !== node.id) renameNode(node.id, trimmed)
@@ -92,28 +113,52 @@ function NodeExpandedContent({
       </Typography>
       <Box display="flex" flexDirection="column" gap={1.5} mt={1}>
         <TextField
-          label="Instance ID" size="small" fullWidth value={editId}
-          onChange={(e) => { setEditId(e.target.value); setIdError('') }}
+          label="Instance ID"
+          size="small"
+          fullWidth
+          value={editId}
+          onChange={(e) => {
+            setEditId(e.target.value)
+            setIdError('')
+          }}
           onBlur={commitRename}
-          onKeyDown={(e) => { if (e.key === 'Enter') commitRename() }}
-          error={Boolean(idError)} helperText={idError || undefined}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commitRename()
+          }}
+          error={Boolean(idError)}
+          helperText={idError || undefined}
         />
         <Box display="flex" gap={2}>
           <Box flex={1}>
-            <Typography variant="caption" color="text.secondary">Type</Typography>
-            <Typography variant="body2" fontSize="0.8rem">{node.componentType}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Type
+            </Typography>
+            <Typography variant="body2" fontSize="0.8rem">
+              {node.componentType}
+            </Typography>
           </Box>
           <Box flex={1}>
-            <Typography variant="caption" color="text.secondary">Module</Typography>
-            <Typography variant="body2" fontSize="0.8rem">{node.module}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              Module
+            </Typography>
+            <Typography variant="body2" fontSize="0.8rem">
+              {node.module}
+            </Typography>
           </Box>
         </Box>
         <TextField
-          label="Version" size="small" fullWidth select
+          label="Version"
+          size="small"
+          fullWidth
+          select
           value={node.version}
           onChange={(e) => onVersionChange(node.id, e.target.value)}
         >
-          {versionKeys.map((v) => <MenuItem key={v} value={v}>{v}</MenuItem>)}
+          {versionKeys.map((v) => (
+            <MenuItem key={v} value={v}>
+              {v}
+            </MenuItem>
+          ))}
         </TextField>
         {implements_.length > 0 && (
           <Box display="flex" gap={0.5} flexWrap="wrap">
@@ -132,12 +177,24 @@ function NodeExpandedContent({
       <Box mt={0.5}>
         {inputSlots.map((slot) => (
           <PortRow
-            key={slot.name} slot={slot} nodeId={node.id} side="left"
-            isConnected={connectedSlots.has(slot.name)} dragInfo={dragInfo}
-            tooltipText={getSlotTooltip(edgeSourceMap, slot.name)} onMouseDown={onPortMouseDown}
+            key={slot.name}
+            slot={slot}
+            nodeId={node.id}
+            side="left"
+            isConnected={connectedSlots.has(slot.name)}
+            dragInfo={dragInfo}
+            tooltipText={getSlotTooltip(edgeSourceMap, slot.name)}
+            onMouseDown={onPortMouseDown}
           />
         ))}
-        {outputSlots.length > 0 && <OutputPortRow nodeId={node.id} outputSlots={outputSlots} connectedSlots={connectedSlots} onPortMouseDown={onPortMouseDown} />}
+        {outputSlots.length > 0 && (
+          <OutputPortRow
+            nodeId={node.id}
+            outputSlots={outputSlots}
+            connectedSlots={connectedSlots}
+            onPortMouseDown={onPortMouseDown}
+          />
+        )}
       </Box>
 
       {/* CONFIGURATION */}
@@ -149,12 +206,20 @@ function NodeExpandedContent({
               CONFIGURATION
             </Typography>
             <ToggleButtonGroup
-              size="small" exclusive value={configTab}
-              onChange={(_, v) => { if (v) setConfigTab(v as 'fields' | 'json') }}
+              size="small"
+              exclusive
+              value={configTab}
+              onChange={(_, v) => {
+                if (v) setConfigTab(v as 'fields' | 'json')
+              }}
               sx={{ height: 22 }}
             >
-              <ToggleButton value="fields" sx={{ fontSize: '0.65rem', px: 0.75, py: 0 }}>Fields</ToggleButton>
-              <ToggleButton value="json" sx={{ fontSize: '0.65rem', px: 0.75, py: 0 }}>JSON</ToggleButton>
+              <ToggleButton value="fields" sx={{ fontSize: '0.65rem', px: 0.75, py: 0 }}>
+                Fields
+              </ToggleButton>
+              <ToggleButton value="json" sx={{ fontSize: '0.65rem', px: 0.75, py: 0 }}>
+                JSON
+              </ToggleButton>
             </ToggleButtonGroup>
           </Box>
           <Box sx={{ maxHeight: 180, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
@@ -162,8 +227,11 @@ function NodeExpandedContent({
               <Box display="flex" flexDirection="column" gap={1.5} marginTop={1}>
                 {configEntries.map(([name, schema]) => (
                   <ConfigFieldRenderer
-                    key={name} fieldName={name} schema={schema}
-                    value={node.config[name]} onChange={handleConfigField}
+                    key={name}
+                    fieldName={name}
+                    schema={schema}
+                    value={node.config[name]}
+                    onChange={handleConfigField}
                   />
                 ))}
               </Box>

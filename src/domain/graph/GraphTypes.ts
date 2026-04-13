@@ -34,10 +34,4 @@ type Graph = {
   edges: GraphEdge[]
 }
 
-export type {
-  Position,
-  Slot,
-  GraphNode,
-  GraphEdge,
-  Graph
-}
+export type { Position, Slot, GraphNode, GraphEdge, Graph }
