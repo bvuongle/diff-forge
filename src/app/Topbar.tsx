@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, Toolbar, Tooltip, Typography } from '@mui/material'
+import { AppBar, Box, Button, IconButton, Toolbar, Tooltip, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import SaveIcon from '@mui/icons-material/Save'
@@ -7,12 +7,14 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
 import FitScreenIcon from '@mui/icons-material/FitScreen'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import NearMeIcon from '@mui/icons-material/NearMe'
+import PanToolIcon from '@mui/icons-material/PanTool'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
 
 function Topbar() {
   const nodes = useGraphStore((s) => s.graph.nodes)
-  const { expandAll, collapseAll } = useUIStore()
+  const { expandAll, collapseAll, canvasMode, setCanvasMode } = useUIStore()
 
   return (
     <AppBar position="static" elevation={0} color="transparent">
@@ -38,6 +40,26 @@ function Topbar() {
         <Button size="small" color="inherit" startIcon={<SaveIcon fontSize="small" />}>
           Save
         </Button>
+        <Box sx={{ display: 'flex', border: '1px solid var(--panel-border)', borderRadius: 1, overflow: 'hidden', ml: 1 }}>
+          <Tooltip title="Select (V)">
+            <IconButton
+              size="small"
+              onClick={() => setCanvasMode('select')}
+              sx={{ borderRadius: 0, bgcolor: canvasMode === 'select' ? 'action.selected' : 'transparent' }}
+            >
+              <NearMeIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Pan (H)">
+            <IconButton
+              size="small"
+              onClick={() => setCanvasMode('pan')}
+              sx={{ borderRadius: 0, bgcolor: canvasMode === 'pan' ? 'action.selected' : 'transparent' }}
+            >
+              <PanToolIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
         <Box flex={1} />
         <Tooltip title="Expand all nodes">
           <Button size="small" color="inherit" startIcon={<UnfoldMoreIcon fontSize="small" />} onClick={() => expandAll(nodes.map((n) => n.id))}>
