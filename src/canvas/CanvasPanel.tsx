@@ -23,7 +23,7 @@ function CanvasPanel() {
     addNode, removeNode, removeEdge, selectNode, selectNodes, selectEdge, clearSelection, removeSelectedNodes, updateNodeVersion
   } = useGraphStore()
   const catalog = useCatalogStore((s) => s.catalog)
-  const { expandedNodeIds, toggleNodeExpanded, dragInfo, nodeWidths, setNodeWidth } = useUIStore()
+  const { expandedNodeIds, toggleNodeExpanded, dragInfo, nodeWidths, setNodeWidth, canvasMode } = useUIStore()
   const { transform, onPanStart, onPanMove, onPanEnd, fitToView, resetView } = useCanvasInteraction(canvasRef)
   const { dragEdge, onPortMouseDown } = useEdgeDrawing(canvasRef, transform.zoom, transform.panX, transform.panY)
   const { onMoveStart } = useNodeDrag(transform.zoom)
@@ -124,22 +124,57 @@ function CanvasPanel() {
     return () => window.removeEventListener('keydown', handler)
   }, [selectedNodeIds, selectedEdgeId, removeSelectedNodes, removeEdge])
 
+  useEffect(() => {
+    const { setCanvasMode } = useUIStore.getState()
+    let previousMode: 'select' | 'pan' | null = null
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if (e.key === 'v' || e.key === 'V') setCanvasMode('select')
+      else if (e.key === 'h' || e.key === 'H') setCanvasMode('pan')
+      else if (e.key === ' ' && !e.repeat) {
+        e.preventDefault()
+        previousMode = useUIStore.getState().canvasMode
+        setCanvasMode('pan')
+      }
+    }
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === ' ' && previousMode !== null) {
+        setCanvasMode(previousMode)
+        previousMode = null
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [])
+
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
       const target = e.target as HTMLElement
       if (target === e.currentTarget || target.hasAttribute('data-canvas-bg')) {
         if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
-          const rect = canvasRef.current?.getBoundingClientRect()
-          if (!rect) return
-          const x = (e.clientX - rect.left - transform.panX) / transform.zoom
-          const y = (e.clientY - rect.top - transform.panY) / transform.zoom
-          setMarquee({ startX: x, startY: y, endX: x, endY: y })
+          if (canvasMode === 'pan') {
+            onPanStart(e)
+          } else {
+            const rect = canvasRef.current?.getBoundingClientRect()
+            if (!rect) return
+            const x = (e.clientX - rect.left - transform.panX) / transform.zoom
+            const y = (e.clientY - rect.top - transform.panY) / transform.zoom
+            setMarquee({ startX: x, startY: y, endX: x, endY: y })
+          }
         } else {
           onPanStart(e)
         }
       }
     },
-    [transform, onPanStart]
+    [transform, onPanStart, canvasMode]
   )
 
   const handleCanvasMouseMove = useCallback(
@@ -208,7 +243,11 @@ function CanvasPanel() {
       ref={canvasRef}
       position="relative"
       overflow="hidden"
-      sx={{ width: '100%', height: '100%', bgcolor: 'background.default' }}
+      sx={{
+        width: '100%', height: '100%', bgcolor: 'background.default',
+        cursor: canvasMode === 'pan' ? 'grab' : 'default',
+        '&:active': canvasMode === 'pan' ? { cursor: 'grabbing' } : {}
+      }}
       onDragOver={onDragOver}
       onDrop={onDrop}
       onMouseDown={handleCanvasMouseDown}

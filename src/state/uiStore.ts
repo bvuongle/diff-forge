@@ -5,6 +5,8 @@ type DragInfo = {
   sourceInterfaces: string[]
 }
 
+type CanvasMode = 'select' | 'pan'
+
 type UIStore = {
   searchQuery: string
   setSearchQuery: (query: string) => void
@@ -16,6 +18,8 @@ type UIStore = {
   setDragInfo: (info: DragInfo | null) => void
   nodeWidths: Record<string, number>
   setNodeWidth: (nodeId: string, width: number) => void
+  canvasMode: CanvasMode
+  setCanvasMode: (mode: CanvasMode) => void
 }
 
 const useUIStore = create<UIStore>((set) => ({
@@ -38,7 +42,9 @@ const useUIStore = create<UIStore>((set) => ({
     set((s) => {
       if (s.nodeWidths[nodeId] === width) return s
       return { nodeWidths: { ...s.nodeWidths, [nodeId]: width } }
-    })
+    }),
+  canvasMode: 'select',
+  setCanvasMode: (mode) => set({ canvasMode: mode })
 }))
 
 export { useUIStore }
