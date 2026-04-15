@@ -16,7 +16,7 @@
       "implements": ["ILink"],
       "requires": [],
       "configSchema": {
-        "linkReliability": { "type": "uint", "min": 0, "max": 100, "default": 95 }
+        "linkReliability": { "type": "uint8", "min": 0, "max": 100, "default": 95 }
       }
     },
     {
@@ -26,8 +26,8 @@
       "implements": ["ILink"],
       "requires": [],
       "configSchema": {
-        "latencyMs": { "type": "uint", "min": 100, "max": 10000, "default": 3500 },
-        "bandwidthKbps": { "type": "uint", "min": 1, "max": 1024, "default": 64 }
+        "latencyMs": { "type": "uint16", "min": 100, "max": 10000, "default": 3500 },
+        "bandwidthKbps": { "type": "uint16", "min": 1, "max": 1024, "default": 64 }
       }
     },
     {
@@ -47,8 +47,8 @@
       "implements": ["IDataSource", "IMonitorable"],
       "requires": [],
       "configSchema": {
-        "sampleRate": { "type": "uint", "min": 1, "max": 10000, "default": 100 },
-        "calibrationOffset": { "type": "int", "min": -1000, "max": 1000, "default": 0 },
+        "sampleRate": { "type": "uint16", "min": 1, "max": 10000, "default": 100 },
+        "calibrationOffset": { "type": "int16", "min": -1000, "max": 1000, "default": 0 },
         "isCalibrated": { "type": "bool", "default": true }
       }
     },
@@ -72,7 +72,7 @@
         { "slot": "backupLink", "interface": "ILink", "min": 1, "max": 1, "order": 1 }
       ],
       "configSchema": {
-        "count": { "type": "uint", "min": 1, "max": 1000, "default": 10 },
+        "count": { "type": "uint32", "min": 1, "max": 1000, "default": 10 },
         "content": { "type": "string", "default": "default message" }
       }
     },
