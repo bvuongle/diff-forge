@@ -25,6 +25,10 @@ type UIStore = {
   removePortOffset: (key: string) => void
   canvasMode: CanvasMode
   setCanvasMode: (mode: CanvasMode) => void
+  fitToViewAction: (() => void) | null
+  setFitToViewAction: (action: (() => void) | null) => void
+  resetViewAction: (() => void) | null
+  setResetViewAction: (action: (() => void) | null) => void
 }
 
 const useUIStore = create<UIStore>((set) => ({
@@ -63,7 +67,11 @@ const useUIStore = create<UIStore>((set) => ({
       return { portOffsets: next }
     }),
   canvasMode: 'select',
-  setCanvasMode: (mode) => set({ canvasMode: mode })
+  setCanvasMode: (mode) => set({ canvasMode: mode }),
+  fitToViewAction: null,
+  setFitToViewAction: (action) => set({ fitToViewAction: action }),
+  resetViewAction: null,
+  setResetViewAction: (action) => set({ resetViewAction: action })
 }))
 
 export { useUIStore }
