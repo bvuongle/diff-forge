@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Catalog schema snapshot > component count matches snapshot 1`] = `13`;
+
+exports[`Catalog schema snapshot > component types match snapshot 1`] = `
+[
+  "LinkEth@1.0.0",
+  "LinkGsm@1.0.0",
+  "LinkSat@1.0.0",
+  "Sensor@1.0.0",
+  "Sensor@2.0.0",
+  "Timer@1.0.0",
+  "MessageSource@1.0.0",
+  "DataCollector@1.0.0",
+  "Router@1.0.0",
+  "Router@2.0.0",
+  "Dispatcher@1.0.0",
+  "Aggregator@1.0.0",
+  "SystemController@1.0.0",
+]
+`;
+
+exports[`Catalog schema snapshot > config type variety matches snapshot 1`] = `
+[
+  "bool",
+  "int16",
+  "string",
+  "uint",
+  "uint16",
+  "uint32",
+  "uint8",
+]
+`;
