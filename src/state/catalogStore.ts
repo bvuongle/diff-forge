@@ -21,4 +21,3 @@ const useCatalogStore = create<CatalogStore>((set) => ({
 }))
 
 export { useCatalogStore }
-export type { CatalogStore }

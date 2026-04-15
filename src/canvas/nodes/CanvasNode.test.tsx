@@ -26,7 +26,6 @@ const defaultProps = (): {
   onMoveStart: ReturnType<typeof vi.fn>
   onPortMouseDown: ReturnType<typeof vi.fn>
   onToggleExpand: ReturnType<typeof vi.fn>
-  onVersionChange: ReturnType<typeof vi.fn>
   onWidthChange: ReturnType<typeof vi.fn>
 } => ({
   node: makeNode('n1', {
@@ -49,7 +48,6 @@ const defaultProps = (): {
   onMoveStart: vi.fn(),
   onPortMouseDown: vi.fn(),
   onToggleExpand: vi.fn(),
-  onVersionChange: vi.fn(),
   onWidthChange: vi.fn()
 })
 
@@ -67,14 +65,9 @@ describe('CanvasNode', () => {
     expect(screen.getByText('1.0.0')).toBeTruthy()
   })
 
-  it('shows version dropdown when multiple versions', () => {
+  it('shows version chip as read-only', () => {
     const props = defaultProps()
-    props.catalogComponent = makeCatalog({
-      versions: {
-        '1.0.0': { implements: ['ILink'], requires: [], configSchema: {} },
-        '2.0.0': { implements: ['ILink'], requires: [], configSchema: {} }
-      }
-    })
+    props.catalogComponent = makeCatalog({ version: '2.0.0' })
     renderWithTheme(<CanvasNode {...props} />)
     expect(screen.getByText('1.0.0')).toBeTruthy()
   })
@@ -98,13 +91,10 @@ describe('CanvasNode', () => {
     const props = defaultProps()
     props.isExpanded = true
     props.catalogComponent = makeCatalog({
-      versions: {
-        '1.0.0': {
-          implements: ['ILink'],
-          requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
-          configSchema: {}
-        }
-      }
+      version: '1.0.0',
+      implements: ['ILink'],
+      requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
+      configSchema: {}
     })
     renderWithTheme(<CanvasNode {...props} />)
     expect(screen.getByText('INFO')).toBeTruthy()

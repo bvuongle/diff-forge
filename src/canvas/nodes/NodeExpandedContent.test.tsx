@@ -10,20 +10,12 @@ import { NodeExpandedContent } from './NodeExpandedContent'
 
 function makeCatalogWithConfig(): CatalogComponent {
   return makeCatalog({
-    versions: {
-      '1.0.0': {
-        implements: ['ILink'],
-        requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
-        configSchema: {
-          count: { type: 'int', default: 1 },
-          enabled: { type: 'bool', default: false }
-        }
-      },
-      '2.0.0': {
-        implements: ['ILink'],
-        requires: [],
-        configSchema: {}
-      }
+    version: '1.0.0',
+    implements: ['ILink'],
+    requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
+    configSchema: {
+      count: { type: 'int', default: 1 },
+      enabled: { type: 'bool', default: false }
     }
   })
 }
@@ -32,7 +24,7 @@ const defaultProps = () => ({
   node: makeNode('n1', {
     componentType: 'LinkEth',
     instanceId: 'linkEth0',
-    module: 'link',
+    source: 'link',
     version: '1.0.0',
     config: { count: 3 },
     slots: [
@@ -44,8 +36,7 @@ const defaultProps = () => ({
   connectedSlots: new Set<string>(),
   dragInfo: null,
   edgeSourceMap: {},
-  onPortMouseDown: vi.fn(),
-  onVersionChange: vi.fn()
+  onPortMouseDown: vi.fn()
 })
 
 describe('NodeExpandedContent', () => {
@@ -98,9 +89,10 @@ describe('NodeExpandedContent', () => {
   it('does not render CONFIGURATION when no config entries', () => {
     const props = defaultProps()
     props.catalogComponent = makeCatalog({
-      versions: {
-        '1.0.0': { implements: ['ILink'], requires: [], configSchema: {} }
-      }
+      version: '1.0.0',
+      implements: ['ILink'],
+      requires: [],
+      configSchema: {}
     })
     renderWithTheme(<NodeExpandedContent {...props} />)
     expect(screen.queryByText('CONFIGURATION')).toBeNull()
@@ -113,11 +105,10 @@ describe('NodeExpandedContent', () => {
     expect(matches.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders version dropdown with all versions', () => {
+  it('does not render version selector in expanded content', () => {
     const props = defaultProps()
     renderWithTheme(<NodeExpandedContent {...props} />)
-    const versionInput = screen.getByLabelText('Version')
-    expect(versionInput).toBeTruthy()
+    expect(screen.queryByLabelText('Version')).toBeNull()
   })
 
   it('shows rename error for empty instance ID on blur', () => {

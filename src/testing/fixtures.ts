@@ -6,7 +6,7 @@ function makeNode(id: string, overrides?: Partial<GraphNode>): GraphNode {
     id,
     instanceId: id,
     componentType: 'LinkEth',
-    module: 'link',
+    source: 'diff_broker',
     version: '1.0.0',
     position: { x: 0, y: 0 },
     config: {},
@@ -29,14 +29,11 @@ function makeEdge(id: string, src: string, tgt: string, overrides?: Partial<Grap
 function makeCatalog(overrides?: Partial<CatalogComponent>): CatalogComponent {
   return {
     type: 'LinkEth',
-    module: 'link',
-    versions: {
-      '1.0.0': {
-        implements: ['ILink'],
-        requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
-        configSchema: {}
-      }
-    },
+    source: 'diff_broker',
+    version: '1.0.0',
+    implements: ['ILink'],
+    requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
+    configSchema: {},
     ...overrides
   }
 }

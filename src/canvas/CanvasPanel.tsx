@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 
 import { CatalogComponentZ } from '@domain/catalog/CatalogSchema'
-import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { isEdgeInvalid } from '@domain/graph/GraphOperations'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
@@ -15,7 +14,7 @@ import { useEdgeDrawing } from './edges/useEdgeDrawing'
 import { useCanvasInteraction } from './interaction/useCanvasInteraction'
 import { useNodeDrag } from './interaction/useNodeDrag'
 import { CanvasNode } from './nodes/CanvasNode'
-import { buildSlots, createNodeFromCatalog } from './nodes/createNodeFromCatalog'
+import { createNodeFromCatalog } from './nodes/createNodeFromCatalog'
 import { getConnectedSlots } from './nodes/getConnectedSlots'
 
 type MarqueeRect = { startX: number; startY: number; endX: number; endY: number }
@@ -32,11 +31,10 @@ function CanvasPanel() {
     selectNodes,
     selectEdge,
     clearSelection,
-    removeSelectedNodes,
-    updateNodeVersion
+    removeSelectedNodes
   } = useGraphStore()
   const catalog = useCatalogStore((s) => s.catalog)
-  const { expandedNodeIds, toggleNodeExpanded, dragInfo, nodeWidths, setNodeWidth, canvasMode } = useUIStore()
+  const { expandedNodeIds, toggleNodeExpanded, dragInfo, setNodeWidth, canvasMode } = useUIStore()
   const { transform, onPanStart, onPanMove, onPanEnd, fitToView, resetView } = useCanvasInteraction(canvasRef)
   const { dragEdge, onPortMouseDown } = useEdgeDrawing(canvasRef, transform.zoom, transform.panX, transform.panY)
   const { onMoveStart } = useNodeDrag(transform.zoom)
@@ -84,19 +82,6 @@ function CanvasPanel() {
     }
     return maps
   }, [graph.nodes, graph.edges])
-
-  const handleVersionChange = useCallback(
-    (nodeId: string, version: string) => {
-      const node = graph.nodes.find((n) => n.id === nodeId)
-      if (!node) return
-      const comp = catalog?.components.find((c: CatalogComponent) => c.type === node.componentType)
-      if (!comp) return
-      const schema = comp.versions[version]
-      if (!schema) return
-      updateNodeVersion(nodeId, version, buildSlots(schema), schema.configSchema)
-    },
-    [graph.nodes, catalog, updateNodeVersion]
-  )
 
   const handleWidthChange = useCallback(
     (nodeId: string, width: number) => {
@@ -318,8 +303,6 @@ function CanvasPanel() {
                 key={edge.id}
                 edge={edge}
                 nodes={graph.nodes}
-                expandedNodeIds={expandedNodeIds}
-                nodeWidths={nodeWidths}
                 isSelected={selectedEdgeIds.has(edge.id)}
                 isInvalid={isEdgeInvalid(edge, graph.nodes)}
                 isDimmed={edgeDimEdgeIds !== null && !edgeDimEdgeIds.has(edge.id)}
@@ -340,14 +323,15 @@ function CanvasPanel() {
             isExpanded={expandedNodeIds.has(node.id)}
             isDimmed={edgeDimNodeIds !== null && !edgeDimNodeIds.has(node.id)}
             connectedSlots={getConnectedSlots(node.id, graph.edges)}
-            catalogComponent={catalog?.components.find((c) => c.type === node.componentType) ?? null}
+            catalogComponent={
+              catalog?.components.find((c) => c.type === node.componentType && c.version === node.version) ?? null
+            }
             dragInfo={dragInfo}
             edgeSourceMap={edgeSourceMaps[node.id] ?? {}}
             onSelect={selectNode}
             onMoveStart={onMoveStart}
             onPortMouseDown={onPortMouseDown}
             onToggleExpand={toggleNodeExpanded}
-            onVersionChange={handleVersionChange}
             onWidthChange={handleWidthChange}
           />
         ))}
