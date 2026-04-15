@@ -1,6 +1,6 @@
-import type { CatalogSource } from '@ports/CatalogSource'
-import type { GraphPersistence } from '@ports/GraphPersistence'
-import type { TopologyExporter } from '@ports/TopologyExporter'
+import type { CatalogSource } from '@contracts/CatalogSource'
+import type { GraphPersistence } from '@contracts/GraphPersistence'
+import type { TopologyExporter } from '@contracts/TopologyExporter'
 
 type AppServices = {
   catalogSource: CatalogSource
