@@ -9,6 +9,7 @@ describe('uiStore', () => {
       expandedNodeIds: new Set(),
       dragInfo: null,
       nodeWidths: {},
+      portOffsets: {},
       canvasMode: 'select'
     })
   })

@@ -1,19 +1,10 @@
 import { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
-import {
-  COMPACT_PORT_TOP,
-  EXPANDED_PORT_TOP,
-  HEADER_HEIGHT_COMPACT,
-  NODE_WIDTH_COMPACT,
-  NODE_WIDTH_EXPANDED,
-  PORT_RADIUS,
-  PORT_SPACING
-} from '@canvas/canvasConstants'
+import { useUIStore } from '@state/uiStore'
+import { makePortKey } from '@canvas/nodes/portRegistry'
 
 type CanvasEdgeProps = {
   edge: GraphEdge
   nodes: GraphNode[]
-  expandedNodeIds: Set<string>
-  nodeWidths: Record<string, number>
   isSelected: boolean
   isInvalid: boolean
   isDimmed: boolean
@@ -26,26 +17,15 @@ function getPortPosition(
   node: GraphNode,
   slotName: string,
   direction: 'in' | 'out',
-  isExpanded: boolean,
-  nodeWidth?: number
-): PortPosition {
-  const fallbackWidth = isExpanded ? NODE_WIDTH_EXPANDED : NODE_WIDTH_COMPACT
-  const width = nodeWidth ?? fallbackWidth
-  const inputSlots = node.slots.filter((s) => s.direction === 'in')
-
-  const baseY = isExpanded ? EXPANDED_PORT_TOP : HEADER_HEIGHT_COMPACT + COMPACT_PORT_TOP
-
-  if (direction === 'out') {
-    const x = node.position.x + width + PORT_RADIUS
-    const y = node.position.y + baseY + inputSlots.length * PORT_SPACING
-    return { x, y }
+  portOffsets: Record<string, { offsetX: number; offsetY: number }>
+): PortPosition | null {
+  const key = makePortKey(node.id, slotName, direction)
+  const offset = portOffsets[key]
+  if (!offset) return null
+  return {
+    x: node.position.x + offset.offsetX,
+    y: node.position.y + offset.offsetY
   }
-
-  const idx = inputSlots.findIndex((s) => s.name === slotName)
-  const slotIdx = idx === -1 ? 0 : idx
-  const x = node.position.x - PORT_RADIUS
-  const y = node.position.y + baseY + slotIdx * PORT_SPACING
-  return { x, y }
 }
 
 function buildCurvePath(from: PortPosition, to: PortPosition): string {
@@ -53,36 +33,22 @@ function buildCurvePath(from: PortPosition, to: PortPosition): string {
   return `M ${from.x} ${from.y} C ${from.x + dx} ${from.y}, ${to.x - dx} ${to.y}, ${to.x} ${to.y}`
 }
 
-function CanvasEdge({
-  edge,
-  nodes,
-  expandedNodeIds,
-  nodeWidths,
-  isSelected,
-  isInvalid,
-  isDimmed,
-  onSelect
-}: CanvasEdgeProps) {
+function CanvasEdge({ edge, nodes, isSelected, isInvalid, isDimmed, onSelect }: CanvasEdgeProps) {
+  const portOffsets = useUIStore((s) => s.portOffsets)
+
   const sourceNode = nodes.find((n) => n.id === edge.sourceNodeId)
   const targetNode = nodes.find((n) => n.id === edge.targetNodeId)
   if (!sourceNode || !targetNode) return null
 
-  const from = getPortPosition(
-    sourceNode,
-    edge.sourceSlot,
-    'out',
-    expandedNodeIds.has(edge.sourceNodeId),
-    nodeWidths[edge.sourceNodeId]
-  )
-  const to = getPortPosition(
-    targetNode,
-    edge.targetSlot,
-    'in',
-    expandedNodeIds.has(edge.targetNodeId),
-    nodeWidths[edge.targetNodeId]
-  )
-  const path = buildCurvePath(from, to)
+  // Try exact source slot first, fall back to __out__ (compact mode output port)
+  const from =
+    getPortPosition(sourceNode, edge.sourceSlot, 'out', portOffsets) ??
+    getPortPosition(sourceNode, '__out__', 'out', portOffsets)
+  const to = getPortPosition(targetNode, edge.targetSlot, 'in', portOffsets)
 
+  if (!from || !to) return null
+
+  const path = buildCurvePath(from, to)
   const strokeColor = isInvalid ? '#ef4444' : isSelected ? 'var(--accent-blue)' : '#9ca3af'
 
   const srcOutputSlots = sourceNode.slots.filter((s) => s.direction === 'out')

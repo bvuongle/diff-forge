@@ -1,10 +1,11 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
 
 import { Slot } from '@domain/graph/GraphTypes'
 
-type DragInfo = { sourceNodeId: string; sourceInterfaces: string[] }
+import { getPortDragState, type DragInfo } from './portDragState'
+import { registerPort, unregisterPort } from './portRegistry'
 
 type PortRowProps = {
   slot: Slot
@@ -17,15 +18,14 @@ type PortRowProps = {
   onMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
 }
 
-function getPortDragState(slot: Slot, nodeId: string, dragInfo: DragInfo | null): 'idle' | 'valid' | 'dimmed' {
-  if (!dragInfo) return 'idle'
-  if (nodeId === dragInfo.sourceNodeId) return 'dimmed'
-  if (slot.direction === 'out') return 'dimmed'
-  return dragInfo.sourceInterfaces.includes(slot.interface) ? 'valid' : 'dimmed'
-}
-
 function PortRow({ slot, nodeId, side, isConnected, dragInfo, tooltipText, hideLabel, onMouseDown }: PortRowProps) {
   const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (ref.current) registerPort(nodeId, slot.name, slot.direction, ref.current)
+    return () => unregisterPort(nodeId, slot.name, slot.direction)
+  }, [nodeId, slot.name, slot.direction])
+
   const dragState = getPortDragState(slot, nodeId, dragInfo)
   const isValid = dragState === 'valid'
   const isDragDimmed = dragState === 'dimmed'
@@ -125,5 +125,4 @@ function PortRow({ slot, nodeId, side, isConnected, dragInfo, tooltipText, hideL
   return row
 }
 
-export { PortRow, getPortDragState }
-export type { DragInfo }
+export { PortRow }
