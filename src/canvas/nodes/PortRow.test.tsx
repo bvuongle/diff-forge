@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { Slot } from '@domain/graph/GraphTypes'
 
-import { getPortDragState, PortRow } from './PortRow'
+import { getPortDragState } from './portDragState'
+import { PortRow } from './PortRow'
 
 function makeSlot(overrides?: Partial<Slot>): Slot {
   return {

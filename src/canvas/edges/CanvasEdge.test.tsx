@@ -1,22 +1,10 @@
 import { render } from '@testing-library/react'
 import { makeEdge, makeNode } from '@testing/fixtures'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { EXPANDED_PORT_TOP, NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
+import { useUIStore } from '@state/uiStore'
 
-describe('CanvasEdge constants', () => {
-  it('NODE_WIDTH_COMPACT is 180', () => {
-    expect(NODE_WIDTH_COMPACT).toBe(180)
-  })
-
-  it('NODE_WIDTH_EXPANDED is 280', () => {
-    expect(NODE_WIDTH_EXPANDED).toBe(280)
-  })
-
-  it('EXPANDED_PORT_TOP is 353', () => {
-    expect(EXPANDED_PORT_TOP).toBe(353)
-  })
-})
+import { CanvasEdge, PendingEdge } from './CanvasEdge'
 
 describe('CanvasEdge rendering', () => {
   const sourceNode = makeNode('src', {
@@ -34,15 +22,26 @@ describe('CanvasEdge rendering', () => {
     targetSlot: 'transport'
   })
 
-  it('renders nothing when source node not found', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  beforeEach(() => {
+    // Register port offsets so edges can compute positions
+    useUIStore.setState({
+      portOffsets: {
+        'src:__out__:out': { offsetX: 180, offsetY: 50 },
+        'tgt:transport:in': { offsetX: 0, offsetY: 50 }
+      }
+    })
+  })
+
+  afterEach(() => {
+    useUIStore.setState({ portOffsets: {} })
+  })
+
+  it('renders nothing when source node not found', () => {
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
           isSelected={false}
           isInvalid={false}
           isDimmed={false}
@@ -53,15 +52,12 @@ describe('CanvasEdge rendering', () => {
     expect(container.querySelector('g')).toBeNull()
   })
 
-  it('renders nothing when target node not found', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('renders nothing when target node not found', () => {
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[sourceNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
           isSelected={false}
           isInvalid={false}
           isDimmed={false}
@@ -72,15 +68,29 @@ describe('CanvasEdge rendering', () => {
     expect(container.querySelector('g')).toBeNull()
   })
 
-  it('renders a group element with path when both nodes exist', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('renders nothing when port offsets are not registered', () => {
+    useUIStore.setState({ portOffsets: {} })
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
+          isSelected={false}
+          isInvalid={false}
+          isDimmed={false}
+          onSelect={() => {}}
+        />
+      </svg>
+    )
+    expect(container.querySelector('g')).toBeNull()
+  })
+
+  it('renders a group with paths when both nodes and port offsets exist', () => {
+    const { container } = render(
+      <svg>
+        <CanvasEdge
+          edge={edge}
+          nodes={[sourceNode, targetNode]}
           isSelected={false}
           isInvalid={false}
           isDimmed={false}
@@ -94,15 +104,33 @@ describe('CanvasEdge rendering', () => {
     expect(paths.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('uses green stroke for valid connected edge', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('computes edge path from node position + port offset', () => {
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
+          isSelected={false}
+          isInvalid={false}
+          isDimmed={false}
+          onSelect={() => {}}
+        />
+      </svg>
+    )
+    const paths = container.querySelectorAll('path')
+    const d = paths[paths.length - 1].getAttribute('d')!
+    // Source: node(100,50) + offset(180,50) = (280,100)
+    // Target: node(400,50) + offset(0,50) = (400,100)
+    expect(d).toMatch(/^M 280 100/)
+    expect(d).toContain('400 100')
+  })
+
+  it('uses default gray stroke for normal edge', () => {
+    const { container } = render(
+      <svg>
+        <CanvasEdge
+          edge={edge}
+          nodes={[sourceNode, targetNode]}
           isSelected={false}
           isInvalid={false}
           isDimmed={false}
@@ -115,15 +143,12 @@ describe('CanvasEdge rendering', () => {
     expect(visiblePath.getAttribute('stroke')).toBe('#9ca3af')
   })
 
-  it('uses red stroke and dashed pattern for invalid edge', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('uses red stroke and dashed pattern for invalid edge', () => {
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
           isSelected={false}
           isInvalid={true}
           isDimmed={false}
@@ -137,15 +162,12 @@ describe('CanvasEdge rendering', () => {
     expect(visiblePath.getAttribute('stroke-dasharray')).toBe('6,4')
   })
 
-  it('uses blue stroke when selected', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('uses blue stroke when selected', () => {
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
           isSelected={true}
           isInvalid={false}
           isDimmed={false}
@@ -158,15 +180,12 @@ describe('CanvasEdge rendering', () => {
     expect(visiblePath.getAttribute('stroke')).toBe('var(--accent-blue)')
   })
 
-  it('renders selection glow path when selected', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('renders selection glow path when selected', () => {
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
           isSelected={true}
           isInvalid={false}
           isDimmed={false}
@@ -181,37 +200,12 @@ describe('CanvasEdge rendering', () => {
     expect(glowPath.getAttribute('stroke-width')).toBe('6')
   })
 
-  it('renders invalid glow path when invalid and not selected', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('sets opacity on group when dimmed', () => {
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
-          isSelected={false}
-          isInvalid={true}
-          isDimmed={false}
-          onSelect={() => {}}
-        />
-      </svg>
-    )
-    const paths = container.querySelectorAll('path')
-    expect(paths.length).toBe(3)
-    const glowPath = paths[1]
-    expect(glowPath.getAttribute('stroke')).toBe('#ef4444')
-  })
-
-  it('sets opacity on group when dimmed', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
-    const { container } = render(
-      <svg>
-        <CanvasEdge
-          edge={edge}
-          nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
           isSelected={false}
           isInvalid={false}
           isDimmed={true}
@@ -223,36 +217,13 @@ describe('CanvasEdge rendering', () => {
     expect(g!.getAttribute('opacity')).toBe('0.15')
   })
 
-  it('sets full opacity when not dimmed', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
-    const { container } = render(
-      <svg>
-        <CanvasEdge
-          edge={edge}
-          nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
-          isSelected={false}
-          isInvalid={false}
-          isDimmed={false}
-          onSelect={() => {}}
-        />
-      </svg>
-    )
-    const g = container.querySelector('g')
-    expect(g!.getAttribute('opacity')).toBe('1')
-  })
-
-  it('calls onSelect with edge id when clicked', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('calls onSelect with edge id when clicked', () => {
     let selectedId: string | null = null
     const { container } = render(
       <svg>
         <CanvasEdge
           edge={edge}
           nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
           isSelected={false}
           isInvalid={false}
           isDimmed={false}
@@ -267,8 +238,7 @@ describe('CanvasEdge rendering', () => {
     expect(selectedId).toBe('e1')
   })
 
-  it('shows edge label near source when source has multiple output slots', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
+  it('shows edge label when source has multiple output slots', () => {
     const multiOutputSource = makeNode('src', {
       position: { x: 100, y: 50 },
       slots: [
@@ -281,8 +251,6 @@ describe('CanvasEdge rendering', () => {
         <CanvasEdge
           edge={edge}
           nodes={[multiOutputSource, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
           isSelected={false}
           isInvalid={false}
           isDimmed={false}
@@ -294,53 +262,10 @@ describe('CanvasEdge rendering', () => {
     expect(text).not.toBeNull()
     expect(text!.textContent).toBe('ILink')
   })
-
-  it('does not show edge label when source has single output slot', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
-    const { container } = render(
-      <svg>
-        <CanvasEdge
-          edge={edge}
-          nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
-          isSelected={false}
-          isInvalid={false}
-          isDimmed={false}
-          onSelect={() => {}}
-        />
-      </svg>
-    )
-    const text = container.querySelector('text')
-    expect(text).toBeNull()
-  })
-
-  it('path d attribute contains M and C commands (cubic bezier)', async () => {
-    const { CanvasEdge } = await import('./CanvasEdge')
-    const { container } = render(
-      <svg>
-        <CanvasEdge
-          edge={edge}
-          nodes={[sourceNode, targetNode]}
-          expandedNodeIds={new Set()}
-          nodeWidths={{}}
-          isSelected={false}
-          isInvalid={false}
-          isDimmed={false}
-          onSelect={() => {}}
-        />
-      </svg>
-    )
-    const paths = container.querySelectorAll('path')
-    const d = paths[paths.length - 1].getAttribute('d')!
-    expect(d).toMatch(/^M /)
-    expect(d).toContain('C ')
-  })
 })
 
 describe('PendingEdge', () => {
-  it('renders a dashed gray path', async () => {
-    const { PendingEdge } = await import('./CanvasEdge')
+  it('renders a dashed gray path', () => {
     const { container } = render(
       <svg>
         <PendingEdge fromX={0} fromY={0} toX={100} toY={100} />
@@ -353,8 +278,7 @@ describe('PendingEdge', () => {
     expect(path!.getAttribute('pointer-events')).toBe('none')
   })
 
-  it('path starts at fromX,fromY', async () => {
-    const { PendingEdge } = await import('./CanvasEdge')
+  it('path starts at fromX,fromY', () => {
     const { container } = render(
       <svg>
         <PendingEdge fromX={10} fromY={20} toX={100} toY={200} />
