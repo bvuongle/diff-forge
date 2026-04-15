@@ -1,5 +1,6 @@
+import { GraphPersistence } from '@contracts/GraphPersistence'
+
 import { Graph } from '@domain/graph/GraphTypes'
-import { GraphPersistence } from '@ports/GraphPersistence'
 
 type FileGraphPersistenceDeps = {
   saveFile(path: string, content: string): Promise<void>

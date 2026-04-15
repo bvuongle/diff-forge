@@ -7,7 +7,7 @@ import { useUIStore } from '@state/uiStore'
 import { SearchInput } from './SearchInput'
 import { SectionHeader } from './SectionHeader'
 
-function LeftCatalogPanel() {
+function CatalogPanel() {
   const { catalog, loading, error } = useCatalogStore()
   const { searchQuery } = useUIStore()
 
@@ -110,4 +110,4 @@ function LeftCatalogPanel() {
   )
 }
 
-export { LeftCatalogPanel }
+export { CatalogPanel }
