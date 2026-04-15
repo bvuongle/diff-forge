@@ -107,4 +107,3 @@ function useCanvasInteraction(canvasRef: React.RefObject<HTMLDivElement | null>)
 }
 
 export { useCanvasInteraction }
-export type { ViewTransform }

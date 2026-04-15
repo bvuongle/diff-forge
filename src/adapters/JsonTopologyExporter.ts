@@ -19,4 +19,3 @@ function createJsonTopologyExporter(deps: JsonTopologyExporterDeps): TopologyExp
 }
 
 export { createJsonTopologyExporter }
-export type { JsonTopologyExporterDeps }

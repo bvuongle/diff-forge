@@ -8,10 +8,6 @@ export type GraphValidationResult = {
   invalidEdges: string[]
 }
 
-/**
- * Detects all simple cycles in the graph using DFS.
- * Returns an array of cycles, where each cycle is an array of node IDs.
- */
 export function detectCycles(graph: Graph): string[][] {
   const cycles: string[][] = []
   const visited = new Set<string>()
@@ -35,7 +31,6 @@ export function detectCycles(graph: Graph): string[][] {
         parent.set(v, u)
         dfs(v)
       } else if (recStack.has(v)) {
-        // Cycle detected
         const cycle = [v]
         let curr = u
         while (curr !== v && curr !== undefined) {
@@ -58,9 +53,6 @@ export function detectCycles(graph: Graph): string[][] {
   return cycles
 }
 
-/**
- * Returns node IDs that have no edges (neither source nor target).
- */
 export function detectOrphans(graph: Graph): string[] {
   const connectedNodes = new Set<string>()
   for (const edge of graph.edges) {
@@ -71,10 +63,6 @@ export function detectOrphans(graph: Graph): string[] {
   return graph.nodes.filter((node) => !connectedNodes.has(node.id)).map((node) => node.id)
 }
 
-/**
- * Combines cycle detection, orphan detection, and invalid edge checks.
- * A graph is 'valid' if it has no cycles and no invalid edges.
- */
 export function validateGraph(graph: Graph): GraphValidationResult {
   const cycles = detectCycles(graph)
   const orphans = detectOrphans(graph)

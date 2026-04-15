@@ -18,4 +18,3 @@ function createFileCatalogSource(deps: FileCatalogSourceDeps): CatalogSource {
 }
 
 export { createFileCatalogSource }
-export type { FileCatalogSourceDeps }

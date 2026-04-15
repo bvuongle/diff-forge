@@ -30,4 +30,3 @@ function createFileGraphPersistence(deps: FileGraphPersistenceDeps): GraphPersis
 }
 
 export { createFileGraphPersistence }
-export type { FileGraphPersistenceDeps }
