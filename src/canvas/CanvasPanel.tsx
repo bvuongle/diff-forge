@@ -1,231 +1,79 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 import { Box, Typography } from '@mui/material'
 
-import { CatalogComponentZ } from '@domain/catalog/CatalogSchema'
 import { isEdgeInvalid } from '@domain/graph/GraphOperations'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
 
-import { NODE_WIDTH_COMPACT } from './canvasConstants'
+import { CanvasMarquee } from './CanvasMarquee'
 import { CanvasEdge, PendingEdge } from './edges/CanvasEdge'
 import { useEdgeDrawing } from './edges/useEdgeDrawing'
+import { useCanvasDnD } from './interaction/useCanvasDnD'
+import { useCanvasHotkeys } from './interaction/useCanvasHotkeys'
 import { useCanvasInteraction } from './interaction/useCanvasInteraction'
+import { useCanvasMarquee } from './interaction/useCanvasMarquee'
+import { useCanvasSelection } from './interaction/useCanvasSelection'
 import { useNodeDrag } from './interaction/useNodeDrag'
 import { CanvasNode } from './nodes/CanvasNode'
-import { createNodeFromCatalog } from './nodes/createNodeFromCatalog'
 import { getConnectedSlots } from './nodes/getConnectedSlots'
-
-type MarqueeRect = { startX: number; startY: number; endX: number; endY: number }
 
 function CanvasPanel() {
   const canvasRef = useRef<HTMLDivElement>(null)
-  const {
-    graph,
-    selectedNodeIds,
-    selectedEdgeId,
-    addNode,
-    removeEdge,
-    selectNode,
-    selectNodes,
-    selectEdge,
-    clearSelection,
-    removeSelectedNodes
-  } = useGraphStore()
+  const { graph, selectedNodeIds, selectedEdgeId, addNode, selectNode, selectNodes, selectEdge, clearSelection } =
+    useGraphStore()
   const catalog = useCatalogStore((s) => s.catalog)
   const { expandedNodeIds, toggleNodeExpanded, dragInfo, setNodeWidth, canvasMode } = useUIStore()
+
   const { transform, onPanStart, onPanMove, onPanEnd, fitToView, resetView } = useCanvasInteraction(canvasRef)
   const { dragEdge, onPortMouseDown } = useEdgeDrawing(canvasRef, transform.zoom, transform.panX, transform.panY)
   const { onMoveStart } = useNodeDrag(transform.zoom)
 
-  const [marquee, setMarquee] = useState<MarqueeRect | null>(null)
-
-  const selectedEdgeIds = useMemo(() => {
-    const ids = new Set<string>()
-    if (selectedEdgeId) ids.add(selectedEdgeId)
-    for (const nodeId of selectedNodeIds) {
-      for (const e of graph.edges) {
-        if (e.sourceNodeId === nodeId || e.targetNodeId === nodeId) ids.add(e.id)
-      }
-    }
-    return ids
-  }, [selectedNodeIds, selectedEdgeId, graph.edges])
-
-  // Dim logic: only active when an edge is selected, to highlight the connected cluster
-  const edgeDimNodeIds = useMemo(() => {
-    if (!selectedEdgeId) return null
-    const edge = graph.edges.find((e) => e.id === selectedEdgeId)
-    if (!edge) return null
-    const related = new Set<string>()
-    related.add(edge.sourceNodeId)
-    related.add(edge.targetNodeId)
-    return related
-  }, [selectedEdgeId, graph.edges])
-
-  const edgeDimEdgeIds = useMemo(() => {
-    if (!selectedEdgeId) return null
-    const related = new Set<string>()
-    related.add(selectedEdgeId)
-    return related
-  }, [selectedEdgeId])
-
-  const edgeSourceMaps = useMemo(() => {
-    const maps: Record<string, Record<string, string[]>> = {}
-    for (const edge of graph.edges) {
-      const src = graph.nodes.find((n) => n.id === edge.sourceNodeId)
-      if (!src) continue
-      if (!maps[edge.targetNodeId]) maps[edge.targetNodeId] = {}
-      const m = maps[edge.targetNodeId]
-      if (!m[edge.targetSlot]) m[edge.targetSlot] = []
-      m[edge.targetSlot].push(src.instanceId)
-    }
-    return maps
-  }, [graph.nodes, graph.edges])
-
-  const handleWidthChange = useCallback(
-    (nodeId: string, width: number) => {
-      setNodeWidth(nodeId, width)
-    },
-    [setNodeWidth]
+  useCanvasHotkeys()
+  const { marquee, startMarquee, updateMarquee, endMarquee, setMarquee } = useCanvasMarquee(
+    canvasRef,
+    transform,
+    graph.nodes,
+    selectNodes,
+    clearSelection
+  )
+  const { onDragOver, onDrop } = useCanvasDnD(canvasRef, transform, graph.nodes, addNode)
+  const { selectedEdgeIds, edgeDimNodeIds, edgeDimEdgeIds, edgeSourceMaps } = useCanvasSelection(
+    graph,
+    selectedNodeIds,
+    selectedEdgeId
   )
 
-  const onDragOver = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes('application/x-diff-component')) {
-      e.preventDefault()
-      e.dataTransfer.dropEffect = 'copy'
-    }
-  }, [])
-
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      const raw = e.dataTransfer.getData('application/x-diff-component')
-      if (!raw) return
-      const parsed = CatalogComponentZ.safeParse(JSON.parse(raw))
-      if (!parsed.success) return
-      const component = parsed.data
-      const rect = canvasRef.current?.getBoundingClientRect()
-      if (!rect) return
-      const position = {
-        x: (e.clientX - rect.left - transform.panX) / transform.zoom - NODE_WIDTH_COMPACT / 2,
-        y: (e.clientY - rect.top - transform.panY) / transform.zoom - 30
-      }
-      const node = createNodeFromCatalog(component, position, graph.nodes)
-      addNode(node)
-    },
-    [transform, graph.nodes, addNode]
-  )
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        const tag = (e.target as HTMLElement).tagName
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-        if (selectedNodeIds.size > 0) removeSelectedNodes()
-        else if (selectedEdgeId) removeEdge(selectedEdgeId)
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [selectedNodeIds, selectedEdgeId, removeSelectedNodes, removeEdge])
-
-  useEffect(() => {
-    const { setCanvasMode } = useUIStore.getState()
-    let previousMode: 'select' | 'pan' | null = null
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-      if (e.key === 'v' || e.key === 'V') setCanvasMode('select')
-      else if (e.key === 'h' || e.key === 'H') setCanvasMode('pan')
-      else if (e.key === ' ' && !e.repeat) {
-        e.preventDefault()
-        previousMode = useUIStore.getState().canvasMode
-        setCanvasMode('pan')
-      }
-    }
-
-    const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === ' ' && previousMode !== null) {
-        setCanvasMode(previousMode)
-        previousMode = null
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    window.addEventListener('keyup', onKeyUp)
-    return () => {
-      window.removeEventListener('keydown', onKeyDown)
-      window.removeEventListener('keyup', onKeyUp)
-    }
-  }, [])
+  const setFitToViewAction = useUIStore((s) => s.setFitToViewAction)
+  const setResetViewAction = useUIStore((s) => s.setResetViewAction)
 
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
       const target = e.target as HTMLElement
       if (target === e.currentTarget || target.hasAttribute('data-canvas-bg')) {
-        if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
-          if (canvasMode === 'pan') {
-            onPanStart(e)
-          } else {
-            const rect = canvasRef.current?.getBoundingClientRect()
-            if (!rect) return
-            const x = (e.clientX - rect.left - transform.panX) / transform.zoom
-            const y = (e.clientY - rect.top - transform.panY) / transform.zoom
-            setMarquee({ startX: x, startY: y, endX: x, endY: y })
-          }
+        if (e.button === 0 && !e.ctrlKey && !e.metaKey && canvasMode !== 'pan') {
+          startMarquee(e)
         } else {
           onPanStart(e)
         }
       }
     },
-    [transform, onPanStart, canvasMode]
+    [onPanStart, startMarquee, canvasMode]
   )
 
   const handleCanvasMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (marquee) {
-        const rect = canvasRef.current?.getBoundingClientRect()
-        if (!rect) return
-        const x = (e.clientX - rect.left - transform.panX) / transform.zoom
-        const y = (e.clientY - rect.top - transform.panY) / transform.zoom
-        setMarquee((prev) => (prev ? { ...prev, endX: x, endY: y } : null))
-      } else {
-        onPanMove(e)
-      }
+      if (marquee) updateMarquee(e)
+      else onPanMove(e)
     },
-    [marquee, transform, onPanMove]
+    [marquee, updateMarquee, onPanMove]
   )
 
   const handleCanvasMouseUp = useCallback(() => {
-    if (marquee) {
-      const left = Math.min(marquee.startX, marquee.endX)
-      const right = Math.max(marquee.startX, marquee.endX)
-      const top = Math.min(marquee.startY, marquee.endY)
-      const bottom = Math.max(marquee.startY, marquee.endY)
-      const width = right - left
-      const height = bottom - top
-
-      if (width > 5 || height > 5) {
-        const enclosed = graph.nodes
-          .filter(
-            (n) =>
-              n.position.x >= left &&
-              n.position.x + NODE_WIDTH_COMPACT <= right &&
-              n.position.y >= top &&
-              n.position.y + 60 <= bottom
-          )
-          .map((n) => n.id)
-        selectNodes(enclosed)
-      } else {
-        clearSelection()
-      }
-      setMarquee(null)
-    } else {
-      onPanEnd()
-    }
-  }, [marquee, graph.nodes, selectNodes, clearSelection, onPanEnd])
+    if (marquee) endMarquee()
+    else onPanEnd()
+  }, [marquee, endMarquee, onPanEnd])
 
   const handleFitToView = useCallback(() => {
     const rect = canvasRef.current?.getBoundingClientRect()
@@ -233,23 +81,13 @@ function CanvasPanel() {
   }, [fitToView, graph.nodes])
 
   useEffect(() => {
-    const w = window as unknown as Record<string, unknown>
-    w.__canvasFitToView = handleFitToView
-    w.__canvasResetView = resetView
+    setFitToViewAction(handleFitToView)
+    setResetViewAction(resetView)
     return () => {
-      delete w.__canvasFitToView
-      delete w.__canvasResetView
+      setFitToViewAction(null)
+      setResetViewAction(null)
     }
-  }, [handleFitToView, resetView])
-
-  const marqueeStyle = marquee
-    ? {
-        left: Math.min(marquee.startX, marquee.endX),
-        top: Math.min(marquee.startY, marquee.endY),
-        width: Math.abs(marquee.endX - marquee.startX),
-        height: Math.abs(marquee.endY - marquee.startY)
-      }
-    : null
+  }, [handleFitToView, resetView, setFitToViewAction, setResetViewAction])
 
   return (
     <Box
@@ -332,21 +170,11 @@ function CanvasPanel() {
             onMoveStart={onMoveStart}
             onPortMouseDown={onPortMouseDown}
             onToggleExpand={toggleNodeExpanded}
-            onWidthChange={handleWidthChange}
+            onWidthChange={setNodeWidth}
           />
         ))}
 
-        {marqueeStyle && (
-          <Box
-            sx={{
-              position: 'absolute',
-              ...marqueeStyle,
-              border: '1px solid var(--accent-blue)',
-              bgcolor: 'rgba(59, 130, 246, 0.08)',
-              pointerEvents: 'none'
-            }}
-          />
-        )}
+        {marquee && <CanvasMarquee marquee={marquee} />}
       </Box>
 
       {graph.nodes.length === 0 && (

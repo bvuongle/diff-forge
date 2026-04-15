@@ -15,7 +15,7 @@ import { useUIStore } from '@state/uiStore'
 
 function Topbar() {
   const nodes = useGraphStore((s) => s.graph.nodes)
-  const { expandAll, collapseAll, canvasMode, setCanvasMode } = useUIStore()
+  const { expandAll, collapseAll, canvasMode, setCanvasMode, fitToViewAction, resetViewAction } = useUIStore()
 
   return (
     <AppBar position="static" elevation={0} color="transparent">
@@ -85,8 +85,7 @@ function Topbar() {
             color="inherit"
             startIcon={<FitScreenIcon fontSize="small" />}
             onClick={() => {
-              const fn = (window as unknown as Record<string, unknown>).__canvasFitToView
-              if (typeof fn === 'function') fn()
+              if (fitToViewAction) fitToViewAction()
             }}
           >
             Fit
@@ -98,8 +97,7 @@ function Topbar() {
             color="inherit"
             startIcon={<RestartAltIcon fontSize="small" />}
             onClick={() => {
-              const fn = (window as unknown as Record<string, unknown>).__canvasResetView
-              if (typeof fn === 'function') fn()
+              if (resetViewAction) resetViewAction()
             }}
           >
             Reset
