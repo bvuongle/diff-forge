@@ -9,10 +9,10 @@ import { GraphNode } from '@domain/graph/GraphTypes'
 import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
 
 import { NodeExpandedContent } from './NodeExpandedContent'
-import type { DragInfo } from './portDragState'
-import { registerPort, unregisterPort } from './portRegistry'
-import { PortRow } from './PortRow'
-import { getSlotTooltip, type EdgeSourceMap } from './slotUtils'
+import type { DragInfo } from './ports/portDragState'
+import { registerPort, unregisterPort } from './ports/portRegistry'
+import { PortRow } from './ports/PortRow'
+import { getSlotTooltip, type EdgeSourceMap } from './ports/slotUtils'
 
 type CanvasNodeProps = {
   node: GraphNode

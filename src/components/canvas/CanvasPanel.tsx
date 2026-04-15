@@ -17,7 +17,7 @@ import { useCanvasMarquee } from './interaction/useCanvasMarquee'
 import { useCanvasSelection } from './interaction/useCanvasSelection'
 import { useNodeDrag } from './interaction/useNodeDrag'
 import { CanvasNode } from './nodes/CanvasNode'
-import { getConnectedSlots } from './nodes/getConnectedSlots'
+import { getConnectedSlots } from './nodes/ports/getConnectedSlots'
 
 function CanvasPanel() {
   const canvasRef = useRef<HTMLDivElement>(null)
