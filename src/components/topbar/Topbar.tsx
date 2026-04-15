@@ -1,11 +1,8 @@
-import AddIcon from '@mui/icons-material/Add'
 import DownloadIcon from '@mui/icons-material/Download'
 import FitScreenIcon from '@mui/icons-material/FitScreen'
-import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import NearMeIcon from '@mui/icons-material/NearMe'
 import PanToolIcon from '@mui/icons-material/PanTool'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
-import SaveIcon from '@mui/icons-material/Save'
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
 import { AppBar, Box, Button, IconButton, Toolbar, Tooltip, Typography } from '@mui/material'
@@ -32,15 +29,6 @@ function Topbar() {
         <Typography variant="h6" color="text.primary" sx={{ mr: 1 }}>
           Diff Forge
         </Typography>
-        <Button size="small" color="inherit" startIcon={<AddIcon fontSize="small" />}>
-          New Project
-        </Button>
-        <Button size="small" color="inherit" startIcon={<FolderOpenIcon fontSize="small" />}>
-          Open
-        </Button>
-        <Button size="small" color="inherit" startIcon={<SaveIcon fontSize="small" />}>
-          Save
-        </Button>
         <Box
           sx={{ display: 'flex', border: '1px solid var(--panel-border)', borderRadius: 1, overflow: 'hidden', ml: 1 }}
         >
@@ -103,14 +91,16 @@ function Topbar() {
             Reset
           </Button>
         </Tooltip>
-        <Button
-          size="small"
-          variant="contained"
-          startIcon={<DownloadIcon fontSize="small" />}
-          sx={{ bgcolor: 'var(--accent-blue)' }}
-        >
-          Export JSON
-        </Button>
+        <Tooltip title="Save project topology">
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<DownloadIcon fontSize="small" />}
+            sx={{ bgcolor: 'var(--accent-blue)' }}
+          >
+            Save Project
+          </Button>
+        </Tooltip>
       </Toolbar>
     </AppBar>
   )
