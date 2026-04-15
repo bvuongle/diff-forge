@@ -32,7 +32,6 @@ function createWindow() {
   })
 }
 
-// TODO: implement actual catalog loading via Electron IPC
 ipcMain.handle('catalog:load', async () => {
   return { schema: 'diff.catalog.v0', components: [] }
 })

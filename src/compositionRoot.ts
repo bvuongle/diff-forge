@@ -8,5 +8,4 @@ type AppServices = {
   graphPersistence: GraphPersistence
 }
 
-// TODO: wire ports to Electron IPC adapters
 export type { AppServices }
