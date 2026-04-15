@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 import { Box, Typography } from '@mui/material'
 
@@ -69,11 +69,12 @@ function OutputPortRow({
 }
 
 export function NodeRequirementsSection({ node, onPortMouseDown }: NodeRequirementsSectionProps) {
-  const graph = useGraphStore((s) => s.graph)
+  const edges = useGraphStore((s) => s.graph.edges)
+  const nodes = useGraphStore((s) => s.graph.nodes)
   const dragInfo = useUIStore((s) => s.dragInfo)
 
-  const connectedSlots = getConnectedSlots(node.id, graph.edges)
-  const edgeSourceMap = getEdgeSourceMap(node.id, graph)
+  const connectedSlots = useMemo(() => getConnectedSlots(node.id, edges), [node.id, edges])
+  const edgeSourceMap = useMemo(() => getEdgeSourceMap(node.id, { nodes, edges }), [node.id, nodes, edges])
 
   const inputSlots = node.slots.filter((s) => s.direction === 'in')
   const outputSlots = node.slots.filter((s) => s.direction === 'out')

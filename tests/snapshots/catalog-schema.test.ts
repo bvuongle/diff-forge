@@ -24,10 +24,11 @@ describe('Catalog schema snapshot', () => {
   })
 
   it('config type variety matches snapshot', () => {
+    const result = CatalogDocumentZ.parse(parsed)
     const configTypes = new Set<string>()
-    for (const comp of parsed.components) {
+    for (const comp of result.components) {
       for (const field of Object.values(comp.configSchema)) {
-        configTypes.add((field as { type: string }).type)
+        configTypes.add(field.type)
       }
     }
     expect([...configTypes].sort()).toMatchSnapshot()
