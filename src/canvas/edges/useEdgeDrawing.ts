@@ -120,4 +120,3 @@ function useEdgeDrawing(canvasRef: React.RefObject<HTMLDivElement | null>, zoom:
 }
 
 export { useEdgeDrawing }
-export type { DragEdge }
