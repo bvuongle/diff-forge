@@ -15,16 +15,13 @@ const CatalogRequirementZ = z.object({
   order: z.number().int().nonnegative()
 })
 
-const VersionSchemaZ = z.object({
+const CatalogComponentZ = z.object({
+  type: z.string(),
+  source: z.string(),
+  version: z.string(),
   implements: z.array(z.string()),
   requires: z.array(CatalogRequirementZ),
   configSchema: z.record(z.string(), ConfigValueSchemaZ)
-})
-
-const CatalogComponentZ = z.object({
-  type: z.string(),
-  module: z.string(),
-  versions: z.record(z.string(), VersionSchemaZ)
 })
 
 const CatalogDocumentZ = z.object({
@@ -33,11 +30,9 @@ const CatalogDocumentZ = z.object({
 })
 
 type ConfigValueSchema = z.infer<typeof ConfigValueSchemaZ>
-type CatalogRequirement = z.infer<typeof CatalogRequirementZ>
-type VersionSchema = z.infer<typeof VersionSchemaZ>
 type CatalogComponent = z.infer<typeof CatalogComponentZ>
 type CatalogDocument = z.infer<typeof CatalogDocumentZ>
 
 export { CatalogComponentZ, CatalogDocumentZ }
 
-export type { ConfigValueSchema, CatalogRequirement, VersionSchema, CatalogComponent, CatalogDocument }
+export type { ConfigValueSchema, CatalogComponent, CatalogDocument }

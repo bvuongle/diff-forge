@@ -1,4 +1,4 @@
-import { Graph, GraphEdge, GraphNode, Position, Slot } from './GraphTypes'
+import { Graph, GraphEdge, GraphNode, Position } from './GraphTypes'
 
 function addNode(graph: Graph, node: GraphNode): Graph {
   if (graph.nodes.some((n) => n.id === node.id)) {
@@ -66,26 +66,6 @@ function renameNode(graph: Graph, oldId: string, newId: string): Graph {
   }
 }
 
-function updateNodeVersion(
-  graph: Graph,
-  nodeId: string,
-  version: string,
-  newSlots: Slot[],
-  newConfigSchema: Record<string, unknown>
-): Graph {
-  return {
-    ...graph,
-    nodes: graph.nodes.map((n) => {
-      if (n.id !== nodeId) return n
-      const migratedConfig: Record<string, unknown> = {}
-      for (const key of Object.keys(newConfigSchema)) {
-        if (key in n.config) migratedConfig[key] = n.config[key]
-      }
-      return { ...n, version, slots: newSlots, config: migratedConfig }
-    })
-  }
-}
-
 function isEdgeInvalid(edge: GraphEdge, nodes: GraphNode[]): boolean {
   const src = nodes.find((n) => n.id === edge.sourceNodeId)
   const tgt = nodes.find((n) => n.id === edge.targetNodeId)
@@ -126,16 +106,4 @@ function validateEdge(
   return { valid: true }
 }
 
-export {
-  addNode,
-  removeNode,
-  addEdge,
-  removeEdge,
-  moveNode,
-  updateNodeConfig,
-  renameNode,
-  updateNodeVersion,
-  isEdgeInvalid,
-  validateEdge
-}
-export type { EdgeValidation }
+export { addNode, removeNode, addEdge, removeEdge, moveNode, updateNodeConfig, renameNode, isEdgeInvalid, validateEdge }

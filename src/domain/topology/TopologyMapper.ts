@@ -30,7 +30,7 @@ function topologyToGraph(topology: Topology): Graph {
     id: entry.id,
     instanceId: entry.id,
     componentType: entry.type,
-    module: '',
+    source: '',
     version: '',
     position: { x: index * 200, y: 0 },
     config: entry.config,

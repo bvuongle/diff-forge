@@ -12,12 +12,10 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   } as unknown as typeof ResizeObserver
 }
 
-function Wrapper({ children }: { children: React.ReactNode }) {
-  return <ThemeProvider theme={theme}>{children}</ThemeProvider>
-}
-
 function renderWithTheme(ui: React.ReactElement) {
-  return render(ui, { wrapper: Wrapper })
+  return render(ui, {
+    wrapper: ({ children }: { children: React.ReactNode }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>
+  })
 }
 
 export { renderWithTheme }

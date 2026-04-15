@@ -47,10 +47,13 @@ export default defineConfig({
     alias: {
       '@': '/src',
       '@domain': '/src/domain',
-      '@ports': '/src/ports',
+      '@contracts': '/src/contracts',
       '@adapters': '/src/adapters',
       '@state': '/src/state',
-      '@canvas': '/src/canvas',
+      '@canvas': '/src/components/canvas',
+      '@catalog': '/src/components/catalog',
+      '@topbar': '/src/components/topbar',
+      '@layout': '/src/components/layout',
       '@testing': '/src/testing'
     }
   }

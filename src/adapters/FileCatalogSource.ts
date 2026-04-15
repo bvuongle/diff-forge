@@ -1,5 +1,6 @@
+import { CatalogSource } from '@contracts/CatalogSource'
+
 import { CatalogDocument, CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
-import { CatalogSource } from '@ports/CatalogSource'
 
 type FileCatalogSourceDeps = {
   filePath: string
@@ -18,4 +19,3 @@ function createFileCatalogSource(deps: FileCatalogSourceDeps): CatalogSource {
 }
 
 export { createFileCatalogSource }
-export type { FileCatalogSourceDeps }

@@ -10,7 +10,6 @@ import {
   removeNode,
   renameNode,
   updateNodeConfig,
-  updateNodeVersion,
   validateEdge
 } from '@domain/graph/GraphOperations'
 import type { Graph, Slot } from '@domain/graph/GraphTypes'
@@ -383,34 +382,5 @@ describe('renameNode', () => {
   it('throws if new id already exists', () => {
     const graph: Graph = { nodes: [makeNode('a'), makeNode('b')], edges: [] }
     expect(() => renameNode(graph, 'a', 'b')).toThrow('already exists')
-  })
-})
-
-describe('updateNodeVersion', () => {
-  it('updates version and slots', () => {
-    const graph: Graph = { nodes: [makeNode('a', { version: '1.0.0' })], edges: [] }
-    const newSlots: Slot[] = [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }]
-    const result = updateNodeVersion(graph, 'a', '2.0.0', newSlots, {})
-    expect(result.nodes[0].version).toBe('2.0.0')
-    expect(result.nodes[0].slots).toEqual(newSlots)
-  })
-
-  it('migrates config keys that exist in new schema', () => {
-    const graph: Graph = {
-      nodes: [makeNode('a', { config: { keep: 1, drop: 2 } })],
-      edges: []
-    }
-    const newSchema = { keep: { type: 'uint' }, added: { type: 'string' } }
-    const result = updateNodeVersion(graph, 'a', '2.0.0', [], newSchema)
-    expect(result.nodes[0].config).toEqual({ keep: 1 })
-  })
-
-  it('does not affect other nodes', () => {
-    const graph: Graph = {
-      nodes: [makeNode('a', { version: '1.0.0' }), makeNode('b', { version: '1.0.0' })],
-      edges: []
-    }
-    const result = updateNodeVersion(graph, 'a', '2.0.0', [], {})
-    expect(result.nodes[1].version).toBe('1.0.0')
   })
 })

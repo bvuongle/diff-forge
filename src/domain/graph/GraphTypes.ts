@@ -14,7 +14,7 @@ type GraphNode = {
   id: string
   instanceId: string
   componentType: string
-  module: string
+  source: string
   version: string
   position: Position
   config: Record<string, unknown>

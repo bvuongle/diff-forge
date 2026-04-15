@@ -1,5 +1,6 @@
+import { TopologyExporter } from '@contracts/TopologyExporter'
+
 import { Topology } from '@domain/topology/TopologyTypes'
-import { TopologyExporter } from '@ports/TopologyExporter'
 
 type JsonTopologyExporterDeps = {
   saveFile(path: string, content: string): Promise<void>
@@ -19,4 +20,3 @@ function createJsonTopologyExporter(deps: JsonTopologyExporterDeps): TopologyExp
 }
 
 export { createJsonTopologyExporter }
-export type { JsonTopologyExporterDeps }
