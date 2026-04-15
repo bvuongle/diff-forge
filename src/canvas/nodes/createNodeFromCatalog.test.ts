@@ -26,13 +26,9 @@ describe('createNodeFromCatalog', () => {
 
   it('builds output slots from implements', () => {
     const catalog = makeCatalog({
-      versions: {
-        '1.0.0': {
-          implements: ['ILink', 'IMonitor'],
-          requires: [],
-          configSchema: {}
-        }
-      }
+      implements: ['ILink', 'IMonitor'],
+      requires: [],
+      configSchema: {}
     })
     const node = createNodeFromCatalog(catalog, { x: 0, y: 0 }, [])
     const outSlots = node.slots.filter((s: Slot) => s.direction === 'out')
@@ -54,7 +50,7 @@ describe('createNodeFromCatalog', () => {
     const node = createNodeFromCatalog(makeCatalog(), { x: 42, y: 99 }, [])
     expect(node.position).toEqual({ x: 42, y: 99 })
     expect(node.componentType).toBe('LinkEth')
-    expect(node.module).toBe('link')
+    expect(node.source).toBe('diff_broker')
     expect(node.version).toBe('1.0.0')
   })
 
@@ -63,13 +59,8 @@ describe('createNodeFromCatalog', () => {
     expect(node.config).toEqual({})
   })
 
-  it('defaults version to first key in versions record', () => {
-    const catalog = makeCatalog({
-      versions: {
-        '2.0.0': { implements: ['ILink'], requires: [], configSchema: {} },
-        '1.0.0': { implements: ['ILink'], requires: [], configSchema: {} }
-      }
-    })
+  it('uses version from catalog component', () => {
+    const catalog = makeCatalog({ version: '2.0.0' })
     const node = createNodeFromCatalog(catalog, { x: 0, y: 0 }, [])
     expect(node.version).toBe('2.0.0')
   })

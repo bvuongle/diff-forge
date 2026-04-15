@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { Box, Chip, Divider, MenuItem, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { Box, Chip, Divider, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { GraphNode, Slot } from '@domain/graph/GraphTypes'
@@ -8,7 +8,9 @@ import { useGraphStore } from '@state/graphStore'
 
 import { ConfigFieldRenderer } from './ConfigFieldRenderer'
 import { JsonConfigEditor } from './JsonConfigEditor'
-import { PortRow, type DragInfo } from './PortRow'
+import type { DragInfo } from './portDragState'
+import { registerPort, unregisterPort } from './portRegistry'
+import { PortRow } from './PortRow'
 import { getSlotTooltip, type EdgeSourceMap } from './slotUtils'
 
 type NodeExpandedContentProps = {
@@ -18,7 +20,6 @@ type NodeExpandedContentProps = {
   dragInfo: DragInfo | null
   edgeSourceMap: EdgeSourceMap
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
-  onVersionChange: (nodeId: string, version: string) => void
 }
 
 function OutputPortRow({
@@ -33,6 +34,12 @@ function OutputPortRow({
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (ref.current) registerPort(nodeId, '__out__', 'out', ref.current)
+    return () => unregisterPort(nodeId, '__out__', 'out')
+  }, [nodeId])
+
   const isConnected = outputSlots.some((s) => connectedSlots.has(s.name))
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, py: 0.5, height: 32 }}>
@@ -73,19 +80,16 @@ function NodeExpandedContent({
   connectedSlots,
   dragInfo,
   edgeSourceMap,
-  onPortMouseDown,
-  onVersionChange
+  onPortMouseDown
 }: NodeExpandedContentProps) {
   const { graph, renameNode, updateNodeConfig } = useGraphStore()
   const [editId, setEditId] = useState(node.instanceId)
   const [idError, setIdError] = useState('')
   const [configTab, setConfigTab] = useState<'fields' | 'json'>('fields')
 
-  const currentVersion = catalogComponent.versions[node.version]
-  const configSchema = currentVersion?.configSchema ?? {}
-  const implements_ = currentVersion?.implements ?? []
+  const configSchema = catalogComponent.configSchema
+  const implements_ = catalogComponent.implements
   const configEntries = Object.entries(configSchema)
-  const versionKeys = Object.keys(catalogComponent.versions)
 
   const inputSlots = node.slots.filter((s) => s.direction === 'in')
   const outputSlots = node.slots.filter((s) => s.direction === 'out')
@@ -110,7 +114,6 @@ function NodeExpandedContent({
 
   return (
     <Box data-no-drag="true" sx={{ px: 1.5, py: 1.5, cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
-      {/* INFO */}
       <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ fontSize: '0.7rem' }}>
         INFO
       </Typography>
@@ -142,27 +145,13 @@ function NodeExpandedContent({
           </Box>
           <Box flex={1}>
             <Typography variant="caption" color="text.secondary">
-              Module
+              Source
             </Typography>
             <Typography variant="body2" fontSize="0.8rem">
-              {node.module}
+              {node.source}
             </Typography>
           </Box>
         </Box>
-        <TextField
-          label="Version"
-          size="small"
-          fullWidth
-          select
-          value={node.version}
-          onChange={(e) => onVersionChange(node.id, e.target.value)}
-        >
-          {versionKeys.map((v) => (
-            <MenuItem key={v} value={v}>
-              {v}
-            </MenuItem>
-          ))}
-        </TextField>
         {implements_.length > 0 && (
           <Box display="flex" gap={0.5} flexWrap="wrap">
             {implements_.map((iface) => (
@@ -172,7 +161,6 @@ function NodeExpandedContent({
         )}
       </Box>
 
-      {/* REQUIREMENTS (with port circles) */}
       <Divider sx={{ my: 1.5 }} />
       <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ fontSize: '0.7rem' }}>
         REQUIREMENTS
@@ -200,7 +188,6 @@ function NodeExpandedContent({
         )}
       </Box>
 
-      {/* CONFIGURATION */}
       {configEntries.length > 0 && (
         <>
           <Divider sx={{ my: 1.5 }} />

@@ -16,7 +16,7 @@ function LeftCatalogPanel() {
     ? components.filter(
         (c) =>
           c.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.module.toLowerCase().includes(searchQuery.toLowerCase())
+          c.source.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : components
 
@@ -54,7 +54,7 @@ function LeftCatalogPanel() {
           <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {filtered.map((component) => (
               <ListItemButton
-                key={`${component.module}-${component.type}`}
+                key={`${component.source}-${component.type}-${component.version}`}
                 draggable
                 onDragStart={(event) => {
                   event.dataTransfer.setData('application/x-diff-component', JSON.stringify(component))
@@ -79,15 +79,12 @@ function LeftCatalogPanel() {
                       {component.type}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {component.module}
+                      {component.source}
                     </Typography>
                     <Box mt={1}>
                       <Chip
                         size="small"
-                        label={(() => {
-                          const keys = Object.keys(component.versions)
-                          return keys.length === 1 ? `v${keys[0]}` : `${keys.length} versions`
-                        })()}
+                        label={`v${component.version}`}
                         sx={{ bgcolor: 'var(--input-background)', height: 22 }}
                       />
                     </Box>

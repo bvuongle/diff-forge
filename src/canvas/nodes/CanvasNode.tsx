@@ -2,14 +2,16 @@ import { useCallback, useEffect, useRef } from 'react'
 
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Box, Chip, IconButton, MenuItem, Select, Tooltip, Typography } from '@mui/material'
+import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material'
 
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { GraphNode } from '@domain/graph/GraphTypes'
 import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
 
 import { NodeExpandedContent } from './NodeExpandedContent'
-import { PortRow, type DragInfo } from './PortRow'
+import type { DragInfo } from './portDragState'
+import { registerPort, unregisterPort } from './portRegistry'
+import { PortRow } from './PortRow'
 import { getSlotTooltip, type EdgeSourceMap } from './slotUtils'
 
 type CanvasNodeProps = {
@@ -25,7 +27,6 @@ type CanvasNodeProps = {
   onMoveStart: (nodeId: string, startX: number, startY: number) => void
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
   onToggleExpand: (nodeId: string) => void
-  onVersionChange: (nodeId: string, version: string) => void
   onWidthChange: (nodeId: string, width: number) => void
 }
 
@@ -42,7 +43,6 @@ function CanvasNode({
   onMoveStart,
   onPortMouseDown,
   onToggleExpand,
-  onVersionChange,
   onWidthChange
 }: CanvasNodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
@@ -50,7 +50,6 @@ function CanvasNode({
   const outputSlots = node.slots.filter((s) => s.direction === 'out')
   const hasOutput = outputSlots.length > 0
   const minWidth = isExpanded ? NODE_WIDTH_EXPANDED : NODE_WIDTH_COMPACT
-  const versionKeys = catalogComponent ? Object.keys(catalogComponent.versions) : []
 
   useEffect(() => {
     const el = nodeRef.current
@@ -79,6 +78,11 @@ function CanvasNode({
   const isOutputConnected = outputSlots.some((s) => connectedSlots.has(s.name))
   const outputRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    if (outputRef.current && !isExpanded) registerPort(node.id, '__out__', 'out', outputRef.current)
+    return () => unregisterPort(node.id, '__out__', 'out')
+  }, [node.id, isExpanded])
+
   const outputPortSx = {
     width: 16,
     height: 16,
@@ -99,6 +103,8 @@ function CanvasNode({
   return (
     <Box
       ref={nodeRef}
+      data-node-id={node.id}
+      data-node-container
       onMouseDown={handleMouseDown}
       onDoubleClick={(e) => {
         e.stopPropagation()
@@ -126,7 +132,6 @@ function CanvasNode({
         '&:hover': { borderColor: isSelected ? 'var(--accent-blue)' : '#bbb' }
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           px: 1.5,
@@ -142,40 +147,11 @@ function CanvasNode({
             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }} noWrap>
               {node.componentType}
             </Typography>
-            {versionKeys.length > 1 ? (
-              <Select
-                data-no-drag="true"
-                size="small"
-                variant="standard"
-                value={node.version}
-                onChange={(e) => onVersionChange(node.id, e.target.value)}
-                sx={{
-                  fontSize: '0.65rem',
-                  '& .MuiSelect-select': {
-                    py: '2px',
-                    px: '8px',
-                    pr: '22px !important',
-                    bgcolor: '#e8eaed',
-                    borderRadius: '10px',
-                    fontSize: '0.65rem'
-                  },
-                  '& .MuiSvgIcon-root': { fontSize: '0.9rem', right: 2 }
-                }}
-                disableUnderline
-              >
-                {versionKeys.map((v) => (
-                  <MenuItem key={v} value={v} sx={{ fontSize: '0.75rem' }}>
-                    {v}
-                  </MenuItem>
-                ))}
-              </Select>
-            ) : (
-              <Chip
-                label={node.version}
-                size="small"
-                sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#e8eaed', '& .MuiChip-label': { px: 0.75 } }}
-              />
-            )}
+            <Chip
+              label={node.version}
+              size="small"
+              sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#e8eaed', '& .MuiChip-label': { px: 0.75 } }}
+            />
           </Box>
           <Typography variant="subtitle2" fontWeight={600} sx={{ lineHeight: 1.3, mt: 0.25 }} noWrap>
             {node.instanceId}
@@ -193,7 +169,6 @@ function CanvasNode({
         </IconButton>
       </Box>
 
-      {/* Expanded: full config + ports in REQUIREMENTS section */}
       {isExpanded && catalogComponent && (
         <NodeExpandedContent
           node={node}
@@ -202,11 +177,9 @@ function CanvasNode({
           dragInfo={dragInfo}
           edgeSourceMap={edgeSourceMap}
           onPortMouseDown={onPortMouseDown}
-          onVersionChange={onVersionChange}
         />
       )}
 
-      {/* Collapsed: input ports then single output row */}
       {!isExpanded && (
         <Box sx={{ px: 1.5, py: 1 }}>
           {inputSlots.map((slot) => (

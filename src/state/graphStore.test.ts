@@ -247,46 +247,4 @@ describe('graphStore', () => {
       expect(edge.targetNodeId).toBe('n2')
     })
   })
-
-  describe('updateNodeVersion', () => {
-    it('updates version and slots on the node', () => {
-      useGraphStore.getState().addNode(
-        makeNode('n1', {
-          version: '1.0.0',
-          config: { count: 3 },
-          slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }]
-        })
-      )
-      const newSlots = [{ name: 'ILinkV2', interface: 'ILinkV2', direction: 'out' as const, maxConnections: Infinity }]
-      useGraphStore.getState().updateNodeVersion('n1', '2.0.0', newSlots, { count: null })
-      const node = useGraphStore.getState().graph.nodes[0]
-      expect(node.version).toBe('2.0.0')
-      expect(node.slots).toEqual(newSlots)
-    })
-
-    it('migrates config keys that exist in new schema', () => {
-      useGraphStore.getState().addNode(
-        makeNode('n1', {
-          config: { count: 3, content: 'hello', removed: true }
-        })
-      )
-      useGraphStore.getState().updateNodeVersion('n1', '2.0.0', [], {
-        count: { type: 'int' },
-        content: { type: 'string' }
-      })
-      const node = useGraphStore.getState().graph.nodes[0]
-      expect(node.config).toEqual({ count: 3, content: 'hello' })
-    })
-
-    it('drops config keys not in new schema', () => {
-      useGraphStore.getState().addNode(
-        makeNode('n1', {
-          config: { oldKey: 'value' }
-        })
-      )
-      useGraphStore.getState().updateNodeVersion('n1', '2.0.0', [], {})
-      const node = useGraphStore.getState().graph.nodes[0]
-      expect(node.config).toEqual({})
-    })
-  })
 })

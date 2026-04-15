@@ -8,10 +8,11 @@ const mockCatalog: CatalogDocument = {
   components: [
     {
       type: 'LinkEth',
-      module: 'diff_broker',
-      versions: {
-        '1.0.0': { implements: ['ILink'], requires: [], configSchema: {} }
-      }
+      source: 'diff_broker',
+      version: '1.0.0',
+      implements: ['ILink'],
+      requires: [],
+      configSchema: {}
     }
   ]
 }
