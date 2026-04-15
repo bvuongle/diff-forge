@@ -53,6 +53,8 @@ export default defineConfig({
       '@canvas': '/src/components/canvas',
       '@catalog': '/src/components/catalog',
       '@topbar': '/src/components/topbar',
-      '@layout': '/src/components/layout',      '@testing': '/src/testing'
-    }  }
+      '@layout': '/src/components/layout',
+      '@testing': '/src/testing'
+    }
+  }
 })
