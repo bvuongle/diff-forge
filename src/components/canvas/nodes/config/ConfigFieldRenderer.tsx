@@ -10,8 +10,8 @@ type ConfigFieldRendererProps = {
 }
 
 const NUMERIC_BOUNDS: Record<string, { min?: number; max?: number; step?: string }> = {
-  int: {},
-  uint: { min: 0 },
+  int: { min: -2147483648, max: 2147483647 },
+  uint: { min: 0, max: 4294967295 },
   int8: { min: -128, max: 127 },
   uint8: { min: 0, max: 255 },
   int16: { min: -32768, max: 32767 },

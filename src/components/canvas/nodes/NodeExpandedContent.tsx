@@ -15,12 +15,14 @@ type NodeExpandedContentProps = {
 }
 
 function NodeExpandedContent({ node, catalogComponent, onPortMouseDown }: NodeExpandedContentProps) {
-  const { graph, renameNode, updateNodeConfig } = useGraphStore()
+  const graphNodes = useGraphStore((s) => s.graph.nodes)
+  const renameNode = useGraphStore((s) => s.renameNode)
+  const updateNodeConfig = useGraphStore((s) => s.updateNodeConfig)
   const implements_ = catalogComponent.implements
 
   return (
     <Box data-no-drag="true" sx={{ px: 1.5, py: 1.5, cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
-      <NodeInfoSection node={node} graphNodes={graph.nodes} renameNode={renameNode} />
+      <NodeInfoSection node={node} graphNodes={graphNodes} renameNode={renameNode} />
 
       {implements_.length > 0 && (
         <Box display="flex" gap={0.5} flexWrap="wrap" mt={1}>

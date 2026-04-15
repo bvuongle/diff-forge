@@ -107,11 +107,12 @@ describe('ConfigFieldRenderer', () => {
   })
 
   describe('uint type', () => {
-    it('renders number input with min >= 0', () => {
+    it('renders number input with uint32 bounds', () => {
       renderWithTheme(<ConfigFieldRenderer fieldName="port" schema={{ type: 'uint' }} value={0} onChange={vi.fn()} />)
       const input = screen.getByLabelText('port') as HTMLInputElement
       expect(input.type).toBe('number')
       expect(input.min).toBe('0')
+      expect(input.max).toBe('4294967295')
     })
 
     it('applies schema min and max to input', () => {

@@ -1,2 +1,3 @@
 export const NODE_WIDTH_COMPACT = 180
 export const NODE_WIDTH_EXPANDED = 280
+export const NODE_HORIZONTAL_SPACING = 200
