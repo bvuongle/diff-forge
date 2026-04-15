@@ -17,14 +17,13 @@ import { useCanvasMarquee } from './interaction/useCanvasMarquee'
 import { useCanvasSelection } from './interaction/useCanvasSelection'
 import { useNodeDrag } from './interaction/useNodeDrag'
 import { CanvasNode } from './nodes/CanvasNode'
-import { getConnectedSlots } from './nodes/ports/getConnectedSlots'
 
 function CanvasPanel() {
   const canvasRef = useRef<HTMLDivElement>(null)
   const { graph, selectedNodeIds, selectedEdgeId, addNode, selectNode, selectNodes, selectEdge, clearSelection } =
     useGraphStore()
   const catalog = useCatalogStore((s) => s.catalog)
-  const { expandedNodeIds, toggleNodeExpanded, dragInfo, setNodeWidth, canvasMode } = useUIStore()
+  const { expandedNodeIds, toggleNodeExpanded, setNodeWidth, canvasMode } = useUIStore()
 
   const { transform, onPanStart, onPanMove, onPanEnd, fitToView, resetView } = useCanvasInteraction(canvasRef)
   const { dragEdge, onPortMouseDown } = useEdgeDrawing(canvasRef, transform.zoom, transform.panX, transform.panY)
@@ -39,11 +38,7 @@ function CanvasPanel() {
     clearSelection
   )
   const { onDragOver, onDrop } = useCanvasDnD(canvasRef, transform, graph.nodes, addNode)
-  const { selectedEdgeIds, edgeDimNodeIds, edgeDimEdgeIds, edgeSourceMaps } = useCanvasSelection(
-    graph,
-    selectedNodeIds,
-    selectedEdgeId
-  )
+  const { selectedEdgeIds, edgeDimNodeIds, edgeDimEdgeIds } = useCanvasSelection(graph, selectedNodeIds, selectedEdgeId)
 
   const setFitToViewAction = useUIStore((s) => s.setFitToViewAction)
   const setResetViewAction = useUIStore((s) => s.setResetViewAction)
@@ -160,12 +155,9 @@ function CanvasPanel() {
             isSelected={selectedNodeIds.has(node.id)}
             isExpanded={expandedNodeIds.has(node.id)}
             isDimmed={edgeDimNodeIds !== null && !edgeDimNodeIds.has(node.id)}
-            connectedSlots={getConnectedSlots(node.id, graph.edges)}
             catalogComponent={
               catalog?.components.find((c) => c.type === node.componentType && c.version === node.version) ?? null
             }
-            dragInfo={dragInfo}
-            edgeSourceMap={edgeSourceMaps[node.id] ?? {}}
             onSelect={selectNode}
             onMoveStart={onMoveStart}
             onPortMouseDown={onPortMouseDown}

@@ -33,9 +33,6 @@ const defaultProps = () => ({
     ]
   }),
   catalogComponent: makeCatalogWithConfig(),
-  connectedSlots: new Set<string>(),
-  dragInfo: null,
-  edgeSourceMap: {},
   onPortMouseDown: vi.fn()
 })
 

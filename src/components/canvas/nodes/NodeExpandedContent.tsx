@@ -4,8 +4,6 @@ import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { GraphNode } from '@domain/graph/GraphTypes'
 import { useGraphStore } from '@state/graphStore'
 
-import type { DragInfo } from './ports/portDragState'
-import { type EdgeSourceMap } from './ports/slotUtils'
 import { NodeConfigurationSection } from './sections/NodeConfigurationSection'
 import { NodeInfoSection } from './sections/NodeInfoSection'
 import { NodeRequirementsSection } from './sections/NodeRequirementsSection'
@@ -13,20 +11,10 @@ import { NodeRequirementsSection } from './sections/NodeRequirementsSection'
 type NodeExpandedContentProps = {
   node: GraphNode
   catalogComponent: CatalogComponent
-  connectedSlots: Set<string>
-  dragInfo: DragInfo | null
-  edgeSourceMap: EdgeSourceMap
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
 }
 
-function NodeExpandedContent({
-  node,
-  catalogComponent,
-  connectedSlots,
-  dragInfo,
-  edgeSourceMap,
-  onPortMouseDown
-}: NodeExpandedContentProps) {
+function NodeExpandedContent({ node, catalogComponent, onPortMouseDown }: NodeExpandedContentProps) {
   const { graph, renameNode, updateNodeConfig } = useGraphStore()
   const implements_ = catalogComponent.implements
 
@@ -43,13 +31,7 @@ function NodeExpandedContent({
       )}
 
       <Divider sx={{ my: 1.5 }} />
-      <NodeRequirementsSection
-        node={node}
-        connectedSlots={connectedSlots}
-        dragInfo={dragInfo}
-        edgeSourceMap={edgeSourceMap}
-        onPortMouseDown={onPortMouseDown}
-      />
+      <NodeRequirementsSection node={node} onPortMouseDown={onPortMouseDown} />
 
       <Divider sx={{ my: 1.5 }} />
       <NodeConfigurationSection node={node} catalogComponent={catalogComponent} updateNodeConfig={updateNodeConfig} />

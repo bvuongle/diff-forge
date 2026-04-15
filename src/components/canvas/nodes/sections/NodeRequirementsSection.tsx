@@ -3,17 +3,16 @@ import { useEffect, useRef } from 'react'
 import { Box, Typography } from '@mui/material'
 
 import { GraphNode, Slot } from '@domain/graph/GraphTypes'
+import { useGraphStore } from '@state/graphStore'
+import { useUIStore } from '@state/uiStore'
 
-import type { DragInfo } from '../ports/portDragState'
+import { getConnectedSlots } from '../ports/getConnectedSlots'
 import { registerPort, unregisterPort } from '../ports/portRegistry'
 import { PortRow } from '../ports/PortRow'
-import { getSlotTooltip, type EdgeSourceMap } from '../ports/slotUtils'
+import { getEdgeSourceMap, getSlotTooltip } from '../ports/slotUtils'
 
-interface NodeRequirementsSectionProps {
+type NodeRequirementsSectionProps = {
   node: GraphNode
-  connectedSlots: Set<string>
-  dragInfo: DragInfo | null
-  edgeSourceMap: EdgeSourceMap
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
 }
 
@@ -69,13 +68,13 @@ function OutputPortRow({
   )
 }
 
-export function NodeRequirementsSection({
-  node,
-  connectedSlots,
-  dragInfo,
-  edgeSourceMap,
-  onPortMouseDown
-}: NodeRequirementsSectionProps) {
+export function NodeRequirementsSection({ node, onPortMouseDown }: NodeRequirementsSectionProps) {
+  const graph = useGraphStore((s) => s.graph)
+  const dragInfo = useUIStore((s) => s.dragInfo)
+
+  const connectedSlots = getConnectedSlots(node.id, graph.edges)
+  const edgeSourceMap = getEdgeSourceMap(node.id, graph)
+
   const inputSlots = node.slots.filter((s) => s.direction === 'in')
   const outputSlots = node.slots.filter((s) => s.direction === 'out')
 
