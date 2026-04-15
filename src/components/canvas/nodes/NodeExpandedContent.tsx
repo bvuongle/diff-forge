@@ -4,11 +4,11 @@ import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { GraphNode } from '@domain/graph/GraphTypes'
 import { useGraphStore } from '@state/graphStore'
 
-import { NodeConfigurationSection } from './NodeConfigurationSection'
-import { NodeInfoSection } from './NodeInfoSection'
-import { NodeRequirementsSection } from './NodeRequirementsSection'
-import type { DragInfo } from './portDragState'
-import { type EdgeSourceMap } from './slotUtils'
+import type { DragInfo } from './ports/portDragState'
+import { type EdgeSourceMap } from './ports/slotUtils'
+import { NodeConfigurationSection } from './sections/NodeConfigurationSection'
+import { NodeInfoSection } from './sections/NodeInfoSection'
+import { NodeRequirementsSection } from './sections/NodeRequirementsSection'
 
 type NodeExpandedContentProps = {
   node: GraphNode

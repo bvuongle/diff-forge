@@ -4,10 +4,10 @@ import { Box, Typography } from '@mui/material'
 
 import { GraphNode, Slot } from '@domain/graph/GraphTypes'
 
-import type { DragInfo } from './portDragState'
-import { registerPort, unregisterPort } from './portRegistry'
-import { PortRow } from './PortRow'
-import { getSlotTooltip, type EdgeSourceMap } from './slotUtils'
+import type { DragInfo } from '../ports/portDragState'
+import { registerPort, unregisterPort } from '../ports/portRegistry'
+import { PortRow } from '../ports/PortRow'
+import { getSlotTooltip, type EdgeSourceMap } from '../ports/slotUtils'
 
 interface NodeRequirementsSectionProps {
   node: GraphNode

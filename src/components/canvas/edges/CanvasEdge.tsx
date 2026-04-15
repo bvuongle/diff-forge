@@ -1,6 +1,6 @@
 import { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
 import { useUIStore } from '@state/uiStore'
-import { makePortKey } from '@canvas/nodes/portRegistry'
+import { makePortKey } from '@canvas/nodes/ports/portRegistry'
 
 type CanvasEdgeProps = {
   edge: GraphEdge

@@ -4,7 +4,7 @@ import { renderWithTheme } from '@testing/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CanvasNode } from './CanvasNode'
-import type { EdgeSourceMap } from './slotUtils'
+import type { EdgeSourceMap } from './ports/slotUtils'
 
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
