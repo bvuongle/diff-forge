@@ -38,7 +38,7 @@ function CanvasPanel() {
     clearSelection
   )
   const { onDragOver, onDrop } = useCanvasDnD(canvasRef, transform, graph.nodes, addNode)
-  const { selectedEdgeIds, edgeDimNodeIds, edgeDimEdgeIds } = useCanvasSelection(graph, selectedNodeIds, selectedEdgeId)
+  const { selectedEdgeIds, brightNodeIds, brightEdgeIds } = useCanvasSelection(graph, selectedNodeIds, selectedEdgeId)
 
   const setFitToViewAction = useUIStore((s) => s.setFitToViewAction)
   const setResetViewAction = useUIStore((s) => s.setResetViewAction)
@@ -111,12 +111,20 @@ function CanvasPanel() {
         sx={{
           position: 'absolute',
           inset: 0,
+          backgroundImage: 'radial-gradient(circle at 1px 1px, var(--grid-color) 1px, transparent 0)',
+          backgroundSize: `${20 * transform.zoom}px ${20 * transform.zoom}px`,
+          backgroundPosition: `${transform.panX}px ${transform.panY}px`,
+          pointerEvents: 'none'
+        }}
+      />
+      <Box
+        data-canvas-bg="true"
+        sx={{
+          position: 'absolute',
+          inset: 0,
           transformOrigin: '0 0',
           transform: `translate(${transform.panX}px, ${transform.panY}px) scale(${transform.zoom})`,
-          backgroundImage: 'radial-gradient(circle at 1px 1px, var(--grid-color) 1px, transparent 0)',
-          backgroundSize: '20px 20px',
-          width: 20000,
-          height: 20000
+          overflow: 'visible'
         }}
       >
         <svg
@@ -138,7 +146,7 @@ function CanvasPanel() {
                 nodes={graph.nodes}
                 isSelected={selectedEdgeIds.has(edge.id)}
                 isInvalid={isEdgeInvalid(edge, graph.nodes)}
-                isDimmed={edgeDimEdgeIds !== null && !edgeDimEdgeIds.has(edge.id)}
+                isDimmed={brightEdgeIds !== null && !brightEdgeIds.has(edge.id)}
                 onSelect={selectEdge}
               />
             ))}
@@ -154,7 +162,7 @@ function CanvasPanel() {
             node={node}
             isSelected={selectedNodeIds.has(node.id)}
             isExpanded={expandedNodeIds.has(node.id)}
-            isDimmed={edgeDimNodeIds !== null && !edgeDimNodeIds.has(node.id)}
+            isDimmed={brightNodeIds !== null && !brightNodeIds.has(node.id)}
             catalogComponent={
               catalog?.components.find((c) => c.type === node.componentType && c.version === node.version) ?? null
             }

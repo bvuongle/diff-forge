@@ -99,7 +99,7 @@ const useGraphStore = create<GraphStore>()(
 
     selectNodes: (nodeIds) => set({ selectedNodeIds: new Set(nodeIds), selectedEdgeId: null }),
 
-    selectEdge: (edgeId) => set({ selectedEdgeId: edgeId }),
+    selectEdge: (edgeId) => set({ selectedEdgeId: edgeId, selectedNodeIds: new Set() }),
 
     clearSelection: () => set({ selectedNodeIds: new Set(), selectedEdgeId: null }),
 
