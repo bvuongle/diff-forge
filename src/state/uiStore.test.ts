@@ -7,10 +7,8 @@ describe('uiStore', () => {
     useUIStore.setState({
       searchQuery: '',
       expandedNodeIds: new Set(),
-      dragInfo: null,
-      nodeWidths: {},
-      portOffsets: {},
-      canvasMode: 'select'
+      canvasMode: 'select',
+      snapToGrid: false
     })
   })
 
@@ -57,51 +55,6 @@ describe('uiStore', () => {
     })
   })
 
-  describe('dragInfo', () => {
-    it('starts null', () => {
-      expect(useUIStore.getState().dragInfo).toBeNull()
-    })
-
-    it('setDragInfo sets drag info', () => {
-      useUIStore.getState().setDragInfo({ sourceNodeId: 'n1', sourceInterfaces: ['ILink'] })
-      expect(useUIStore.getState().dragInfo).toEqual({
-        sourceNodeId: 'n1',
-        sourceInterfaces: ['ILink']
-      })
-    })
-
-    it('setDragInfo(null) clears drag info', () => {
-      useUIStore.getState().setDragInfo({ sourceNodeId: 'n1', sourceInterfaces: ['ILink'] })
-      useUIStore.getState().setDragInfo(null)
-      expect(useUIStore.getState().dragInfo).toBeNull()
-    })
-  })
-
-  describe('nodeWidths', () => {
-    it('starts empty', () => {
-      expect(useUIStore.getState().nodeWidths).toEqual({})
-    })
-
-    it('setNodeWidth records width for a node', () => {
-      useUIStore.getState().setNodeWidth('n1', 240)
-      expect(useUIStore.getState().nodeWidths['n1']).toBe(240)
-    })
-
-    it('setNodeWidth does not create new state if width unchanged', () => {
-      useUIStore.getState().setNodeWidth('n1', 240)
-      const before = useUIStore.getState()
-      useUIStore.getState().setNodeWidth('n1', 240)
-      const after = useUIStore.getState()
-      expect(before.nodeWidths).toBe(after.nodeWidths)
-    })
-
-    it('setNodeWidth updates width for an existing node', () => {
-      useUIStore.getState().setNodeWidth('n1', 240)
-      useUIStore.getState().setNodeWidth('n1', 340)
-      expect(useUIStore.getState().nodeWidths['n1']).toBe(340)
-    })
-  })
-
   describe('canvasMode', () => {
     it('defaults to select', () => {
       expect(useUIStore.getState().canvasMode).toBe('select')
@@ -116,6 +69,23 @@ describe('uiStore', () => {
       useUIStore.getState().setCanvasMode('pan')
       useUIStore.getState().setCanvasMode('select')
       expect(useUIStore.getState().canvasMode).toBe('select')
+    })
+  })
+
+  describe('snapToGrid', () => {
+    it('defaults to false', () => {
+      expect(useUIStore.getState().snapToGrid).toBe(false)
+    })
+
+    it('toggleSnapToGrid enables snap', () => {
+      useUIStore.getState().toggleSnapToGrid()
+      expect(useUIStore.getState().snapToGrid).toBe(true)
+    })
+
+    it('toggleSnapToGrid toggles back to false', () => {
+      useUIStore.getState().toggleSnapToGrid()
+      useUIStore.getState().toggleSnapToGrid()
+      expect(useUIStore.getState().snapToGrid).toBe(false)
     })
   })
 })

@@ -1,13 +1,6 @@
 import { create } from 'zustand'
 
-type DragInfo = {
-  sourceNodeId: string
-  sourceInterfaces: string[]
-}
-
 type CanvasMode = 'select' | 'pan'
-
-type PortOffset = { offsetX: number; offsetY: number }
 
 type UIStore = {
   searchQuery: string
@@ -16,19 +9,10 @@ type UIStore = {
   toggleNodeExpanded: (nodeId: string) => void
   expandAll: (nodeIds: string[]) => void
   collapseAll: () => void
-  dragInfo: DragInfo | null
-  setDragInfo: (info: DragInfo | null) => void
-  nodeWidths: Record<string, number>
-  setNodeWidth: (nodeId: string, width: number) => void
-  portOffsets: Record<string, PortOffset>
-  setPortOffset: (key: string, offsetX: number, offsetY: number) => void
-  removePortOffset: (key: string) => void
   canvasMode: CanvasMode
   setCanvasMode: (mode: CanvasMode) => void
-  fitToViewAction: (() => void) | null
-  setFitToViewAction: (action: (() => void) | null) => void
-  resetViewAction: (() => void) | null
-  setResetViewAction: (action: (() => void) | null) => void
+  snapToGrid: boolean
+  toggleSnapToGrid: () => void
 }
 
 const useUIStore = create<UIStore>((set) => ({
@@ -44,34 +28,10 @@ const useUIStore = create<UIStore>((set) => ({
     }),
   expandAll: (nodeIds) => set({ expandedNodeIds: new Set(nodeIds) }),
   collapseAll: () => set({ expandedNodeIds: new Set() }),
-  dragInfo: null,
-  setDragInfo: (info) => set({ dragInfo: info }),
-  nodeWidths: {},
-  setNodeWidth: (nodeId, width) =>
-    set((s) => {
-      if (s.nodeWidths[nodeId] === width) return s
-      return { nodeWidths: { ...s.nodeWidths, [nodeId]: width } }
-    }),
-  portOffsets: {},
-  setPortOffset: (key, offsetX, offsetY) =>
-    set((s) => {
-      const existing = s.portOffsets[key]
-      if (existing && existing.offsetX === offsetX && existing.offsetY === offsetY) return s
-      return { portOffsets: { ...s.portOffsets, [key]: { offsetX, offsetY } } }
-    }),
-  removePortOffset: (key) =>
-    set((s) => {
-      if (!(key in s.portOffsets)) return s
-      const next = { ...s.portOffsets }
-      delete next[key]
-      return { portOffsets: next }
-    }),
   canvasMode: 'select',
   setCanvasMode: (mode) => set({ canvasMode: mode }),
-  fitToViewAction: null,
-  setFitToViewAction: (action) => set({ fitToViewAction: action }),
-  resetViewAction: null,
-  setResetViewAction: (action) => set({ resetViewAction: action })
+  snapToGrid: false,
+  toggleSnapToGrid: () => set((s) => ({ snapToGrid: !s.snapToGrid }))
 }))
 
 export { useUIStore }

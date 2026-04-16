@@ -1,115 +1,106 @@
-import { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
-import { useUIStore } from '@state/uiStore'
-import { makePortKey } from '@canvas/nodes/ports/portRegistry'
+import { memo, useMemo } from 'react'
 
-type CanvasEdgeProps = {
-  edge: GraphEdge
-  nodes: GraphNode[]
-  isSelected: boolean
-  isInvalid: boolean
-  isDimmed: boolean
-  onSelect: (edgeId: string) => void
-}
+import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from '@xyflow/react'
 
-type PortPosition = { x: number; y: number }
+import { isEdgeInvalid } from '@domain/graph/GraphOperations'
+import { useGraphStore } from '@state/graphStore'
+import type { CanvasEdge } from '@canvas/canvasTypes'
 
-function getPortPosition(
-  node: GraphNode,
-  slotName: string,
-  direction: 'in' | 'out',
-  portOffsets: Record<string, { offsetX: number; offsetY: number }>
-): PortPosition | null {
-  const key = makePortKey(node.id, slotName, direction)
-  const offset = portOffsets[key]
-  if (!offset) return null
-  return {
-    x: node.position.x + offset.offsetX,
-    y: node.position.y + offset.offsetY
-  }
-}
+import { isEdgeDimmed } from '../selection/selectionDimming'
 
-function buildCurvePath(from: PortPosition, to: PortPosition): string {
-  const dx = Math.abs(to.x - from.x) * 0.5
-  return `M ${from.x} ${from.y} C ${from.x + dx} ${from.y}, ${to.x - dx} ${to.y}, ${to.x} ${to.y}`
-}
+const EDGE_WIDTH = 2
 
-function CanvasEdge({ edge, nodes, isSelected, isInvalid, isDimmed, onSelect }: CanvasEdgeProps) {
-  const portOffsets = useUIStore((s) => s.portOffsets)
+function CanvasEdgeComponent({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  selected,
+  data
+}: EdgeProps<CanvasEdge>) {
+  const graphEdge = data?.graphEdge
+  const nodes = useGraphStore((s) => s.graph.nodes)
+  const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds)
+  const selectedEdgeIds = useGraphStore((s) => s.selectedEdgeIds)
 
-  const sourceNode = nodes.find((n) => n.id === edge.sourceNodeId)
-  const targetNode = nodes.find((n) => n.id === edge.targetNodeId)
-  if (!sourceNode || !targetNode) return null
+  const isInvalid = useMemo(() => (graphEdge ? isEdgeInvalid(graphEdge, nodes) : false), [graphEdge, nodes])
 
-  // Try exact source slot first, fall back to __out__ (compact mode output port)
-  const from =
-    getPortPosition(sourceNode, edge.sourceSlot, 'out', portOffsets) ??
-    getPortPosition(sourceNode, '__out__', 'out', portOffsets)
-  const to = getPortPosition(targetNode, edge.targetSlot, 'in', portOffsets)
+  const isSelected =
+    selected ||
+    selectedEdgeIds.has(id) ||
+    (selectedNodeIds.size > 0 &&
+      !!graphEdge &&
+      selectedNodeIds.has(graphEdge.sourceNodeId) &&
+      selectedNodeIds.has(graphEdge.targetNodeId))
 
-  if (!from || !to) return null
+  const isDimmed = useMemo(
+    () => isEdgeDimmed(graphEdge, id, selectedNodeIds, selectedEdgeIds),
+    [id, graphEdge, selectedNodeIds, selectedEdgeIds]
+  )
 
-  const path = buildCurvePath(from, to)
+  // Show source slot label when source node has multiple outputs
+  const sourceLabel = useMemo(() => {
+    if (!graphEdge) return null
+    const srcNode = nodes.find((n) => n.id === graphEdge.sourceNodeId)
+    if (!srcNode) return null
+    const outSlots = srcNode.slots.filter((s) => s.direction === 'out')
+    if (outSlots.length <= 1) return null
+    return graphEdge.sourceSlot
+  }, [graphEdge, nodes])
+
+  const [path, labelX, labelY] = getBezierPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition })
+
   const strokeColor = isInvalid ? '#ef4444' : isSelected ? 'var(--accent-blue)' : '#9ca3af'
 
-  const srcOutputSlots = sourceNode.slots.filter((s) => s.direction === 'out')
-  const showEdgeLabel = srcOutputSlots.length > 1
-  const edgeLabelIndex = srcOutputSlots.findIndex((s) => s.name === edge.sourceSlot)
-
   return (
-    <g
-      onClick={(e) => {
-        e.stopPropagation()
-        onSelect(edge.id)
-      }}
-      opacity={isDimmed ? 0.15 : 1}
-      style={{ transition: 'opacity 0.2s ease' }}
-    >
-      <path d={path} fill="none" stroke="transparent" strokeWidth={12} style={{ cursor: 'pointer' }} />
-      {isSelected && (
-        <path d={path} fill="none" stroke="var(--accent-blue)" strokeWidth={6} strokeLinecap="round" opacity={0.2} />
+    <>
+      <g opacity={isDimmed ? 0.15 : 1} style={{ transition: 'opacity 0.2s ease' }}>
+        <path d={path} fill="none" stroke="transparent" strokeWidth={16} style={{ cursor: 'pointer' }} />
+        {isSelected && (
+          <path d={path} fill="none" stroke="var(--accent-blue)" strokeWidth={8} strokeLinecap="round" opacity={0.2} />
+        )}
+        {isInvalid && !isSelected && (
+          <path d={path} fill="none" stroke="#ef4444" strokeWidth={8} strokeLinecap="round" opacity={0.15} />
+        )}
+        <BaseEdge
+          id={id}
+          path={path}
+          labelX={labelX}
+          labelY={labelY}
+          style={{
+            stroke: strokeColor,
+            strokeWidth: EDGE_WIDTH,
+            strokeLinecap: 'round',
+            strokeDasharray: isInvalid ? '6,4' : undefined
+          }}
+        />
+      </g>
+      {sourceLabel && !isDimmed && (
+        <EdgeLabelRenderer>
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -120%) translate(${labelX}px, ${labelY}px)`,
+              fontSize: '10px',
+              color: 'var(--text-secondary)',
+              background: 'rgba(255,255,255,0.85)',
+              padding: '1px 4px',
+              borderRadius: 3,
+              pointerEvents: 'none',
+              userSelect: 'none',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {sourceLabel}
+          </div>
+        </EdgeLabelRenderer>
       )}
-      {isInvalid && !isSelected && (
-        <path d={path} fill="none" stroke="#ef4444" strokeWidth={6} strokeLinecap="round" opacity={0.15} />
-      )}
-      <path
-        d={path}
-        fill="none"
-        stroke={strokeColor}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeDasharray={isInvalid ? '6,4' : undefined}
-      />
-      {showEdgeLabel && (
-        <text
-          x={from.x + 12}
-          y={from.y - 6 + edgeLabelIndex * 14}
-          fontSize="10"
-          fill="var(--text-secondary)"
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          {edge.sourceSlot}
-        </text>
-      )}
-    </g>
+    </>
   )
 }
 
-type PendingEdgeProps = { fromX: number; fromY: number; toX: number; toY: number }
-
-function PendingEdge({ fromX, fromY, toX, toY }: PendingEdgeProps) {
-  const dx = Math.abs(toX - fromX) * 0.5
-  const path = `M ${fromX} ${fromY} C ${fromX + dx} ${fromY}, ${toX - dx} ${toY}, ${toX} ${toY}`
-  return (
-    <path
-      d={path}
-      fill="none"
-      stroke="#9ca3af"
-      strokeWidth={2}
-      strokeDasharray="6,4"
-      strokeLinecap="round"
-      pointerEvents="none"
-    />
-  )
-}
-
-export { CanvasEdge, PendingEdge }
+const MemoizedCanvasEdge = memo(CanvasEdgeComponent)
+export { MemoizedCanvasEdge as CanvasEdge }
