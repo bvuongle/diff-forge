@@ -6,10 +6,14 @@
   --grid-color: #e8eaed;
   --text-primary: #24292f;
   --text-secondary: #57606a;
-  --text-tertiary: #6e7781;
   --accent-blue: #0969da;
   --accent-blue-light: #ddf4ff;
   --input-background: #f3f3f5;
+  --chip-bg: #e8eaed;
+  --port-connected: #22c55e;
+  --edge-default: #9ca3af;
+  --edge-invalid: #ef4444;
+  --hover-border: #bbb;
 }
 
 * {
