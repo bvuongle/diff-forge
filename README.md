@@ -1,5 +1,18 @@
 # diff-forge
 
+![Electron](https://img.shields.io/badge/Electron-36-47848F?logo=electron&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
+![MUI](https://img.shields.io/badge/MUI-7-007FFF?logo=mui&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-5-000000?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=)
+![React Flow](https://img.shields.io/badge/React_Flow-12-FF0072?logo=reactflow&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-3.24-3E67B1?logo=zod&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-3-6E9F18?logo=vitest&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-e2e-2EAD33?logo=playwright&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-10-F69220?logo=pnpm&logoColor=white)
+![Node](https://img.shields.io/badge/Node-22_LTS-339933?logo=node.js&logoColor=white)
+
 A desktop tool for visually composing C++ dependency graphs. Built with Electron, React, and TypeScript.
 
 Users load component metadata from a catalog, drag them onto a canvas, wire dependencies between them, and export a `topology.json` file that the C++ diff framework consumes to configure builds.
@@ -33,6 +46,10 @@ This starts Electron with Vite dev server on localhost:5173 and hot-reload enabl
 | `pnpm test:coverage` | Unit tests with coverage |
 | `pnpm test:e2e` | Playwright end-to-end tests |
 | `pnpm typecheck` | TypeScript compiler check |
+| `pnpm lint` | ESLint |
+| `pnpm format` | Prettier write |
+
+Husky runs ESLint + Prettier as a pre-commit hook.
 
 ## Testing
 
@@ -48,41 +65,43 @@ pnpm typecheck     # type checking
 
 ```
 diff-forge/
-  electron/                   Electron main + preload
   src/
-    domain/                   Pure business logic, no framework deps
-      catalog/                Catalog schema + types (Zod validated)
-      graph/                  Graph types + pure operations
-      topology/               Topology types + mapper to/from graph
-    ports/                    Interfaces only (CatalogSource, TopologyExporter, GraphPersistence)
-    adapters/                 Port implementations
-      catalog/                File-based catalog loading
-      export/                 JSON topology export
-      persistence/            Graph state persistence
-    state/                    Zustand stores (catalogStore, graphStore, uiStore)
-    ui/
-      layout/                 Top-level panels (MainLayout, CanvasPanel, LeftCatalogPanel, Topbar)
-      canvas/                 Canvas components, hooks, utils, and co-located tests
-      components/             Shared UI components (SectionHeader, SearchInput)
-    styles/                   Theme + global styles
-    assets/mock/              Dev catalog data
-    app/                      App component + composition root
-    main.tsx                  Entry point
-  tests/                      Domain and state unit tests, shared fixtures
-  e2e/                        Playwright specs
+    adapters/                 Contract implementations (FileCatalogSource, JsonTopologyExporter, FileGraphPersistence)
+    assets/                   Static + mock catalog data
+    components/
+      canvas/                 React Flow canvas, nodes, edges, hooks, toolkit
+      catalog/                Left catalog panel + search
+      layout/                 MainLayout shell
+      topbar/                 App topbar
+    contracts/                Contract interfaces (CatalogSource, TopologyExporter, GraphPersistence)
+    domain/                   Pure TypeScript: zero framework imports
+      catalog/                Schemas + types (Zod)
+      graph/                  Types, operations, validation (cycles, orphans, invalid edges)
+      topology/               Topology types + mapper
+    electron/                 Main process + preload
+    state/                    Zustand stores + cross-store reconciler
+    styles/                   Global CSS, design tokens, BEM styles, MUI theme
+    testing/                  Shared fixtures + test utilities
+    App.tsx, main.tsx         Entry point
+    compositionRoot.ts        AppServices wiring
+  tests/
+    e2e/                      Playwright specs
+    snapshots/                Topology + catalog schema snapshots
 ```
 
 ## Architecture
 
-The app follows hexagonal architecture (ports and adapters). Three layers keep concerns separated:
+The app follows a layered architecture with explicit contracts between layers.
 
-**Domain** -- pure TypeScript with no framework imports. Graph operations, catalog schemas, and topology mapping live here. Everything is immutable and testable without React.
+**Domain** — pure TypeScript with no framework imports. Graph operations, validation (cycle/orphan detection), catalog schemas, and topology mapping. Everything immutable and testable without React.
 
-**Ports** -- interfaces that define how data enters and leaves the system. CatalogSource loads component metadata, TopologyExporter writes topology.json, GraphPersistence saves/loads graph state.
+**Contracts** — interfaces that define how data enters and leaves the system. `CatalogSource` loads component metadata, `TopologyExporter` writes `topology.json`, `GraphPersistence` saves/loads project state.
 
-**Adapters** -- concrete implementations of ports. Currently file-based; designed to be swapped for Electron IPC or network adapters.
+**Adapters** — concrete implementations of contracts. File-based today, wired through Electron IPC.
 
-State management uses Zustand stores that call port methods through the composition root. UI components only import from stores, never from adapters directly.
+**State** — Zustand stores (`catalogStore`, `graphStore`, `uiStore`) plus a reconciler (`stateSubscriptions.ts`) that keeps derived ID sets in sync when nodes or edges are removed. UI components read from stores; they never import adapters directly.
+
+**Canvas** — built on [React Flow](https://reactflow.dev) (`@xyflow/react`). Custom node and edge renderers live in `components/canvas/nodes` and `components/canvas/edges`. Interaction logic is split into hooks (`useCanvasConnection`, `useCanvasHotkeys`, `useCanvasState`, `useCatalogDrop`). Styling uses BEM CSS with design tokens — no `sx` props for structural styles.
 
 ## Output Format
 
@@ -96,7 +115,3 @@ The app produces `topology.json` for the diff framework:
 ```
 
 Each entry maps to a C++ component: `type` is the factory-registered class, `id` is a unique instance name, `dependencies` lists instance IDs matching constructor parameter order, and `config` holds typed key-value pairs for the component.
-
-## Stack
-
-Electron 35, React 19, TypeScript 5.8, Vite 6, MUI 7, Zustand 5, Zod 3.24

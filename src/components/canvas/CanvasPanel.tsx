@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { Box, Typography } from '@mui/material'
 import {
@@ -41,6 +41,7 @@ function CanvasPanelInner() {
   const clearSelection = useGraphStore((s) => s.clearSelection)
   const canvasMode = useUIStore((s) => s.canvasMode)
   const snapToGrid = useUIStore((s) => s.snapToGrid)
+  const animateEdges = useUIStore((s) => s.animateEdges)
 
   const {
     canvasNodes,
@@ -52,6 +53,11 @@ function CanvasPanelInner() {
   const { onConnect, isValidConnection, onReconnectStart, onReconnect, onReconnectEnd } = useCanvasConnection()
   const { onDragOver, onDrop } = useCatalogDrop()
   useCanvasHotkeys()
+
+  const displayedEdges = useMemo(
+    () => (animateEdges ? canvasEdges.map((e) => ({ ...e, animated: true })) : canvasEdges),
+    [canvasEdges, animateEdges]
+  )
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CanvasNode>[]) => {
@@ -126,7 +132,7 @@ function CanvasPanelInner() {
     <Box sx={{ width: '100%', height: '100%', position: 'relative' }} onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
         nodes={canvasNodes}
-        edges={canvasEdges}
+        edges={displayedEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
@@ -158,7 +164,7 @@ function CanvasPanelInner() {
       >
         <Background variant={BackgroundVariant.Dots} size={3} color="var(--grid-color)" />
         <CanvasToolkit />
-        <MiniMap position="top-right" pannable zoomable />
+        <MiniMap position="bottom-right" pannable zoomable />
       </ReactFlow>
 
       {graph.nodes.length === 0 && (

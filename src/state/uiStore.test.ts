@@ -8,7 +8,8 @@ describe('uiStore', () => {
       searchQuery: '',
       expandedNodeIds: new Set(),
       canvasMode: 'select',
-      snapToGrid: false
+      snapToGrid: false,
+      animateEdges: false
     })
   })
 
@@ -86,6 +87,23 @@ describe('uiStore', () => {
       useUIStore.getState().toggleSnapToGrid()
       useUIStore.getState().toggleSnapToGrid()
       expect(useUIStore.getState().snapToGrid).toBe(false)
+    })
+  })
+
+  describe('animateEdges', () => {
+    it('defaults to false', () => {
+      expect(useUIStore.getState().animateEdges).toBe(false)
+    })
+
+    it('toggleAnimateEdges enables animation', () => {
+      useUIStore.getState().toggleAnimateEdges()
+      expect(useUIStore.getState().animateEdges).toBe(true)
+    })
+
+    it('toggleAnimateEdges toggles back to false', () => {
+      useUIStore.getState().toggleAnimateEdges()
+      useUIStore.getState().toggleAnimateEdges()
+      expect(useUIStore.getState().animateEdges).toBe(false)
     })
   })
 })

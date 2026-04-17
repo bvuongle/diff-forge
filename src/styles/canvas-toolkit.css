@@ -1,0 +1,73 @@
+.canvas-toolkit {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  pointer-events: auto;
+}
+
+.canvas-toolkit__group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.canvas-toolkit__divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--panel-border);
+  margin: 0 4px;
+}
+
+.canvas-toolkit__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.canvas-toolkit__btn:hover {
+  background-color: var(--input-background);
+}
+
+.canvas-toolkit__btn--active {
+  background-color: var(--accent-blue-light);
+  color: var(--accent-blue);
+}
+
+.canvas-toolkit__btn--active:hover {
+  background-color: var(--accent-blue-light);
+}
+
+.canvas-toolkit__zoom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.canvas-toolkit__zoom:hover {
+  background-color: var(--input-background);
+}

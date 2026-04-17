@@ -13,6 +13,8 @@ type UIStore = {
   setCanvasMode: (mode: CanvasMode) => void
   snapToGrid: boolean
   toggleSnapToGrid: () => void
+  animateEdges: boolean
+  toggleAnimateEdges: () => void
 }
 
 const useUIStore = create<UIStore>((set) => ({
@@ -31,7 +33,9 @@ const useUIStore = create<UIStore>((set) => ({
   canvasMode: 'select',
   setCanvasMode: (mode) => set({ canvasMode: mode }),
   snapToGrid: false,
-  toggleSnapToGrid: () => set((s) => ({ snapToGrid: !s.snapToGrid }))
+  toggleSnapToGrid: () => set((s) => ({ snapToGrid: !s.snapToGrid })),
+  animateEdges: false,
+  toggleAnimateEdges: () => set((s) => ({ animateEdges: !s.animateEdges }))
 }))
 
 export { useUIStore }

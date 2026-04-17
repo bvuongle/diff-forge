@@ -11,7 +11,7 @@ export function useCatalogDrop() {
   const { screenToFlowPosition } = useReactFlow()
   const nodes = useGraphStore((s) => s.graph.nodes)
   const addNode = useGraphStore((s) => s.addNode)
-  const selectNode = useGraphStore((s) => s.selectNode)
+  const clearSelection = useGraphStore((s) => s.clearSelection)
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     if (e.dataTransfer.types.includes('application/x-diff-component')) {
@@ -32,9 +32,9 @@ export function useCatalogDrop() {
       position.y -= NODE_DROP_OFFSET_Y
       const node = createNodeFromCatalog(parsed.data, position, nodes)
       addNode(node)
-      selectNode(node.id)
+      clearSelection()
     },
-    [screenToFlowPosition, nodes, addNode, selectNode]
+    [screenToFlowPosition, nodes, addNode, clearSelection]
   )
 
   return { onDragOver, onDrop }
