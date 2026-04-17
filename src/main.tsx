@@ -7,6 +7,7 @@ import { setupStateSubscriptions } from './state/stateSubscriptions'
 import './styles/globals.css'
 import './styles/canvas-nodes.css'
 import './styles/canvas-edges.css'
+import './styles/canvas-toolkit.css'
 
 setupStateSubscriptions()
 

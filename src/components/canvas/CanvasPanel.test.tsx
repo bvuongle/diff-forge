@@ -20,6 +20,7 @@ vi.mock('@xyflow/react', () => ({
   Background: () => null,
   BackgroundVariant: { Dots: 'dots' },
   MiniMap: () => null,
+  Panel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Controls: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ControlButton: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
     <button onClick={onClick}>{children}</button>
@@ -33,8 +34,12 @@ vi.mock('@xyflow/react', () => ({
     getViewport: () => ({ x: 0, y: 0, zoom: 1 }),
     getNodes: () => [],
     getNodesBounds: () => ({ x: 0, y: 0, width: 100, height: 100 }),
-    screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y })
+    screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+    zoomIn: vi.fn(),
+    zoomOut: vi.fn(),
+    zoomTo: vi.fn()
   }),
+  useStore: (selector: (s: { transform: [number, number, number] }) => unknown) => selector({ transform: [0, 0, 1] }),
   useNodesState: () => [[], vi.fn(), vi.fn()],
   useEdgesState: () => [[], vi.fn(), vi.fn()],
   Handle: () => null,
