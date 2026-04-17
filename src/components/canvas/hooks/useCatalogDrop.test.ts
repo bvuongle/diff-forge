@@ -79,7 +79,7 @@ describe('useCatalogDrop', () => {
       expect(nodes[0].position.y).toBe(300 - NODE_DROP_OFFSET_Y)
     })
 
-    it('selects the new node after creation', () => {
+    it('does not select the new node after creation', () => {
       const { result } = renderHook(() => useCatalogDrop())
       const event = makeDragEvent('drop', {
         'application/x-diff-component': JSON.stringify(VALID_CATALOG)
@@ -87,9 +87,20 @@ describe('useCatalogDrop', () => {
 
       result.current.onDrop(event)
 
-      const nodes = useGraphStore.getState().graph.nodes
-      const selectedIds = useGraphStore.getState().selectedNodeIds
-      expect(selectedIds).toContain(nodes[0].id)
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(0)
+    })
+
+    it('clears prior selection on drop so new node is not dimmed', () => {
+      useGraphStore.setState({ selectedNodeIds: new Set(['existing']), selectedEdgeIds: new Set(['e1']) })
+      const { result } = renderHook(() => useCatalogDrop())
+      const event = makeDragEvent('drop', {
+        'application/x-diff-component': JSON.stringify(VALID_CATALOG)
+      })
+
+      result.current.onDrop(event)
+
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(0)
+      expect(useGraphStore.getState().selectedEdgeIds.size).toBe(0)
     })
 
     it('does nothing for empty dataTransfer', () => {
