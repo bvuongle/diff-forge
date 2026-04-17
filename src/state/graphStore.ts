@@ -15,7 +15,7 @@ import { Graph, GraphEdge, GraphNode, Position } from '@domain/graph/GraphTypes'
 type GraphStore = {
   graph: Graph
   selectedNodeIds: Set<string>
-  selectedEdgeId: string | null
+  selectedEdgeIds: Set<string>
   addNode: (node: GraphNode) => void
   removeNode: (nodeId: string) => void
   addEdge: (edge: GraphEdge) => void
@@ -23,18 +23,18 @@ type GraphStore = {
   moveNode: (nodeId: string, position: Position) => void
   updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void
   renameNode: (oldId: string, newId: string) => void
-  selectNode: (nodeId: string | null, additive?: boolean) => void
-  selectNodes: (nodeIds: string[]) => void
+  selectNode: (nodeId: string | null) => void
   selectEdge: (edgeId: string | null) => void
+  selectElements: (nodeIds: string[], edgeIds: string[]) => void
   clearSelection: () => void
-  removeSelectedNodes: () => void
+  removeSelected: () => void
 }
 
 const useGraphStore = create<GraphStore>()(
   subscribeWithSelector((set) => ({
     graph: { nodes: [], edges: [] },
     selectedNodeIds: new Set(),
-    selectedEdgeId: null,
+    selectedEdgeIds: new Set(),
 
     addNode: (node) =>
       set((state) => ({
@@ -57,10 +57,14 @@ const useGraphStore = create<GraphStore>()(
       })),
 
     removeEdge: (edgeId) =>
-      set((state) => ({
-        graph: removeEdge(state.graph, edgeId),
-        selectedEdgeId: state.selectedEdgeId === edgeId ? null : state.selectedEdgeId
-      })),
+      set((state) => {
+        const nextEdgeIds = new Set(state.selectedEdgeIds)
+        nextEdgeIds.delete(edgeId)
+        return {
+          graph: removeEdge(state.graph, edgeId),
+          selectedEdgeIds: nextEdgeIds
+        }
+      }),
 
     moveNode: (nodeId, position) =>
       set((state) => ({
@@ -85,31 +89,36 @@ const useGraphStore = create<GraphStore>()(
         }
       }),
 
-    selectNode: (nodeId, additive = false) =>
-      set((state) => {
-        if (nodeId === null) return { selectedNodeIds: new Set(), selectedEdgeId: null }
-        if (additive) {
-          const next = new Set(state.selectedNodeIds)
-          if (next.has(nodeId)) next.delete(nodeId)
-          else next.add(nodeId)
-          return { selectedNodeIds: next, selectedEdgeId: null }
-        }
-        return { selectedNodeIds: new Set([nodeId]), selectedEdgeId: null }
+    selectNode: (nodeId) =>
+      set({
+        selectedNodeIds: nodeId ? new Set([nodeId]) : new Set(),
+        selectedEdgeIds: new Set()
       }),
 
-    selectNodes: (nodeIds) => set({ selectedNodeIds: new Set(nodeIds), selectedEdgeId: null }),
+    selectEdge: (edgeId) =>
+      set({
+        selectedEdgeIds: edgeId ? new Set([edgeId]) : new Set(),
+        selectedNodeIds: new Set()
+      }),
 
-    selectEdge: (edgeId) => set({ selectedEdgeId: edgeId }),
+    selectElements: (nodeIds, edgeIds) =>
+      set({
+        selectedNodeIds: new Set(nodeIds),
+        selectedEdgeIds: new Set(edgeIds)
+      }),
 
-    clearSelection: () => set({ selectedNodeIds: new Set(), selectedEdgeId: null }),
+    clearSelection: () => set({ selectedNodeIds: new Set(), selectedEdgeIds: new Set() }),
 
-    removeSelectedNodes: () =>
+    removeSelected: () =>
       set((state) => {
         let g = state.graph
         for (const nodeId of state.selectedNodeIds) {
           g = removeNode(g, nodeId)
         }
-        return { graph: g, selectedNodeIds: new Set(), selectedEdgeId: null }
+        for (const edgeId of state.selectedEdgeIds) {
+          g = removeEdge(g, edgeId)
+        }
+        return { graph: g, selectedNodeIds: new Set(), selectedEdgeIds: new Set() }
       })
   }))
 )

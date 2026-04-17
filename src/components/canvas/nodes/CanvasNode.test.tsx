@@ -1,143 +1,120 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { makeCatalog, makeNode } from '@testing/fixtures'
+import { makeNode } from '@testing/fixtures'
 import { renderWithTheme } from '@testing/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ReactFlowProvider, type NodeProps } from '@xyflow/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { CatalogDocument } from '@domain/catalog/CatalogTypes'
+import { useCatalogStore } from '@state/catalogStore'
+import { useGraphStore } from '@state/graphStore'
+import { useUIStore } from '@state/uiStore'
+import type { CanvasNode as CanvasNodeType } from '@canvas/canvasTypes'
 
 import { CanvasNode } from './CanvasNode'
 
-beforeEach(() => {
-  vi.spyOn(console, 'error').mockImplementation(() => {})
-})
-afterEach(() => {
-  vi.restoreAllMocks()
-})
-
-const defaultProps = () => ({
-  node: makeNode('n1', {
-    componentType: 'LinkEth',
-    instanceId: 'linkEth0',
-    version: '1.0.0',
-    slots: [
-      { name: 'transport', interface: 'ITransport', direction: 'in' as const, maxConnections: 1 },
-      { name: 'ILink', interface: 'ILink', direction: 'out' as const, maxConnections: Infinity }
-    ]
-  }),
-  isSelected: false,
-  isExpanded: false,
-  isDimmed: false,
-  catalogComponent: makeCatalog() as ReturnType<typeof makeCatalog> | null,
-  onSelect: vi.fn(),
-  onMoveStart: vi.fn(),
-  onPortMouseDown: vi.fn(),
-  onToggleExpand: vi.fn(),
-  onWidthChange: vi.fn()
+vi.mock('@xyflow/react', async () => {
+  const actual = await vi.importActual('@xyflow/react')
+  return {
+    ...actual,
+    useConnection: () => ({ inProgress: false }),
+    Handle: ({ children, id }: { children?: React.ReactNode; id?: string }) => (
+      <div data-testid={`handle-${id}`}>{children}</div>
+    )
+  }
 })
 
 describe('CanvasNode', () => {
-  it('renders componentType and instanceId', () => {
-    const props = defaultProps()
-    renderWithTheme(<CanvasNode {...props} />)
-    expect(screen.getByText('LinkEth')).toBeTruthy()
-    expect(screen.getByText('linkEth0')).toBeTruthy()
-  })
+  const node = makeNode('n1', { componentType: 'TestType', instanceId: 'testInst', version: '1.0.0' })
+  const catalog = {
+    version: '1.0.0',
+    components: [
+      {
+        type: 'TestType',
+        version: '1.0.0',
+        source: 'test.cpp',
+        implements: [],
+        requires: [],
+        configSchema: {}
+      }
+    ]
+  }
 
-  it('shows version chip when only one version', () => {
-    const props = defaultProps()
-    renderWithTheme(<CanvasNode {...props} />)
-    expect(screen.getByText('1.0.0')).toBeTruthy()
-  })
-
-  it('shows version chip as read-only', () => {
-    const props = defaultProps()
-    props.catalogComponent = makeCatalog({ version: '2.0.0' })
-    renderWithTheme(<CanvasNode {...props} />)
-    expect(screen.getByText('1.0.0')).toBeTruthy()
-  })
-
-  it('renders input PortRows in collapsed mode', () => {
-    const props = defaultProps()
-    renderWithTheme(<CanvasNode {...props} />)
-    expect(screen.getByText('transport')).toBeTruthy()
-    expect(screen.getByText('ITransport')).toBeTruthy()
-  })
-
-  it('renders output port circle in collapsed mode', () => {
-    const props = defaultProps()
-    const { container } = renderWithTheme(<CanvasNode {...props} />)
-    const outputPort = container.querySelector('[data-slot-name="__out__"]')
-    expect(outputPort).toBeTruthy()
-    expect(outputPort?.getAttribute('data-direction')).toBe('out')
-  })
-
-  it('renders expanded content when isExpanded and catalogComponent present', () => {
-    const props = defaultProps()
-    props.isExpanded = true
-    props.catalogComponent = makeCatalog({
-      version: '1.0.0',
-      implements: ['ILink'],
-      requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
-      configSchema: {}
+  beforeEach(() => {
+    useGraphStore.setState({
+      graph: { nodes: [node], edges: [] },
+      selectedNodeIds: new Set(),
+      selectedEdgeIds: new Set()
     })
-    renderWithTheme(<CanvasNode {...props} />)
-    expect(screen.getByText('INFO')).toBeTruthy()
-    expect(screen.getByText('REQUIREMENTS')).toBeTruthy()
-  })
-
-  it('does not render expanded content when collapsed', () => {
-    const props = defaultProps()
-    props.isExpanded = false
-    renderWithTheme(<CanvasNode {...props} />)
-    expect(screen.queryByText('INFO')).toBeNull()
-    expect(screen.queryByText('REQUIREMENTS')).toBeNull()
-  })
-
-  it('does not render expanded content without catalogComponent', () => {
-    const props = defaultProps()
-    props.isExpanded = true
-    props.catalogComponent = null
-    renderWithTheme(<CanvasNode {...props} />)
-    expect(screen.queryByText('INFO')).toBeNull()
-  })
-
-  it('triggers onToggleExpand on double-click', () => {
-    const props = defaultProps()
-    const { container } = renderWithTheme(<CanvasNode {...props} />)
-    const nodeBox = container.firstElementChild!
-    fireEvent.doubleClick(nodeBox)
-    expect(props.onToggleExpand).toHaveBeenCalledWith('n1')
-  })
-
-  it('triggers onSelect + onMoveStart on mousedown on non-port area', () => {
-    const props = defaultProps()
-    renderWithTheme(<CanvasNode {...props} />)
-    const instanceId = screen.getByText('linkEth0')
-    fireEvent.mouseDown(instanceId)
-    expect(props.onSelect).toHaveBeenCalledWith('n1', false)
-    expect(props.onMoveStart).toHaveBeenCalledWith('n1', expect.any(Number), expect.any(Number))
-  })
-
-  it('does not trigger onSelect when clicking on a port handle', () => {
-    const props = defaultProps()
-    const { container } = renderWithTheme(<CanvasNode {...props} />)
-    const portHandle = container.querySelector('[data-port-handle]')!
-    fireEvent.mouseDown(portHandle)
-    expect(props.onSelect).not.toHaveBeenCalled()
-  })
-
-  it('does not render collapsed ports when expanded', () => {
-    const props = defaultProps()
-    props.isExpanded = true
-    renderWithTheme(<CanvasNode {...props} />)
-    expect(screen.queryByText('INFO')).toBeTruthy()
-  })
-
-  it('does not render output section when no output slots', () => {
-    const props = defaultProps()
-    props.node = makeNode('n1', {
-      slots: [{ name: 'transport', interface: 'ITransport', direction: 'in', maxConnections: 1 }]
+    useUIStore.setState({
+      expandedNodeIds: new Set()
     })
-    const { container } = renderWithTheme(<CanvasNode {...props} />)
-    const outputPort = container.querySelector('[data-slot-name="__out__"]')
-    expect(outputPort).toBeNull()
+    useCatalogStore.setState({
+      catalog: catalog as unknown as CatalogDocument
+    })
+  })
+
+  const defaultProps: NodeProps<CanvasNodeType> = {
+    id: 'n1',
+    selected: false,
+    data: { graphNode: node },
+    zIndex: 0,
+    isConnectable: true,
+    xPos: 0,
+    yPos: 0,
+    dragging: false
+  } as unknown as NodeProps<CanvasNodeType>
+
+  it('renders component type and instance id', () => {
+    renderWithTheme(
+      <ReactFlowProvider>
+        <CanvasNode {...defaultProps} />
+      </ReactFlowProvider>
+    )
+    expect(screen.getByText('TestType')).toBeInTheDocument()
+    expect(screen.getByText('testInst')).toBeInTheDocument()
+  })
+
+  it('toggles expansion on icon click', () => {
+    const toggleNodeExpanded = vi.spyOn(useUIStore.getState(), 'toggleNodeExpanded')
+
+    renderWithTheme(
+      <ReactFlowProvider>
+        <CanvasNode {...defaultProps} />
+      </ReactFlowProvider>
+    )
+
+    const toggleButton = screen.getByRole('button')
+    fireEvent.click(toggleButton)
+
+    expect(toggleNodeExpanded).toHaveBeenCalledWith('n1')
+  })
+
+  it('renders expanded content when expanded', () => {
+    useUIStore.setState({ expandedNodeIds: new Set(['n1']) })
+
+    renderWithTheme(
+      <ReactFlowProvider>
+        <CanvasNode {...defaultProps} />
+      </ReactFlowProvider>
+    )
+
+    expect(screen.getByText('REQUIREMENTS')).toBeInTheDocument()
+    expect(screen.getByText('INFO')).toBeInTheDocument()
+  })
+
+  it('applies dimmed opacity when unrelated node is selected', () => {
+    useGraphStore.setState({
+      graph: { nodes: [node, makeNode('n2')], edges: [] },
+      selectedNodeIds: new Set(['n2'])
+    })
+
+    const { container } = renderWithTheme(
+      <ReactFlowProvider>
+        <CanvasNode {...defaultProps} />
+      </ReactFlowProvider>
+    )
+
+    // The outermost box should have the dimmed CSS class
+    expect(container.firstChild).toHaveClass('canvas-node--dimmed')
   })
 })

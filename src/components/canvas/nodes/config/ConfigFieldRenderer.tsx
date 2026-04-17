@@ -29,7 +29,7 @@ function ConfigFieldRenderer({ fieldName, schema, value, onChange }: ConfigField
     return (
       <FormControlLabel
         label={fieldName}
-        sx={{ ml: 0, '& .MuiFormControlLabel-label': { fontSize: '0.8rem' } }}
+        className="config-bool-label"
         control={
           <Switch
             size="small"

@@ -43,9 +43,7 @@ function JsonConfigEditor({ config, onSave }: JsonConfigEditorProps) {
       onBlur={handleBlur}
       error={error}
       helperText={error ? 'Invalid JSON' : undefined}
-      slotProps={{
-        input: { sx: { fontFamily: 'monospace', fontSize: '0.75rem' } }
-      }}
+      className="json-editor"
     />
   )
 }

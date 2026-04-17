@@ -1,0 +1,176 @@
+/* ── CanvasNode ─────────────────────────────────────────── */
+
+.canvas-node {
+  width: fit-content;
+  background-color: var(--panel-bg);
+  border-radius: 8px;
+  border: 2px solid var(--panel-border);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+.canvas-node:hover {
+  border-color: var(--hover-border);
+}
+
+.canvas-node--selected {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px var(--accent-blue-light);
+}
+
+.canvas-node--selected:hover {
+  border-color: var(--accent-blue);
+}
+
+.canvas-node--dimmed {
+  opacity: 0.3;
+}
+
+.canvas-node__header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.canvas-node__version-chip.MuiChip-root {
+  height: 20px;
+  font-size: 0.65rem;
+  background-color: var(--chip-bg);
+}
+
+.canvas-node__version-chip .MuiChip-label {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.canvas-node__expanded {
+  padding: 12px;
+  cursor: default;
+}
+
+.canvas-node__compact {
+  padding: 8px 12px;
+}
+
+/* ── HandlePort ────────────────────────────────────────── */
+
+.handle-port {
+  position: absolute;
+  top: 50%;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.handle-port--left {
+  left: -12px;
+  transform: translate(-50%, -50%);
+}
+
+.handle-port--right {
+  right: -12px;
+  transform: translate(50%, -50%);
+}
+
+.handle-port--connectable {
+  cursor: crosshair;
+}
+
+.handle-port--dimmed {
+  opacity: 0.3;
+}
+
+/* ── Slot rows (NodeRequirementsSection) ───────────────── */
+
+.slot-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  height: 32px;
+}
+
+.slot-row--output {
+  justify-content: flex-end;
+}
+
+.slot-label {
+  font-size: 0.7rem;
+  margin-left: 6px;
+}
+
+.slot-label--dimmed {
+  opacity: 0.3;
+}
+
+.slot-label--output {
+  margin-left: 0;
+  margin-right: 6px;
+}
+
+.slot-chip.MuiChip-root {
+  height: 20px;
+  font-size: 0.65rem;
+  background-color: var(--chip-bg);
+  color: var(--text-secondary);
+}
+
+.slot-chip--dimmed.MuiChip-root {
+  opacity: 0.3;
+}
+
+.slot-chip .MuiChip-label {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.slot-count {
+  font-size: 0.6rem;
+  margin-left: -4px;
+}
+
+/* ── Section headings ──────────────────────────────────── */
+
+.section-heading {
+  font-size: 0.7rem;
+}
+
+/* ── NodeConfigurationSection ──────────────────────────── */
+
+.config-toggle.MuiToggleButtonGroup-root {
+  height: 22px;
+}
+
+.config-toggle-btn.MuiToggleButton-root {
+  font-size: 0.65rem;
+  padding: 0 6px;
+}
+
+.config-scroll {
+  max-height: 180px;
+  overflow-y: auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── ConfigFieldRenderer ───────────────────────────────── */
+
+.config-bool-label.MuiFormControlLabel-root {
+  margin-left: 0;
+}
+
+.config-bool-label .MuiFormControlLabel-label {
+  font-size: 0.8rem;
+}
+
+/* ── JsonConfigEditor ──────────────────────────────────── */
+
+.json-editor .MuiInputBase-root {
+  font-family: monospace;
+  font-size: 0.75rem;
+}

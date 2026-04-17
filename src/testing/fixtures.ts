@@ -1,5 +1,5 @@
 import type { CatalogComponent } from '@domain/catalog/CatalogTypes'
-import type { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
+import type { GraphEdge, GraphNode, Slot } from '@domain/graph/GraphTypes'
 
 function makeNode(id: string, overrides?: Partial<GraphNode>): GraphNode {
   return {
@@ -38,4 +38,14 @@ function makeCatalog(overrides?: Partial<CatalogComponent>): CatalogComponent {
   }
 }
 
-export { makeNode, makeEdge, makeCatalog }
+function makeSlot(overrides?: Partial<Slot>): Slot {
+  return {
+    name: 'transport',
+    interface: 'ILink',
+    direction: 'in',
+    maxConnections: 1,
+    ...overrides
+  }
+}
+
+export { makeNode, makeEdge, makeCatalog, makeSlot }

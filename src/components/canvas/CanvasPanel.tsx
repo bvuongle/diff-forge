@@ -1,173 +1,165 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback } from 'react'
 
 import { Box, Typography } from '@mui/material'
+import {
+  Background,
+  BackgroundVariant,
+  MiniMap,
+  ReactFlow,
+  ReactFlowProvider,
+  SelectionMode,
+  type EdgeChange,
+  type NodeChange,
+  type OnSelectionChangeFunc
+} from '@xyflow/react'
 
-import { isEdgeInvalid } from '@domain/graph/GraphOperations'
-import { useCatalogStore } from '@state/catalogStore'
+import '@xyflow/react/dist/style.css'
+
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
 
-import { CanvasMarquee } from './CanvasMarquee'
-import { CanvasEdge, PendingEdge } from './edges/CanvasEdge'
-import { useEdgeDrawing } from './edges/useEdgeDrawing'
-import { useCanvasDnD } from './interaction/useCanvasDnD'
-import { useCanvasHotkeys } from './interaction/useCanvasHotkeys'
-import { useCanvasInteraction } from './interaction/useCanvasInteraction'
-import { useCanvasMarquee } from './interaction/useCanvasMarquee'
-import { useCanvasSelection } from './interaction/useCanvasSelection'
-import { useNodeDrag } from './interaction/useNodeDrag'
-import { CanvasNode } from './nodes/CanvasNode'
+import { CanvasToolkit } from './CanvasToolkit'
+import { type CanvasEdge as CanvasEdgeType, type CanvasNode } from './canvasTypes'
+import { CanvasEdge } from './edges/CanvasEdge'
+import { useCanvasConnection } from './hooks/useCanvasConnection'
+import { useCanvasHotkeys } from './hooks/useCanvasHotkeys'
+import { useCanvasState } from './hooks/useCanvasState'
+import { useCatalogDrop } from './hooks/useCatalogDrop'
+import { CanvasNode as CanvasNodeComponent } from './nodes/CanvasNode'
 
-function CanvasPanel() {
-  const canvasRef = useRef<HTMLDivElement>(null)
-  const { graph, selectedNodeIds, selectedEdgeId, addNode, selectNode, selectNodes, selectEdge, clearSelection } =
-    useGraphStore()
-  const catalog = useCatalogStore((s) => s.catalog)
-  const { expandedNodeIds, toggleNodeExpanded, setNodeWidth, canvasMode } = useUIStore()
+const nodeTypes = { component: CanvasNodeComponent }
+const edgeTypes = { component: CanvasEdge }
 
-  const { transform, onPanStart, onPanMove, onPanEnd, fitToView, resetView } = useCanvasInteraction(canvasRef)
-  const { dragEdge, onPortMouseDown } = useEdgeDrawing(canvasRef, transform.zoom, transform.panX, transform.panY)
-  const { onMoveStart } = useNodeDrag(transform.zoom)
+function CanvasPanelInner() {
+  const graph = useGraphStore((s) => s.graph)
+  const removeNode = useGraphStore((s) => s.removeNode)
+  const removeEdge = useGraphStore((s) => s.removeEdge)
+  const moveNode = useGraphStore((s) => s.moveNode)
+  const selectNode = useGraphStore((s) => s.selectNode)
+  const selectEdge = useGraphStore((s) => s.selectEdge)
+  const selectElements = useGraphStore((s) => s.selectElements)
+  const clearSelection = useGraphStore((s) => s.clearSelection)
+  const canvasMode = useUIStore((s) => s.canvasMode)
+  const snapToGrid = useUIStore((s) => s.snapToGrid)
 
+  const {
+    canvasNodes,
+    onNodesChange: onFlowNodesChange,
+    canvasEdges,
+    onEdgesChange: onFlowEdgesChange
+  } = useCanvasState()
+
+  const { onConnect, isValidConnection, onReconnectStart, onReconnect, onReconnectEnd } = useCanvasConnection()
+  const { onDragOver, onDrop } = useCatalogDrop()
   useCanvasHotkeys()
-  const { marquee, startMarquee, updateMarquee, endMarquee, setMarquee } = useCanvasMarquee(
-    canvasRef,
-    transform,
-    graph.nodes,
-    selectNodes,
-    clearSelection
-  )
-  const { onDragOver, onDrop } = useCanvasDnD(canvasRef, transform, graph.nodes, addNode)
-  const { selectedEdgeIds, edgeDimNodeIds, edgeDimEdgeIds } = useCanvasSelection(graph, selectedNodeIds, selectedEdgeId)
 
-  const setFitToViewAction = useUIStore((s) => s.setFitToViewAction)
-  const setResetViewAction = useUIStore((s) => s.setResetViewAction)
-
-  const handleCanvasMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (target === e.currentTarget || target.hasAttribute('data-canvas-bg')) {
-        if (e.button === 0 && !e.ctrlKey && !e.metaKey && canvasMode !== 'pan') {
-          startMarquee(e)
-        } else {
-          onPanStart(e)
+  const onNodesChange = useCallback(
+    (changes: NodeChange<CanvasNode>[]) => {
+      onFlowNodesChange(changes)
+      for (const change of changes) {
+        if (change.type === 'remove') {
+          removeNode(change.id)
         }
       }
     },
-    [onPanStart, startMarquee, canvasMode]
+    [onFlowNodesChange, removeNode]
   )
 
-  const handleCanvasMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (marquee) updateMarquee(e)
-      else onPanMove(e)
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange<CanvasEdgeType>[]) => {
+      onFlowEdgesChange(changes)
+      for (const change of changes) {
+        if (change.type === 'remove') {
+          removeEdge(change.id)
+        }
+      }
     },
-    [marquee, updateMarquee, onPanMove]
+    [onFlowEdgesChange, removeEdge]
   )
 
-  const handleCanvasMouseUp = useCallback(() => {
-    if (marquee) endMarquee()
-    else onPanEnd()
-  }, [marquee, endMarquee, onPanEnd])
+  const onNodeDragStop = useCallback(
+    (_event: React.MouseEvent | React.TouchEvent, _node: CanvasNode, nodes: CanvasNode[]) => {
+      for (const n of nodes) {
+        moveNode(n.id, n.position)
+      }
+    },
+    [moveNode]
+  )
 
-  const handleFitToView = useCallback(() => {
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (rect) fitToView(graph.nodes, rect.width, rect.height)
-  }, [fitToView, graph.nodes])
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: CanvasNode) => {
+      selectNode(node.id)
+    },
+    [selectNode]
+  )
 
-  useEffect(() => {
-    setFitToViewAction(handleFitToView)
-    setResetViewAction(resetView)
-    return () => {
-      setFitToViewAction(null)
-      setResetViewAction(null)
-    }
-  }, [handleFitToView, resetView, setFitToViewAction, setResetViewAction])
+  const onEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: CanvasEdgeType) => {
+      selectEdge(edge.id)
+    },
+    [selectEdge]
+  )
+
+  const onPaneClick = useCallback(() => clearSelection(), [clearSelection])
+
+  const onSelectionChange: OnSelectionChangeFunc = useCallback(
+    ({ nodes, edges }) => {
+      const newNodeIds = nodes.map((n) => n.id)
+      const newEdgeIds = edges.map((e) => e.id)
+
+      const current = useGraphStore.getState()
+      const nodesMatch =
+        newNodeIds.length === current.selectedNodeIds.size && newNodeIds.every((id) => current.selectedNodeIds.has(id))
+      const edgesMatch =
+        newEdgeIds.length === current.selectedEdgeIds.size && newEdgeIds.every((id) => current.selectedEdgeIds.has(id))
+
+      if (!nodesMatch || !edgesMatch) {
+        selectElements(newNodeIds, newEdgeIds)
+      }
+    },
+    [selectElements]
+  )
+
+  const isPanMode = canvasMode === 'pan'
 
   return (
-    <Box
-      ref={canvasRef}
-      position="relative"
-      overflow="hidden"
-      sx={{
-        width: '100%',
-        height: '100%',
-        bgcolor: 'background.default',
-        cursor: canvasMode === 'pan' ? 'grab' : 'default',
-        '&:active': canvasMode === 'pan' ? { cursor: 'grabbing' } : {}
-      }}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      onMouseDown={handleCanvasMouseDown}
-      onMouseMove={handleCanvasMouseMove}
-      onMouseUp={handleCanvasMouseUp}
-      onMouseLeave={() => {
-        setMarquee(null)
-        onPanEnd()
-      }}
-    >
-      <Box
-        data-canvas-bg="true"
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          transformOrigin: '0 0',
-          transform: `translate(${transform.panX}px, ${transform.panY}px) scale(${transform.zoom})`,
-          backgroundImage: 'radial-gradient(circle at 1px 1px, var(--grid-color) 1px, transparent 0)',
-          backgroundSize: '20px 20px',
-          width: 20000,
-          height: 20000
-        }}
+    <Box sx={{ width: '100%', height: '100%', position: 'relative' }} onDragOver={onDragOver} onDrop={onDrop}>
+      <ReactFlow
+        nodes={canvasNodes}
+        edges={canvasEdges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodeDragStop={onNodeDragStop}
+        onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
+        onConnect={onConnect}
+        isValidConnection={isValidConnection}
+        onPaneClick={onPaneClick}
+        onSelectionChange={onSelectionChange}
+        edgesReconnectable={true}
+        onReconnectStart={onReconnectStart}
+        onReconnect={onReconnect}
+        onReconnectEnd={onReconnectEnd}
+        connectionRadius={40}
+        panOnDrag={isPanMode ? true : [1, 2]}
+        selectionOnDrag={!isPanMode}
+        selectionMode={SelectionMode.Partial}
+        panOnScroll={false}
+        zoomOnScroll
+        minZoom={0.1}
+        maxZoom={3}
+        snapToGrid={snapToGrid}
+        selectNodesOnDrag={false}
+        connectionLineStyle={{ stroke: 'var(--edge-default)', strokeWidth: 2, strokeDasharray: '6,4' }}
+        defaultEdgeOptions={{ type: 'component' }}
+        proOptions={{ hideAttribution: true }}
       >
-        <svg
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-            overflow: 'visible'
-          }}
-        >
-          <g style={{ pointerEvents: 'auto' }}>
-            {graph.edges.map((edge) => (
-              <CanvasEdge
-                key={edge.id}
-                edge={edge}
-                nodes={graph.nodes}
-                isSelected={selectedEdgeIds.has(edge.id)}
-                isInvalid={isEdgeInvalid(edge, graph.nodes)}
-                isDimmed={edgeDimEdgeIds !== null && !edgeDimEdgeIds.has(edge.id)}
-                onSelect={selectEdge}
-              />
-            ))}
-          </g>
-          {dragEdge && (
-            <PendingEdge fromX={dragEdge.fromX} fromY={dragEdge.fromY} toX={dragEdge.toX} toY={dragEdge.toY} />
-          )}
-        </svg>
-
-        {graph.nodes.map((node) => (
-          <CanvasNode
-            key={node.id}
-            node={node}
-            isSelected={selectedNodeIds.has(node.id)}
-            isExpanded={expandedNodeIds.has(node.id)}
-            isDimmed={edgeDimNodeIds !== null && !edgeDimNodeIds.has(node.id)}
-            catalogComponent={
-              catalog?.components.find((c) => c.type === node.componentType && c.version === node.version) ?? null
-            }
-            onSelect={selectNode}
-            onMoveStart={onMoveStart}
-            onPortMouseDown={onPortMouseDown}
-            onToggleExpand={toggleNodeExpanded}
-            onWidthChange={setNodeWidth}
-          />
-        ))}
-
-        {marquee && <CanvasMarquee marquee={marquee} />}
-      </Box>
+        <Background variant={BackgroundVariant.Dots} size={3} color="var(--grid-color)" />
+        <CanvasToolkit />
+        <MiniMap position="top-right" pannable zoomable />
+      </ReactFlow>
 
       {graph.nodes.length === 0 && (
         <Box
@@ -187,22 +179,15 @@ function CanvasPanel() {
           </Box>
         </Box>
       )}
-
-      <Box
-        position="absolute"
-        bottom={8}
-        right={8}
-        px={1}
-        py={0.5}
-        borderRadius={1}
-        bgcolor="rgba(255,255,255,0.85)"
-        border="1px solid var(--panel-border)"
-      >
-        <Typography variant="caption" color="text.secondary">
-          {Math.round(transform.zoom * 100)}%
-        </Typography>
-      </Box>
     </Box>
+  )
+}
+
+function CanvasPanel() {
+  return (
+    <ReactFlowProvider>
+      <CanvasPanelInner />
+    </ReactFlowProvider>
   )
 }
 

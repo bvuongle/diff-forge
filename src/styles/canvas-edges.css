@@ -1,0 +1,21 @@
+/* ── CanvasEdge ─────────────────────────────────────────── */
+
+.canvas-edge {
+  transition: opacity 0.2s ease;
+}
+
+.canvas-edge__hit-area {
+  cursor: pointer;
+}
+
+.canvas-edge__label {
+  position: absolute;
+  font-size: 10px;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.85);
+  padding: 1px 4px;
+  border-radius: 3px;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}

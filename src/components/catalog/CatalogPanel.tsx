@@ -6,6 +6,7 @@ import { useUIStore } from '@state/uiStore'
 
 import { SearchInput } from './SearchInput'
 import { SectionHeader } from './SectionHeader'
+import { setRoundedDragImage } from './setRoundedDragImage'
 
 function CatalogPanel() {
   const { catalog, loading, error } = useCatalogStore()
@@ -59,6 +60,7 @@ function CatalogPanel() {
                 onDragStart={(event) => {
                   event.dataTransfer.setData('application/x-diff-component', JSON.stringify(component))
                   event.dataTransfer.effectAllowed = 'copy'
+                  setRoundedDragImage(event)
                 }}
                 sx={{
                   alignItems: 'flex-start',

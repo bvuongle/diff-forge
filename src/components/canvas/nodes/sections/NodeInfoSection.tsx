@@ -4,7 +4,7 @@ import { Box, TextField, Typography } from '@mui/material'
 
 import { GraphNode } from '@domain/graph/GraphTypes'
 
-interface NodeInfoSectionProps {
+type NodeInfoSectionProps = {
   node: GraphNode
   graphNodes: GraphNode[]
   renameNode: (oldId: string, newId: string) => void

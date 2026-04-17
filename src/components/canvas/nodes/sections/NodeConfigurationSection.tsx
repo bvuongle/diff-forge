@@ -8,7 +8,7 @@ import { GraphNode } from '@domain/graph/GraphTypes'
 import { ConfigFieldRenderer } from '../config/ConfigFieldRenderer'
 import { JsonConfigEditor } from '../config/JsonConfigEditor'
 
-interface NodeConfigurationSectionProps {
+type NodeConfigurationSectionProps = {
   node: GraphNode
   catalogComponent: CatalogComponent
   updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void
@@ -28,7 +28,7 @@ export function NodeConfigurationSection({ node, catalogComponent, updateNodeCon
   return (
     <Box>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ fontSize: '0.7rem' }}>
+        <Typography variant="caption" color="text.secondary" fontWeight={600} className="section-heading">
           CONFIGURATION
         </Typography>
         <ToggleButtonGroup
@@ -38,17 +38,17 @@ export function NodeConfigurationSection({ node, catalogComponent, updateNodeCon
           onChange={(_, v) => {
             if (v) setConfigTab(v as 'fields' | 'json')
           }}
-          sx={{ height: 22 }}
+          className="config-toggle"
         >
-          <ToggleButton value="fields" sx={{ fontSize: '0.65rem', px: 0.75, py: 0 }}>
+          <ToggleButton value="fields" className="config-toggle-btn">
             Fields
           </ToggleButton>
-          <ToggleButton value="json" sx={{ fontSize: '0.65rem', px: 0.75, py: 0 }}>
+          <ToggleButton value="json" className="config-toggle-btn">
             JSON
           </ToggleButton>
         </ToggleButtonGroup>
       </Box>
-      <Box sx={{ maxHeight: 180, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
+      <Box className="config-scroll">
         {configTab === 'fields' ? (
           <Box display="flex" flexDirection="column" gap={1.5} marginTop={1}>
             {configEntries.map(([name, schema]) => (

@@ -83,7 +83,7 @@ describe('topologyToGraph', () => {
     ]
     const graph = topologyToGraph(topology)
     expect(graph.nodes[0].position.x).toBe(0)
-    expect(graph.nodes[1].position.x).toBe(graph.nodes[0].position.x + 200)
+    expect(graph.nodes[1].position.x).toBe(graph.nodes[0].position.x + 180)
   })
 
   it('returns empty graph for empty topology', () => {
