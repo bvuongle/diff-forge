@@ -1,7 +1,22 @@
 import { z } from 'zod'
 
 const ConfigValueSchemaZ = z.object({
-  type: z.enum(['bool', 'int', 'uint', 'string']),
+  type: z.enum([
+    'bool',
+    'int',
+    'uint',
+    'string',
+    'int8',
+    'uint8',
+    'int16',
+    'uint16',
+    'int32',
+    'uint32',
+    'int64',
+    'uint64',
+    'float',
+    'double'
+  ]),
   min: z.number().optional(),
   max: z.number().optional(),
   default: z.unknown().optional()

@@ -4,7 +4,6 @@ import { renderWithTheme } from '@testing/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CanvasNode } from './CanvasNode'
-import type { EdgeSourceMap } from './ports/slotUtils'
 
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -13,21 +12,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const defaultProps = (): {
-  node: ReturnType<typeof makeNode>
-  isSelected: boolean
-  isExpanded: boolean
-  isDimmed: boolean
-  connectedSlots: Set<string>
-  catalogComponent: ReturnType<typeof makeCatalog> | null
-  dragInfo: null
-  edgeSourceMap: EdgeSourceMap
-  onSelect: ReturnType<typeof vi.fn>
-  onMoveStart: ReturnType<typeof vi.fn>
-  onPortMouseDown: ReturnType<typeof vi.fn>
-  onToggleExpand: ReturnType<typeof vi.fn>
-  onWidthChange: ReturnType<typeof vi.fn>
-} => ({
+const defaultProps = () => ({
   node: makeNode('n1', {
     componentType: 'LinkEth',
     instanceId: 'linkEth0',
@@ -40,10 +25,7 @@ const defaultProps = (): {
   isSelected: false,
   isExpanded: false,
   isDimmed: false,
-  connectedSlots: new Set<string>(),
-  catalogComponent: makeCatalog(),
-  dragInfo: null,
-  edgeSourceMap: {},
+  catalogComponent: makeCatalog() as ReturnType<typeof makeCatalog> | null,
   onSelect: vi.fn(),
   onMoveStart: vi.fn(),
   onPortMouseDown: vi.fn(),

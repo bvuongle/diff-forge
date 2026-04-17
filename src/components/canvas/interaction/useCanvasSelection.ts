@@ -31,18 +31,5 @@ export function useCanvasSelection(graph: Graph, selectedNodeIds: Set<string>, s
     return related
   }, [selectedEdgeId])
 
-  const edgeSourceMaps = useMemo(() => {
-    const maps: Record<string, Record<string, string[]>> = {}
-    for (const edge of graph.edges) {
-      const src = graph.nodes.find((n) => n.id === edge.sourceNodeId)
-      if (!src) continue
-      if (!maps[edge.targetNodeId]) maps[edge.targetNodeId] = {}
-      const m = maps[edge.targetNodeId]
-      if (!m[edge.targetSlot]) m[edge.targetSlot] = []
-      m[edge.targetSlot].push(src.instanceId)
-    }
-    return maps
-  }, [graph.nodes, graph.edges])
-
-  return { selectedEdgeIds, edgeDimNodeIds, edgeDimEdgeIds, edgeSourceMaps }
+  return { selectedEdgeIds, edgeDimNodeIds, edgeDimEdgeIds }
 }

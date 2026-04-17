@@ -107,11 +107,12 @@ describe('ConfigFieldRenderer', () => {
   })
 
   describe('uint type', () => {
-    it('renders number input with min >= 0', () => {
+    it('renders number input with uint32 bounds', () => {
       renderWithTheme(<ConfigFieldRenderer fieldName="port" schema={{ type: 'uint' }} value={0} onChange={vi.fn()} />)
       const input = screen.getByLabelText('port') as HTMLInputElement
       expect(input.type).toBe('number')
       expect(input.min).toBe('0')
+      expect(input.max).toBe('4294967295')
     })
 
     it('applies schema min and max to input', () => {
@@ -126,6 +127,64 @@ describe('ConfigFieldRenderer', () => {
       const input = screen.getByLabelText('port') as HTMLInputElement
       expect(input.min).toBe('1')
       expect(input.max).toBe('65535')
+    })
+  })
+
+  describe('uint8 type', () => {
+    it('renders number input with uint8 bounds', () => {
+      renderWithTheme(
+        <ConfigFieldRenderer fieldName="reliability" schema={{ type: 'uint8' }} value={95} onChange={vi.fn()} />
+      )
+      const input = screen.getByLabelText('reliability') as HTMLInputElement
+      expect(input.type).toBe('number')
+      expect(input.min).toBe('0')
+      expect(input.max).toBe('255')
+    })
+
+    it('schema min/max overrides type defaults', () => {
+      renderWithTheme(
+        <ConfigFieldRenderer
+          fieldName="reliability"
+          schema={{ type: 'uint8', min: 10, max: 100 }}
+          value={50}
+          onChange={vi.fn()}
+        />
+      )
+      const input = screen.getByLabelText('reliability') as HTMLInputElement
+      expect(input.min).toBe('10')
+      expect(input.max).toBe('100')
+    })
+  })
+
+  describe('int16 type', () => {
+    it('renders number input with int16 bounds', () => {
+      renderWithTheme(
+        <ConfigFieldRenderer fieldName="offset" schema={{ type: 'int16' }} value={0} onChange={vi.fn()} />
+      )
+      const input = screen.getByLabelText('offset') as HTMLInputElement
+      expect(input.min).toBe('-32768')
+      expect(input.max).toBe('32767')
+    })
+  })
+
+  describe('float type', () => {
+    it('renders number input with step=any', () => {
+      renderWithTheme(
+        <ConfigFieldRenderer fieldName="threshold" schema={{ type: 'float' }} value={1.5} onChange={vi.fn()} />
+      )
+      const input = screen.getByLabelText('threshold') as HTMLInputElement
+      expect(input.type).toBe('number')
+      expect(input.step).toBe('any')
+    })
+  })
+
+  describe('double type', () => {
+    it('renders number input with step=any', () => {
+      renderWithTheme(
+        <ConfigFieldRenderer fieldName="precision" schema={{ type: 'double' }} value={3.14} onChange={vi.fn()} />
+      )
+      const input = screen.getByLabelText('precision') as HTMLInputElement
+      expect(input.step).toBe('any')
     })
   })
 })

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -6,23 +6,22 @@ import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material'
 
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { GraphNode } from '@domain/graph/GraphTypes'
+import { useGraphStore } from '@state/graphStore'
+import { useUIStore } from '@state/uiStore'
 import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
 
 import { NodeExpandedContent } from './NodeExpandedContent'
-import type { DragInfo } from './ports/portDragState'
+import { getConnectedSlots } from './ports/getConnectedSlots'
 import { registerPort, unregisterPort } from './ports/portRegistry'
 import { PortRow } from './ports/PortRow'
-import { getSlotTooltip, type EdgeSourceMap } from './ports/slotUtils'
+import { getEdgeSourceMap, getSlotTooltip } from './ports/slotUtils'
 
 type CanvasNodeProps = {
   node: GraphNode
   isSelected: boolean
   isExpanded: boolean
   isDimmed: boolean
-  connectedSlots: Set<string>
   catalogComponent: CatalogComponent | null
-  dragInfo: DragInfo | null
-  edgeSourceMap: EdgeSourceMap
   onSelect: (nodeId: string | null, additive?: boolean) => void
   onMoveStart: (nodeId: string, startX: number, startY: number) => void
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, slotName: string, portEl: HTMLElement) => void
@@ -35,10 +34,7 @@ function CanvasNode({
   isSelected,
   isExpanded,
   isDimmed,
-  connectedSlots,
   catalogComponent,
-  dragInfo,
-  edgeSourceMap,
   onSelect,
   onMoveStart,
   onPortMouseDown,
@@ -46,6 +42,13 @@ function CanvasNode({
   onWidthChange
 }: CanvasNodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
+  const edges = useGraphStore((s) => s.graph.edges)
+  const nodes = useGraphStore((s) => s.graph.nodes)
+  const dragInfo = useUIStore((s) => s.dragInfo)
+
+  const connectedSlots = useMemo(() => getConnectedSlots(node.id, edges), [node.id, edges])
+  const edgeSourceMap = useMemo(() => getEdgeSourceMap(node.id, { nodes, edges }), [node.id, nodes, edges])
+
   const inputSlots = node.slots.filter((s) => s.direction === 'in')
   const outputSlots = node.slots.filter((s) => s.direction === 'out')
   const hasOutput = outputSlots.length > 0
@@ -170,14 +173,7 @@ function CanvasNode({
       </Box>
 
       {isExpanded && catalogComponent && (
-        <NodeExpandedContent
-          node={node}
-          catalogComponent={catalogComponent}
-          connectedSlots={connectedSlots}
-          dragInfo={dragInfo}
-          edgeSourceMap={edgeSourceMap}
-          onPortMouseDown={onPortMouseDown}
-        />
+        <NodeExpandedContent node={node} catalogComponent={catalogComponent} onPortMouseDown={onPortMouseDown} />
       )}
 
       {!isExpanded && (
