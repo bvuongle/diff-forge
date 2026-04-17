@@ -1,0 +1,1 @@
+export const CATALOG_PANEL_WIDTH_PX = 260

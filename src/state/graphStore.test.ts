@@ -143,41 +143,14 @@ describe('graphStore', () => {
       useGraphStore.getState().selectNode(null)
       expect(useGraphStore.getState().selectedNodeIds.size).toBe(0)
     })
-
-    it('additive mode toggles node into selection', () => {
-      useGraphStore.getState().selectNode('n1')
-      useGraphStore.getState().selectNode('n2', true)
-      expect(useGraphStore.getState().selectedNodeIds.size).toBe(2)
-      expect(useGraphStore.getState().selectedNodeIds.has('n1')).toBe(true)
-      expect(useGraphStore.getState().selectedNodeIds.has('n2')).toBe(true)
-    })
-
-    it('additive mode toggles node out of selection', () => {
-      useGraphStore.getState().selectNode('n1')
-      useGraphStore.getState().selectNode('n2', true)
-      useGraphStore.getState().selectNode('n1', true)
-      expect(useGraphStore.getState().selectedNodeIds.size).toBe(1)
-      expect(useGraphStore.getState().selectedNodeIds.has('n2')).toBe(true)
-    })
-  })
-
-  describe('selectNodes', () => {
-    it('selects multiple nodes at once', () => {
-      useGraphStore.getState().selectNodes(['n1', 'n2', 'n3'])
-      expect(useGraphStore.getState().selectedNodeIds.size).toBe(3)
-    })
-
-    it('clears selectedEdgeIds', () => {
-      useGraphStore.setState({ selectedEdgeIds: new Set(['e1']) })
-      useGraphStore.getState().selectNodes(['n1'])
-      expect(useGraphStore.getState().selectedEdgeIds.size).toBe(0)
-    })
   })
 
   describe('selectEdge', () => {
-    it('sets selectedEdgeIds', () => {
+    it('sets selectedEdgeIds and clears selectedNodeIds', () => {
+      useGraphStore.setState({ selectedNodeIds: new Set(['n1']) })
       useGraphStore.getState().selectEdge('e1')
       expect(useGraphStore.getState().selectedEdgeIds.has('e1')).toBe(true)
+      expect(useGraphStore.getState().selectedNodeIds.size).toBe(0)
     })
 
     it('deselects when null is passed', () => {
@@ -207,14 +180,14 @@ describe('graphStore', () => {
     })
   })
 
-  describe('removeSelectedNodes', () => {
+  describe('removeSelected', () => {
     it('removes all selected nodes and their edges', () => {
       useGraphStore.getState().addNode(makeNode('n1'))
       useGraphStore.getState().addNode(makeNode('n2'))
       useGraphStore.getState().addNode(makeNode('n3'))
       useGraphStore.getState().addEdge(makeEdge('e1', 'n1', 'n2'))
-      useGraphStore.getState().selectNodes(['n1', 'n2'])
-      useGraphStore.getState().removeSelectedNodes()
+      useGraphStore.getState().selectElements(['n1', 'n2'], [])
+      useGraphStore.getState().removeSelected()
       expect(useGraphStore.getState().graph.nodes).toHaveLength(1)
       expect(useGraphStore.getState().graph.nodes[0].id).toBe('n3')
       expect(useGraphStore.getState().graph.edges).toHaveLength(0)

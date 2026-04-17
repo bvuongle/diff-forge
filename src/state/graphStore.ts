@@ -23,12 +23,11 @@ type GraphStore = {
   moveNode: (nodeId: string, position: Position) => void
   updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void
   renameNode: (oldId: string, newId: string) => void
-  selectNode: (nodeId: string | null, additive?: boolean) => void
-  selectNodes: (nodeIds: string[]) => void
+  selectNode: (nodeId: string | null) => void
   selectEdge: (edgeId: string | null) => void
   selectElements: (nodeIds: string[], edgeIds: string[]) => void
   clearSelection: () => void
-  removeSelectedNodes: () => void
+  removeSelected: () => void
 }
 
 const useGraphStore = create<GraphStore>()(
@@ -90,28 +89,27 @@ const useGraphStore = create<GraphStore>()(
         }
       }),
 
-    selectNode: (nodeId, additive = false) =>
-      set((state) => {
-        if (nodeId === null) return { selectedNodeIds: new Set(), selectedEdgeIds: new Set() }
-        if (additive) {
-          const next = new Set(state.selectedNodeIds)
-          if (next.has(nodeId)) next.delete(nodeId)
-          else next.add(nodeId)
-          return { selectedNodeIds: next, selectedEdgeIds: new Set() }
-        }
-        return { selectedNodeIds: new Set([nodeId]), selectedEdgeIds: new Set() }
+    selectNode: (nodeId) =>
+      set({
+        selectedNodeIds: nodeId ? new Set([nodeId]) : new Set(),
+        selectedEdgeIds: new Set()
       }),
 
-    selectNodes: (nodeIds) => set({ selectedNodeIds: new Set(nodeIds), selectedEdgeIds: new Set() }),
-
     selectEdge: (edgeId) =>
-      set({ selectedEdgeIds: edgeId ? new Set([edgeId]) : new Set(), selectedNodeIds: new Set() }),
+      set({
+        selectedEdgeIds: edgeId ? new Set([edgeId]) : new Set(),
+        selectedNodeIds: new Set()
+      }),
 
-    selectElements: (nodeIds, edgeIds) => set({ selectedNodeIds: new Set(nodeIds), selectedEdgeIds: new Set(edgeIds) }),
+    selectElements: (nodeIds, edgeIds) =>
+      set({
+        selectedNodeIds: new Set(nodeIds),
+        selectedEdgeIds: new Set(edgeIds)
+      }),
 
     clearSelection: () => set({ selectedNodeIds: new Set(), selectedEdgeIds: new Set() }),
 
-    removeSelectedNodes: () =>
+    removeSelected: () =>
       set((state) => {
         let g = state.graph
         for (const nodeId of state.selectedNodeIds) {

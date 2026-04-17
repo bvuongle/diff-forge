@@ -8,20 +8,20 @@ import { useConnection, type NodeProps } from '@xyflow/react'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
-import { NODE_WIDTH_COMPACT, NODE_WIDTH_EXPANDED } from '@canvas/canvasConstants'
+import { NODE_MIN_WIDTH_COMPACT, NODE_MIN_WIDTH_EXPANDED } from '@canvas/canvasConstants'
 import type { CanvasNode } from '@canvas/canvasTypes'
 
-import { isNodeDimmed } from '../selection/selectionDimming'
-import { getConnectionCounts } from './ports/getConnectedSlots'
-import { getEdgeSourceMap } from './ports/slotUtils'
+import { getConnectionCounts, getEdgeSourceMap, isNodeDimmed } from './nodeUtils'
 import { NodeConfigurationSection } from './sections/NodeConfigurationSection'
 import { NodeInfoSection } from './sections/NodeInfoSection'
 import { NodeRequirementsSection } from './sections/NodeRequirementsSection'
 
 function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
   const { graphNode } = data
+
   const isExpanded = useUIStore((s) => s.expandedNodeIds.has(id))
   const toggleNodeExpanded = useUIStore((s) => s.toggleNodeExpanded)
+
   const edges = useGraphStore((s) => s.graph.edges)
   const graphNodes = useGraphStore((s) => s.graph.nodes)
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds)
@@ -47,7 +47,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
   const inputSlots = useMemo(() => graphNode.slots.filter((s) => s.direction === 'in'), [graphNode.slots])
   const outputSlots = useMemo(() => graphNode.slots.filter((s) => s.direction === 'out'), [graphNode.slots])
-  const minWidth = isExpanded ? NODE_WIDTH_EXPANDED : NODE_WIDTH_COMPACT
+  const minWidth = isExpanded ? NODE_MIN_WIDTH_EXPANDED : NODE_MIN_WIDTH_COMPACT
 
   const dragInfo = useMemo(() => {
     if (!connection.inProgress) return null
@@ -62,43 +62,20 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
   const handleToggle = useCallback(() => toggleNodeExpanded(id), [id, toggleNodeExpanded])
 
+  const containerClass = ['canvas-node', selected && 'canvas-node--selected', isDimmed && 'canvas-node--dimmed']
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <Box
-      sx={{
-        minWidth,
-        width: 'fit-content',
-        bgcolor: 'var(--panel-bg)',
-        borderRadius: 2,
-        border: '2px solid',
-        borderColor: selected ? 'var(--accent-blue)' : 'var(--panel-border)',
-        boxShadow: selected ? '0 0 0 3px var(--accent-blue-light)' : '0 1px 4px rgba(0,0,0,0.08)',
-        userSelect: 'none',
-        transition: 'opacity 0.2s ease',
-        opacity: isDimmed ? 0.3 : 1,
-        '&:hover': { borderColor: selected ? 'var(--accent-blue)' : '#bbb' }
-      }}
-    >
+    <Box className={containerClass} sx={{ minWidth }}>
       {/* Header */}
-      <Box
-        sx={{
-          px: 1.5,
-          py: 1,
-          borderBottom: '1px solid var(--panel-border)',
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between'
-        }}
-      >
+      <Box className="canvas-node__header">
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }} noWrap>
               {graphNode.componentType}
             </Typography>
-            <Chip
-              label={graphNode.version}
-              size="small"
-              sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#e8eaed', '& .MuiChip-label': { px: 0.75 } }}
-            />
+            <Chip label={graphNode.version} size="small" className="canvas-node__version-chip" />
           </Box>
           <Typography variant="subtitle2" fontWeight={600} sx={{ lineHeight: 1.3, mt: 0.25 }} noWrap>
             {graphNode.instanceId}
@@ -111,11 +88,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
       {/* Expanded content */}
       {isExpanded && catalogComponent && (
-        <Box
-          className="nodrag nowheel nopan"
-          sx={{ px: 1.5, py: 1.5, cursor: 'default' }}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <Box className="canvas-node__expanded nodrag nowheel nopan" onClick={(e) => e.stopPropagation()}>
           <NodeInfoSection node={graphNode} graphNodes={graphNodes} renameNode={renameNode} />
 
           {catalogComponent.implements.length > 0 && (
@@ -134,7 +107,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
           <Divider sx={{ my: 1.5 }} />
 
-          <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ fontSize: '0.7rem' }}>
+          <Typography variant="caption" color="text.secondary" fontWeight={600} className="section-heading">
             REQUIREMENTS
           </Typography>
           <Box mt={0.5}>
@@ -159,7 +132,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
       {/* Compact port rows */}
       {!isExpanded && (
-        <Box sx={{ px: 1.5, py: 1 }}>
+        <Box className="canvas-node__compact">
           <NodeRequirementsSection
             nodeId={id}
             inputSlots={inputSlots}

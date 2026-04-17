@@ -2,8 +2,9 @@ import { CatalogPanel } from '@catalog/CatalogPanel'
 import { Box, Divider } from '@mui/material'
 import { Topbar } from '@topbar/Topbar'
 
-import { CATALOG_PANEL_WIDTH_PX } from '@canvas/canvasConstants'
 import { CanvasPanel } from '@canvas/CanvasPanel'
+
+import { CATALOG_PANEL_WIDTH_PX } from '../catalog/catalogConstants'
 
 function MainLayout() {
   return (

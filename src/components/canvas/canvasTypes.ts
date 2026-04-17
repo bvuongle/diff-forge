@@ -17,6 +17,9 @@ type CanvasEdgeData = {
 type CanvasNode = Node<CanvasNodeData, 'component'>
 type CanvasEdge = Edge<CanvasEdgeData, 'component'>
 
+type DragInfo = { sourceNodeId: string; sourceInterfaces: string[] }
+type EdgeSourceMap = Record<string, string[]>
+
 function toCanvasNodes(graphNodes: GraphNode[]): CanvasNode[] {
   return graphNodes.map((node) => ({
     id: node.id,
@@ -34,10 +37,10 @@ function toCanvasEdges(graphEdges: GraphEdge[]): CanvasEdge[] {
     sourceHandle: OUT_HANDLE_ID,
     target: edge.targetNodeId,
     targetHandle: edge.targetSlot,
-    markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
+    markerEnd: { type: MarkerType.Arrow, width: 16, height: 16, color: 'var(--edge-default)' },
     data: { graphEdge: edge }
   }))
 }
 
 export { toCanvasNodes, toCanvasEdges }
-export type { CanvasNode, CanvasEdge, CanvasNodeData, CanvasEdgeData }
+export type { CanvasNode, CanvasEdge, CanvasNodeData, CanvasEdgeData, DragInfo, EdgeSourceMap }

@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react'
+import { memo, useMemo, type CSSProperties } from 'react'
 
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from '@xyflow/react'
 
@@ -6,9 +6,17 @@ import { isEdgeInvalid } from '@domain/graph/GraphOperations'
 import { useGraphStore } from '@state/graphStore'
 import type { CanvasEdge } from '@canvas/canvasTypes'
 
-import { isEdgeDimmed } from '../selection/selectionDimming'
+import { isEdgeDimmed } from './edgeUtils'
 
-const EDGE_WIDTH = 2
+function edgeStroke(strokeColor: string, selected: boolean, isInvalid: boolean, style?: CSSProperties): CSSProperties {
+  return {
+    stroke: strokeColor,
+    strokeWidth: selected ? 3 : 2,
+    strokeLinecap: 'round',
+    strokeDasharray: isInvalid ? '6,4' : undefined,
+    ...style
+  }
+}
 
 function CanvasEdgeComponent({
   id,
@@ -19,7 +27,9 @@ function CanvasEdgeComponent({
   sourcePosition,
   targetPosition,
   selected,
-  data
+  data,
+  markerEnd,
+  style
 }: EdgeProps<CanvasEdge>) {
   const graphEdge = data?.graphEdge
   const nodes = useGraphStore((s) => s.graph.nodes)
@@ -28,20 +38,11 @@ function CanvasEdgeComponent({
 
   const isInvalid = useMemo(() => (graphEdge ? isEdgeInvalid(graphEdge, nodes) : false), [graphEdge, nodes])
 
-  const isSelected =
-    selected ||
-    selectedEdgeIds.has(id) ||
-    (selectedNodeIds.size > 0 &&
-      !!graphEdge &&
-      selectedNodeIds.has(graphEdge.sourceNodeId) &&
-      selectedNodeIds.has(graphEdge.targetNodeId))
-
   const isDimmed = useMemo(
     () => isEdgeDimmed(graphEdge, id, selectedNodeIds, selectedEdgeIds),
     [id, graphEdge, selectedNodeIds, selectedEdgeIds]
   )
 
-  // Show source slot label when source node has multiple outputs
   const sourceLabel = useMemo(() => {
     if (!graphEdge) return null
     const srcNode = nodes.find((n) => n.id === graphEdge.sourceNodeId)
@@ -52,47 +53,26 @@ function CanvasEdgeComponent({
   }, [graphEdge, nodes])
 
   const [path, labelX, labelY] = getBezierPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition })
-
-  const strokeColor = isInvalid ? '#ef4444' : isSelected ? 'var(--accent-blue)' : '#9ca3af'
+  const strokeColor = isInvalid ? 'var(--edge-invalid)' : selected ? 'var(--accent-blue)' : 'var(--edge-default)'
 
   return (
     <>
-      <g opacity={isDimmed ? 0.15 : 1} style={{ transition: 'opacity 0.2s ease' }}>
-        <path d={path} fill="none" stroke="transparent" strokeWidth={16} style={{ cursor: 'pointer' }} />
-        {isSelected && (
-          <path d={path} fill="none" stroke="var(--accent-blue)" strokeWidth={8} strokeLinecap="round" opacity={0.2} />
-        )}
-        {isInvalid && !isSelected && (
-          <path d={path} fill="none" stroke="#ef4444" strokeWidth={8} strokeLinecap="round" opacity={0.15} />
-        )}
+      <g className="canvas-edge" data-testid="edge-container" opacity={isDimmed ? 0.15 : 1}>
+        <path d={path} fill="none" stroke="transparent" strokeWidth={16} className="canvas-edge__hit-area" />
         <BaseEdge
           id={id}
           path={path}
           labelX={labelX}
           labelY={labelY}
-          style={{
-            stroke: strokeColor,
-            strokeWidth: EDGE_WIDTH,
-            strokeLinecap: 'round',
-            strokeDasharray: isInvalid ? '6,4' : undefined
-          }}
+          markerEnd={markerEnd}
+          style={edgeStroke(strokeColor, !!selected, isInvalid, style)}
         />
       </g>
       {sourceLabel && !isDimmed && (
         <EdgeLabelRenderer>
           <div
-            style={{
-              position: 'absolute',
-              transform: `translate(-50%, -120%) translate(${labelX}px, ${labelY}px)`,
-              fontSize: '10px',
-              color: 'var(--text-secondary)',
-              background: 'rgba(255,255,255,0.85)',
-              padding: '1px 4px',
-              borderRadius: 3,
-              pointerEvents: 'none',
-              userSelect: 'none',
-              whiteSpace: 'nowrap'
-            }}
+            className="canvas-edge__label"
+            style={{ transform: `translate(-50%, -120%) translate(${labelX}px, ${labelY}px)` }}
           >
             {sourceLabel}
           </div>

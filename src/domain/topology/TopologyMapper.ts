@@ -1,5 +1,5 @@
 import { Graph, GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
-import { NODE_HORIZONTAL_SPACING } from '@canvas/canvasConstants'
+import { NODE_MIN_WIDTH_COMPACT } from '@canvas/canvasConstants'
 
 import { Topology } from './TopologyTypes'
 
@@ -33,7 +33,7 @@ function topologyToGraph(topology: Topology): Graph {
     componentType: entry.type,
     source: '',
     version: '',
-    position: { x: index * NODE_HORIZONTAL_SPACING, y: 0 },
+    position: { x: index * NODE_MIN_WIDTH_COMPACT, y: 0 },
     config: entry.config,
     slots: []
   }))
