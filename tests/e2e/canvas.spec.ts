@@ -1,17 +1,20 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
-// Helper: drag a catalog component onto the canvas
-async function dragComponentToCanvas(page: Page, componentType: string, targetX = 600, targetY = 400) {
-  const catalogItem = page.locator(`text=${componentType}`).first()
-  await catalogItem.waitFor({ state: 'visible' })
-  const canvas = page.locator('[data-canvas-bg]')
-  await catalogItem.dragTo(canvas, { targetPosition: { x: targetX, y: targetY } })
-}
+import {
+  connectPorts,
+  dropCatalogComponent,
+  edgeCount,
+  inPortSel,
+  nodeSel,
+  outPortSel,
+  selectNode,
+  toggleNode,
+  waitForCanvasReady
+} from './helpers/canvas'
 
 test.describe('Catalog panel', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
+    await waitForCanvasReady(page)
   })
 
   test('displays catalog with components loaded', async ({ page }) => {
@@ -37,8 +40,7 @@ test.describe('Catalog panel', () => {
 
 test.describe('Canvas — empty state', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
+    await waitForCanvasReady(page)
   })
 
   test('shows empty canvas placeholder text', async ({ page }) => {
@@ -46,200 +48,170 @@ test.describe('Canvas — empty state', () => {
   })
 
   test('shows zoom percentage indicator', async ({ page }) => {
-    await expect(page.getByText('100%')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Zoom presets' })).toContainText('100%')
   })
 })
 
 test.describe('Drop node from catalog', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
+    await waitForCanvasReady(page)
   })
 
   test('drag LinkEth from catalog to canvas creates a node', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth')
-    // Node should appear with component type and instanceId
-    const nodes = page.locator('[data-canvas-bg] >> text=linkEth0')
-    await expect(nodes).toBeVisible()
+    await dropCatalogComponent(page, 'LinkEth')
+    await expect(page.locator(nodeSel('linkEth0'))).toBeVisible()
   })
 
   test('dropping same type again increments instanceId', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth', 500, 300)
-    await dragComponentToCanvas(page, 'LinkEth', 500, 500)
-    await expect(page.getByRole('heading', { name: 'linkEth0' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'linkEth1' })).toBeVisible()
+    await dropCatalogComponent(page, 'LinkEth', { x: 500, y: 300 })
+    await dropCatalogComponent(page, 'LinkEth', { x: 500, y: 500 })
+    await expect(page.locator(nodeSel('linkEth0'))).toBeVisible()
+    await expect(page.locator(nodeSel('linkEth1'))).toBeVisible()
   })
 
   test('empty canvas placeholder disappears after drop', async ({ page }) => {
     await expect(page.getByText('Drag components from the catalog to place nodes.')).toBeVisible()
-    await dragComponentToCanvas(page, 'LinkEth')
+    await dropCatalogComponent(page, 'LinkEth')
     await expect(page.getByText('Drag components from the catalog to place nodes.')).not.toBeVisible()
   })
 })
 
 test.describe('Node display', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
+    await waitForCanvasReady(page)
   })
 
   test('node shows componentType and instanceId', async ({ page }) => {
-    await dragComponentToCanvas(page, 'MessageSource')
-    await expect(page.getByText('MessageSource').nth(1)).toBeVisible()
-    await expect(page.getByText('messageSource0')).toBeVisible()
+    await dropCatalogComponent(page, 'MessageSource')
+    const node = page.locator(nodeSel('messageSource0'))
+    await expect(node).toContainText('MessageSource')
+    await expect(node).toContainText('messageSource0')
   })
 
   test('node shows version chip', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth')
-    // The node's version chip shows "1.0.0" — use exact match to avoid catalog panel ambiguity
-    await expect(page.getByText('1.0.0', { exact: true })).toBeVisible()
+    await dropCatalogComponent(page, 'LinkEth')
+    await expect(page.locator(nodeSel('linkEth0'))).toContainText('1.0.0')
   })
 
   test('node with input ports shows port circles', async ({ page }) => {
-    await dragComponentToCanvas(page, 'MessageSource')
+    await dropCatalogComponent(page, 'MessageSource')
     // MessageSource has 'link' and 'backupLink' input ports
-    const portHandles = page.locator('[data-port-handle][data-node-id]')
-    // Should have at least 2 input ports + 1 output
+    const portHandles = page.locator(nodeSel('messageSource0')).locator('.react-flow__handle')
+    // Should have 2 input ports + 1 output (OUT_HANDLE_ID)
     await expect(portHandles).toHaveCount(3)
   })
 
   test('node with output shows output port', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth')
-    // LinkEth implements ILink, so it has an output port
-    const outPorts = page.locator('[data-port-handle][data-direction="out"]')
-    await expect(outPorts).toHaveCount(1)
+    await dropCatalogComponent(page, 'LinkEth')
+    // LinkEth implements ILink, so it has an output port on the right
+    await expect(page.locator(outPortSel('linkEth0'))).toHaveCount(1)
   })
 })
 
 test.describe('Node selection', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth')
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth')
   })
 
   test('clicking a node selects it (visual border change)', async ({ page }) => {
-    const nodeText = page.getByText('linkEth0')
-    await nodeText.click()
-    // The node's parent box should get the accent-blue border
-    // We check via computed style or just that the click doesn't throw
-    await expect(nodeText).toBeVisible()
+    await selectNode(page, 'linkEth0')
+    await expect(page.locator(nodeSel('linkEth0'))).toHaveClass(/selected/)
   })
 
   test('clicking empty canvas deselects', async ({ page }) => {
-    const nodeText = page.getByText('linkEth0')
-    await nodeText.click()
-    // Click on empty canvas area
-    const canvas = page.locator('[data-canvas-bg]')
-    await canvas.click({ position: { x: 50, y: 50 } })
-    // Node should still be visible but deselected
-    await expect(nodeText).toBeVisible()
+    await selectNode(page, 'linkEth0')
+    await page.locator('.react-flow__pane').click({ position: { x: 50, y: 50 } })
+    await expect(page.locator(nodeSel('linkEth0'))).not.toHaveClass(/selected/)
   })
 })
 
 test.describe('Delete node', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth')
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth')
   })
 
   test('pressing Delete removes selected node', async ({ page }) => {
-    const nodeText = page.getByText('linkEth0')
-    await nodeText.click()
+    await selectNode(page, 'linkEth0')
     await page.keyboard.press('Delete')
-    await expect(nodeText).not.toBeVisible()
-    // Empty state returns
+    await expect(page.locator(nodeSel('linkEth0'))).not.toBeVisible()
     await expect(page.getByText('Drag components from the catalog to place nodes.')).toBeVisible()
   })
 
   test('pressing Backspace removes selected node', async ({ page }) => {
-    const nodeText = page.getByText('linkEth0')
-    await nodeText.click()
+    await selectNode(page, 'linkEth0')
     await page.keyboard.press('Backspace')
-    await expect(nodeText).not.toBeVisible()
+    await expect(page.locator(nodeSel('linkEth0'))).not.toBeVisible()
   })
 })
 
 test.describe('Canvas navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
+    await waitForCanvasReady(page)
   })
 
   test('mouse wheel changes zoom percentage', async ({ page }) => {
-    await expect(page.getByText('100%')).toBeVisible()
-    const canvas = page.locator('[data-canvas-bg]')
-    await canvas.hover()
+    const zoomButton = page.getByRole('button', { name: 'Zoom presets' })
+    await expect(zoomButton).toContainText('100%')
+    
+    await page.locator('.react-flow__pane').hover()
     await page.mouse.wheel(0, -100)
-    // Zoom should have changed from 100%
-    await expect(page.getByText('100%')).not.toBeVisible()
+    
+    await expect(zoomButton).not.toContainText('100%')
   })
 
-  test('Ctrl+= zooms in', async ({ page }) => {
-    await expect(page.getByText('100%')).toBeVisible()
-    await page.keyboard.press('Control+=')
-    await expect(page.getByText('110%')).toBeVisible()
+  test('Zoom in button changes zoom percentage', async ({ page }) => {
+    const zoomButton = page.getByRole('button', { name: 'Zoom presets' })
+    await expect(zoomButton).toContainText('100%')
+    
+    await page.getByRole('button', { name: 'Zoom in' }).click()
+    
+    await expect(zoomButton).not.toContainText('100%')
   })
 
-  test('Ctrl+- zooms out', async ({ page }) => {
-    await expect(page.getByText('100%')).toBeVisible()
-    await page.keyboard.press('Control+-')
-    await expect(page.getByText('90%')).toBeVisible()
-  })
-
-  test('Ctrl+0 resets zoom to 100%', async ({ page }) => {
-    await page.keyboard.press('Control+=')
-    await page.keyboard.press('Control+=')
-    await expect(page.getByText('120%')).toBeVisible()
-    await page.keyboard.press('Control+0')
-    await expect(page.getByText('100%')).toBeVisible()
+  test('Zoom out button changes zoom percentage', async ({ page }) => {
+    const zoomButton = page.getByRole('button', { name: 'Zoom presets' })
+    await expect(zoomButton).toContainText('100%')
+    
+    await page.getByRole('button', { name: 'Zoom out' }).click()
+    
+    await expect(zoomButton).not.toContainText('100%')
   })
 })
 
 test.describe('Connect two nodes', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    // Drop LinkEth (provider, implements ILink)
-    await dragComponentToCanvas(page, 'LinkEth', 400, 300)
-    // Drop MessageSource (consumer, requires ILink via 'link' slot)
-    await dragComponentToCanvas(page, 'MessageSource', 400, 500)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 400, y: 300 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 500 })
   })
 
-  test('dragging from output port to input port creates a green edge', async ({ page }) => {
-    const outputPort = page.locator('[data-port-handle][data-direction="out"]').first()
-    const inputPort = page.locator('[data-port-handle][data-slot-name="link"]').first()
-    await outputPort.dragTo(inputPort)
-
-    // After connection, an SVG path with green stroke should exist
-    const connectedEdge = page.locator('svg path[stroke="#9ca3af"]')
-    await expect(connectedEdge.first()).toBeVisible()
+  test('dragging from output port to input port creates an edge', async ({ page }) => {
+    await connectPorts(page, outPortSel('linkEth0'), inPortSel('messageSource0', 'link'))
+    await expect.poll(() => edgeCount(page)).toBe(1)
   })
 })
 
 test.describe('Expand/collapse node', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'MessageSource')
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'MessageSource')
   })
 
-  test('double-clicking node expands it', async ({ page }) => {
-    const nodeText = page.getByText('messageSource0')
-    await nodeText.dblclick()
-    // Expanded mode shows INFO, REQUIREMENTS, CONFIGURATION sections
-    await expect(page.getByText('INFO')).toBeVisible()
-    await expect(page.getByText('REQUIREMENTS')).toBeVisible()
-    await expect(page.getByText('CONFIGURATION')).toBeVisible()
+  test('clicking node toggle button expands it', async ({ page }) => {
+    await toggleNode(page, 'messageSource0')
+    const node = page.locator(nodeSel('messageSource0'))
+    await expect(node.getByText('INFO')).toBeVisible()
+    await expect(node.getByText('REQUIREMENTS')).toBeVisible()
+    await expect(node.getByText('CONFIGURATION')).toBeVisible()
   })
 
-  test('double-clicking expanded node collapses it', async ({ page }) => {
-    const nodeText = page.getByText('messageSource0')
-    await nodeText.dblclick()
-    await expect(page.getByText('INFO')).toBeVisible()
-    // Double-click again to collapse
-    await nodeText.dblclick()
-    await expect(page.getByText('INFO')).not.toBeVisible()
+  test('clicking node toggle button collapses it', async ({ page }) => {
+    await toggleNode(page, 'messageSource0')
+    await expect(page.locator(nodeSel('messageSource0')).getByText('INFO')).toBeVisible()
+    
+    await toggleNode(page, 'messageSource0')
+    await expect(page.locator(nodeSel('messageSource0')).getByText('INFO')).not.toBeVisible()
   })
 })

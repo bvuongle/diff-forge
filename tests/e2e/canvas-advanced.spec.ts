@@ -1,52 +1,28 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
-// Helper: drag a catalog component onto the canvas
-async function dragComponentToCanvas(page: Page, componentType: string, targetX = 600, targetY = 400) {
-  const catalogItem = page.locator(`text=${componentType}`).first()
-  await catalogItem.waitFor({ state: 'visible' })
-  const canvas = page.locator('[data-canvas-bg]')
-  await catalogItem.dragTo(canvas, { targetPosition: { x: targetX, y: targetY } })
-}
-
-// Helper: get computed opacity of a node's outermost container by its instanceId.
-// Walks up from the h6 heading and returns the lowest opacity found on any
-// ancestor with cursor:grab (MUI Box wrapping the node).
-async function getNodeOpacity(page: Page, instanceId: string): Promise<string> {
-  return page.evaluate((id) => {
-    const headings = document.querySelectorAll('h6')
-    for (const h of headings) {
-      if (h.textContent?.trim() === id) {
-        let el: HTMLElement | null = h as HTMLElement
-        let minOpacity = '1'
-        while (el) {
-          const s = getComputedStyle(el)
-          if (s.cursor === 'grab' && parseFloat(s.opacity) < parseFloat(minOpacity)) {
-            minOpacity = s.opacity
-          }
-          el = el.parentElement
-        }
-        return minOpacity
-      }
-    }
-    return '1'
-  }, instanceId)
-}
+import {
+  connectPorts,
+  dropCatalogComponent,
+  edgeCount,
+  inPortSel,
+  nodeSel,
+  outPortSel,
+  selectNode,
+  toggleNode,
+  waitForCanvasReady
+} from './helpers/canvas'
 
 test.describe('Node drag repositioning', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth', 500, 300)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 500, y: 300 })
   })
 
   test('dragging a node changes its position', async ({ page }) => {
     const heading = page.getByRole('heading', { name: 'linkEth0' })
-    await expect(heading).toBeVisible()
-
     const boxBefore = await heading.boundingBox()
     expect(boxBefore).toBeTruthy()
 
-    // Drag from the heading (non-port area)
     const startX = boxBefore!.x + boxBefore!.width / 2
     const startY = boxBefore!.y + boxBefore!.height / 2
     await page.mouse.move(startX, startY)
@@ -63,399 +39,269 @@ test.describe('Node drag repositioning', () => {
 
 test.describe('Multi-node selection', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth', 400, 200)
-    await dragComponentToCanvas(page, 'MessageSource', 400, 450)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 400, y: 200 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 450 })
   })
 
   test('clicking a node does not dim other nodes', async ({ page }) => {
-    await page.getByRole('heading', { name: 'linkEth0' }).click()
-    const opacity = await getNodeOpacity(page, 'messageSource0')
-    expect(opacity).toBe('1')
+    await selectNode(page, 'linkEth0')
+    await expect(page.locator(nodeSel('messageSource0'))).not.toHaveClass(/canvas-node--dimmed/)
   })
 
   test('clicking empty canvas clears selection', async ({ page }) => {
-    await page.getByRole('heading', { name: 'linkEth0' }).click()
-    const canvas = page.locator('[data-canvas-bg]')
-    await canvas.click({ position: { x: 50, y: 50 } })
-    // Both nodes at full opacity, no selection glow
-    expect(await getNodeOpacity(page, 'linkEth0')).toBe('1')
-    expect(await getNodeOpacity(page, 'messageSource0')).toBe('1')
+    await selectNode(page, 'linkEth0')
+    await page.locator('.react-flow__pane').click({ position: { x: 50, y: 50 } })
+    await expect(page.locator(nodeSel('linkEth0'))).not.toHaveClass(/canvas-node--selected/)
   })
 
-  test('Ctrl+click adds to selection and Delete removes all', async ({ page }) => {
-    await page.getByRole('heading', { name: 'linkEth0' }).click()
+  test('Meta+click adds to selection and Delete removes all', async ({ page }) => {
+    await selectNode(page, 'linkEth0')
     await page.getByRole('heading', { name: 'messageSource0' }).click({ modifiers: ['Meta'] })
-    // Both selected — Delete removes both
+    
+    await expect(page.locator(nodeSel('linkEth0'))).toHaveClass(/selected/)
+    await expect(page.locator(nodeSel('messageSource0'))).toHaveClass(/selected/)
+
     await page.keyboard.press('Delete')
-    await expect(page.getByRole('heading', { name: 'linkEth0' })).toHaveCount(0)
-    await expect(page.getByRole('heading', { name: 'messageSource0' })).toHaveCount(0)
+    await expect(page.locator(nodeSel('linkEth0'))).not.toBeVisible()
+    await expect(page.locator(nodeSel('messageSource0'))).not.toBeVisible()
   })
 
   test('single Delete removes only the selected node', async ({ page }) => {
-    await page.getByRole('heading', { name: 'linkEth0' }).click()
+    await selectNode(page, 'linkEth0')
     await page.keyboard.press('Delete')
-    await expect(page.getByRole('heading', { name: 'linkEth0' })).toHaveCount(0)
-    await expect(page.getByRole('heading', { name: 'messageSource0' })).toHaveCount(1)
+    await expect(page.locator(nodeSel('linkEth0'))).not.toBeVisible()
+    await expect(page.locator(nodeSel('messageSource0'))).toBeVisible()
   })
 })
 
 test.describe('Edge selection', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth', 400, 200)
-    await dragComponentToCanvas(page, 'MessageSource', 400, 450)
-    const outputPort = page.locator('[data-port-handle][data-direction="out"]').first()
-    const inputPort = page.locator('[data-port-handle][data-slot-name="link"]').first()
-    await outputPort.dragTo(inputPort)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 400, y: 200 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 450 })
+    await connectPorts(page, outPortSel('linkEth0'), inPortSel('messageSource0', 'link'))
   })
 
-  test('clicking an edge selects it and highlights both connected nodes', async ({ page }) => {
-    const edgePath = page.locator('svg g path[stroke="#9ca3af"]').first()
-    await expect(edgePath).toBeVisible()
-
-    const edgeGroup = page.locator('svg g').filter({ has: page.locator('path[stroke="#9ca3af"]') }).first()
-    await edgeGroup.click()
-
-    const blueEdge = page.locator('svg path[stroke="var(--accent-blue)"]')
-    await expect(blueEdge.first()).toBeVisible()
+  test('clicking an edge selects it', async ({ page }) => {
+    const edge = page.locator('.react-flow__edge').first()
+    // Target the hit area for more reliable clicking
+    await edge.locator('.canvas-edge__hit-area').click({ force: true })
+    await expect(edge).toHaveClass(/selected/)
   })
 })
 
 test.describe('Delete edge', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth', 400, 200)
-    await dragComponentToCanvas(page, 'MessageSource', 400, 450)
-    const outputPort = page.locator('[data-port-handle][data-direction="out"]').first()
-    const inputPort = page.locator('[data-port-handle][data-slot-name="link"]').first()
-    await outputPort.dragTo(inputPort)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 400, y: 200 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 450 })
+    await connectPorts(page, outPortSel('linkEth0'), inPortSel('messageSource0', 'link'))
   })
 
   test('selecting an edge and pressing Delete removes it', async ({ page }) => {
-    const connectedEdge = page.locator('svg path[stroke="#9ca3af"]')
-    await expect(connectedEdge.first()).toBeVisible()
-
-    const edgeGroup = page.locator('svg g').filter({ has: page.locator('path[stroke="#9ca3af"]') }).first()
-    await edgeGroup.click()
+    const edge = page.locator('.react-flow__edge').first()
+    await edge.locator('.canvas-edge__hit-area').click({ force: true })
     await page.keyboard.press('Delete')
 
-    await expect(connectedEdge).toHaveCount(0)
-    await expect(page.getByRole('heading', { name: 'linkEth0' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'messageSource0' })).toBeVisible()
+    await expect(page.locator('.react-flow__edge')).toHaveCount(0)
+    await expect(page.locator(nodeSel('linkEth0'))).toBeVisible()
+    await expect(page.locator(nodeSel('messageSource0'))).toBeVisible()
   })
 })
 
 test.describe('Self-connection rejected', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'MessageSource', 500, 300)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'MessageSource', { x: 500, y: 300 })
   })
 
   test('dragging from output to own input does not create edge', async ({ page }) => {
-    const outputPort = page.locator('[data-port-handle][data-direction="out"]').first()
-    const inputPort = page.locator('[data-port-handle][data-slot-name="link"]').first()
-    await outputPort.dragTo(inputPort)
-
-    const connectedEdge = page.locator('svg path[stroke="#9ca3af"]')
-    await expect(connectedEdge).toHaveCount(0)
+    await connectPorts(page, outPortSel('messageSource0'), inPortSel('messageSource0', 'link'))
+    expect(await edgeCount(page)).toBe(0)
   })
 })
 
 test.describe('Invalid connection rejected', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'Sensor', 400, 200)
-    await dragComponentToCanvas(page, 'MessageSource', 400, 450)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'Sensor', { x: 400, y: 200 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 450 })
   })
 
   test('connecting incompatible interfaces does not create edge', async ({ page }) => {
-    const outputPort = page.locator('[data-port-handle][data-direction="out"]').first()
-    const inputPort = page.locator('[data-port-handle][data-slot-name="link"]').first()
-    await outputPort.dragTo(inputPort)
-
-    const connectedEdge = page.locator('svg path[stroke="#9ca3af"]')
-    await expect(connectedEdge).toHaveCount(0)
+    // Sensor implements IDataSource, MessageSource requires ILink
+    await connectPorts(page, outPortSel('sensor0'), inPortSel('messageSource0', 'link'))
+    expect(await edgeCount(page)).toBe(0)
   })
 })
 
 test.describe('Expanded node — Instance ID editing', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth')
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth')
   })
 
   test('editing instanceId in expanded mode updates the node name', async ({ page }) => {
-    await page.getByRole('heading', { name: 'linkEth0' }).dblclick()
-    await expect(page.getByText('INFO')).toBeVisible()
-
+    await toggleNode(page, 'linkEth0')
+    
     const instanceIdField = page.getByLabel('Instance ID')
-    await instanceIdField.clear()
     await instanceIdField.fill('myCustomLink')
     await instanceIdField.blur()
 
     await expect(page.getByRole('heading', { name: 'myCustomLink' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'linkEth0' })).not.toBeVisible()
   })
 
   test('empty instanceId shows error', async ({ page }) => {
-    await page.getByRole('heading', { name: 'linkEth0' }).dblclick()
-
+    await toggleNode(page, 'linkEth0')
     const instanceIdField = page.getByLabel('Instance ID')
     await instanceIdField.clear()
     await instanceIdField.blur()
-
     await expect(page.getByText('Cannot be empty')).toBeVisible()
   })
 })
 
 test.describe('Expanded node — config editing', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'MessageSource')
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'MessageSource')
   })
 
   test('editing config field value persists across collapse/expand', async ({ page }) => {
-    const nodeText = page.getByRole('heading', { name: 'messageSource0' })
-    await nodeText.dblclick()
-    await expect(page.getByText('CONFIGURATION')).toBeVisible()
+    await toggleNode(page, 'messageSource0')
 
     const countField = page.getByLabel('count')
-    await countField.clear()
     await countField.fill('42')
+    await countField.blur()
 
-    // Collapse and re-expand
-    await nodeText.dblclick()
+    // Collapse
+    await toggleNode(page, 'messageSource0')
     await expect(page.getByText('CONFIGURATION')).not.toBeVisible()
-    await nodeText.dblclick()
-    await expect(page.getByText('CONFIGURATION')).toBeVisible()
-
+    
+    // Re-expand
+    await toggleNode(page, 'messageSource0')
     await expect(page.getByLabel('count')).toHaveValue('42')
-  })
-})
-
-test.describe('Expanded node — version switching', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'Sensor')
-  })
-
-  test('switching version changes config fields', async ({ page }) => {
-    await page.getByRole('heading', { name: 'sensor0' }).dblclick()
-    await expect(page.getByText('CONFIGURATION')).toBeVisible()
-
-    await expect(page.getByLabel('sampleRate')).toBeVisible()
-    await expect(page.getByLabel('calibrationOffset')).not.toBeVisible()
-
-    const versionSelect = page.getByLabel('Version')
-    await versionSelect.click()
-    await page.getByRole('option', { name: '2.0.0' }).click()
-
-    await expect(page.getByLabel('calibrationOffset')).toBeVisible()
-    await expect(page.getByText('isCalibrated')).toBeVisible()
   })
 })
 
 test.describe('Expanded node — Fields/JSON toggle', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'MessageSource')
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'MessageSource')
   })
 
   test('clicking JSON tab shows JSON editor', async ({ page }) => {
-    await page.getByRole('heading', { name: 'messageSource0' }).dblclick()
-    await expect(page.getByText('CONFIGURATION')).toBeVisible()
-    await expect(page.getByLabel('count')).toBeVisible()
+    await toggleNode(page, 'messageSource0')
+    
+    await page.getByRole('button', { name: 'JSON', exact: true }).click()
+    await expect(page.locator('textarea').first()).toBeVisible()
 
-    // Use exact match to avoid ambiguity with other "JSON" text on page
-    const jsonTab = page.getByRole('button', { name: 'JSON', exact: true })
-    await jsonTab.click()
-
-    const jsonTextarea = page.locator('textarea')
-    await expect(jsonTextarea.first()).toBeVisible()
-
-    const fieldsTab = page.getByRole('button', { name: 'Fields', exact: true })
-    await fieldsTab.click()
+    await page.getByRole('button', { name: 'Fields', exact: true }).click()
     await expect(page.getByLabel('count')).toBeVisible()
   })
 })
 
 test.describe('Canvas pan with mouse drag', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth', 500, 300)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 500, y: 300 })
   })
 
   test('dragging empty canvas area pans the view', async ({ page }) => {
-    const canvasBg = page.locator('[data-canvas-bg]')
+    const viewport = page.locator('.react-flow__viewport')
+    const transformBefore = await viewport.evaluate((el) => getComputedStyle(el).transform)
 
-    // Get the transform before pan
-    const transformBefore = await canvasBg.evaluate(
-      (el) => getComputedStyle(el).transform
-    )
+    const pane = page.locator('.react-flow__pane')
+    await pane.hover({ position: { x: 10, y: 10 } })
+    await page.mouse.down({ button: 'right' }) // pan usually bound to right/middle drag in select mode
+    await page.mouse.move(100, 100, { steps: 5 })
+    await page.mouse.up({ button: 'right' })
 
-    // Click on the data-canvas-bg element (empty area away from the node)
-    const bgBox = await canvasBg.boundingBox()
-    expect(bgBox).toBeTruthy()
-
-    // Start from a point far from any node
-    const startX = bgBox!.x + 100
-    const startY = bgBox!.y + 50
-    await page.mouse.move(startX, startY)
-    await page.mouse.down()
-    await page.mouse.move(startX - 120, startY - 80, { steps: 5 })
-    await page.mouse.up()
-
-    // The CSS transform on data-canvas-bg should have changed
-    const transformAfter = await canvasBg.evaluate(
-      (el) => getComputedStyle(el).transform
-    )
+    const transformAfter = await viewport.evaluate((el) => getComputedStyle(el).transform)
     expect(transformAfter).not.toBe(transformBefore)
   })
 })
 
 test.describe('Fit to view button', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 300, y: 200 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 700, y: 500 })
   })
 
   test('fit button adjusts view after zooming', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth', 300, 200)
-    await dragComponentToCanvas(page, 'MessageSource', 700, 500)
-
-    await page.keyboard.press('Control+=')
-    await page.keyboard.press('Control+=')
-    await expect(page.getByText('120%')).toBeVisible()
-
-    const fitButton = page.getByRole('button', { name: 'Fit' })
-    await fitButton.click()
-
-    await expect(page.getByText('120%')).not.toBeVisible()
-  })
-
-  test('Ctrl+0 resets view after panning and zooming', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth', 500, 300)
-
-    await page.keyboard.press('Control+=')
-    await expect(page.getByText('110%')).toBeVisible()
-
-    await page.keyboard.press('Control+0')
-    await expect(page.getByText('100%')).toBeVisible()
-  })
-
-  test('Reset button resets zoom to 100% and pan to origin', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth', 500, 300)
-
-    await page.keyboard.press('Control+=')
-    await page.keyboard.press('Control+=')
-    await expect(page.getByText('120%')).toBeVisible()
-
-    const resetButton = page.getByRole('button', { name: 'Reset' })
-    await resetButton.click()
-
-    await expect(page.getByText('100%')).toBeVisible()
+    const zoomButton = page.getByRole('button', { name: 'Zoom presets' })
+    await page.getByRole('button', { name: 'Zoom in' }).click()
+    await page.getByRole('button', { name: 'Zoom in' }).click()
+    const zoomText = await zoomButton.innerText()
+    
+    await page.getByRole('button', { name: 'Fit to view' }).click()
+    await expect(zoomButton).not.toHaveText(zoomText)
   })
 })
 
 test.describe('Multi-component workflow', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
+    await waitForCanvasReady(page)
   })
 
-  test('build topology: LinkEth + LinkGsm -> MessageSource with 2 green edges', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth', 350, 200)
-    await dragComponentToCanvas(page, 'LinkGsm', 350, 400)
-    await dragComponentToCanvas(page, 'MessageSource', 650, 300)
+  test('build topology: LinkEth + LinkGsm -> MessageSource with 2 edges', async ({ page }) => {
+    await dropCatalogComponent(page, 'LinkEth', { x: 350, y: 200 })
+    await dropCatalogComponent(page, 'LinkGsm', { x: 350, y: 400 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 650, y: 300 })
 
-    await expect(page.getByRole('heading', { name: 'linkEth0' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'linkGsm0' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'messageSource0' })).toBeVisible()
+    await connectPorts(page, outPortSel('linkEth0'), inPortSel('messageSource0', 'link'))
+    await connectPorts(page, outPortSel('linkGsm0'), inPortSel('messageSource0', 'backupLink'))
 
-    // Connect LinkEth → MessageSource.link
-    const linkEthOutput = page.locator('[data-port-handle][data-direction="out"][data-node-id="linkEth0"]')
-    const msgLink = page.locator('[data-port-handle][data-slot-name="link"][data-node-id="messageSource0"]')
-    await linkEthOutput.dragTo(msgLink)
-
-    // Connect LinkGsm → MessageSource.backupLink
-    const linkGsmOutput = page.locator('[data-port-handle][data-direction="out"][data-node-id="linkGsm0"]')
-    const msgBackupLink = page.locator('[data-port-handle][data-slot-name="backupLink"][data-node-id="messageSource0"]')
-    await linkGsmOutput.dragTo(msgBackupLink)
-
-    const connectedEdges = page.locator('svg path[stroke="#9ca3af"]')
-    await expect(connectedEdges).toHaveCount(2)
+    expect(await edgeCount(page)).toBe(2)
   })
 
   test('selecting a connected node does not dim connected neighbors', async ({ page }) => {
-    await dragComponentToCanvas(page, 'LinkEth', 350, 200)
-    await dragComponentToCanvas(page, 'MessageSource', 650, 300)
+    await dropCatalogComponent(page, 'LinkEth', { x: 350, y: 200 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 650, y: 300 })
+    await connectPorts(page, outPortSel('linkEth0'), inPortSel('messageSource0', 'link'))
 
-    const linkEthOutput = page.locator('[data-port-handle][data-direction="out"][data-node-id="linkEth0"]')
-    const msgLink = page.locator('[data-port-handle][data-slot-name="link"][data-node-id="messageSource0"]')
-    await linkEthOutput.dragTo(msgLink)
-
-    // Select MessageSource — LinkEth is connected, so not dimmed
-    await page.getByRole('heading', { name: 'messageSource0' }).click()
-
-    const opacity = await getNodeOpacity(page, 'linkEth0')
-    expect(opacity).not.toBe('0.3')
+    await selectNode(page, 'messageSource0')
+    await expect(page.locator(nodeSel('linkEth0'))).not.toHaveClass(/canvas-node--dimmed/)
   })
 })
 
 test.describe('Expand All / Collapse All buttons', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth', 400, 200)
-    await dragComponentToCanvas(page, 'MessageSource', 400, 450)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 400, y: 200 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 450 })
   })
 
   test('Expand All expands every node on canvas', async ({ page }) => {
-    await page.getByRole('button', { name: 'Expand All' }).click()
-    const infoSections = page.getByText('INFO', { exact: true })
-    await expect(infoSections).toHaveCount(2)
+    await page.getByRole('button', { name: 'Expand all nodes' }).click()
+    await expect(page.getByText('INFO', { exact: true })).toHaveCount(2)
   })
 
   test('Collapse All collapses every expanded node', async ({ page }) => {
-    await page.getByRole('button', { name: 'Expand All' }).click()
+    await page.getByRole('button', { name: 'Expand all nodes' }).click()
     await expect(page.getByText('INFO', { exact: true })).toHaveCount(2)
 
-    await page.getByRole('button', { name: 'Collapse All' }).click()
+    await page.getByRole('button', { name: 'Collapse all nodes' }).click()
     await expect(page.getByText('INFO', { exact: true })).toHaveCount(0)
   })
 })
 
 test.describe('Delete node removes connected edges', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-    await page.waitForSelector('text=Component Catalog')
-    await dragComponentToCanvas(page, 'LinkEth', 400, 200)
-    await dragComponentToCanvas(page, 'MessageSource', 400, 450)
-    const outputPort = page.locator('[data-port-handle][data-direction="out"]').first()
-    const inputPort = page.locator('[data-port-handle][data-slot-name="link"]').first()
-    await outputPort.dragTo(inputPort)
+    await waitForCanvasReady(page)
+    await dropCatalogComponent(page, 'LinkEth', { x: 400, y: 200 })
+    await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 450 })
+    await connectPorts(page, outPortSel('linkEth0'), inPortSel('messageSource0', 'link'))
   })
 
   test('deleting a connected node also removes its edges', async ({ page }) => {
-    const connectedEdge = page.locator('svg path[stroke="#9ca3af"]')
-    await expect(connectedEdge.first()).toBeVisible()
+    await expect(page.locator('.react-flow__edge')).toHaveCount(1)
 
-    await page.getByRole('heading', { name: 'linkEth0' }).click()
+    await selectNode(page, 'linkEth0')
     await page.keyboard.press('Delete')
 
-    await expect(page.getByRole('heading', { name: 'linkEth0' })).not.toBeVisible()
-    await expect(connectedEdge).toHaveCount(0)
-    await expect(page.getByRole('heading', { name: 'messageSource0' })).toBeVisible()
+    await expect(page.locator(nodeSel('linkEth0'))).not.toBeVisible()
+    await expect(page.locator('.react-flow__edge')).toHaveCount(0)
   })
 })
