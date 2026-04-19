@@ -1,11 +1,38 @@
-import { defineConfig } from 'vite'
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import react from '@vitejs/plugin-react'
+import { defineConfig, type PluginOption } from 'vite'
 import electron from 'vite-plugin-electron'
-import electronRenderer from 'vite-plugin-electron-renderer'
+
+const PRELOAD_SRC = resolve(__dirname, 'src/electron/preload.cjs')
+const PRELOAD_OUT_DIR = resolve(__dirname, 'dist-electron')
+const PRELOAD_OUT = resolve(PRELOAD_OUT_DIR, 'preload.cjs')
+
+function copyPreloadPlugin(): PluginOption {
+  const copy = () => {
+    if (!existsSync(PRELOAD_OUT_DIR)) mkdirSync(PRELOAD_OUT_DIR, { recursive: true })
+    copyFileSync(PRELOAD_SRC, PRELOAD_OUT)
+  }
+  return {
+    name: 'diff-forge-copy-preload',
+    buildStart() {
+      copy()
+      this.addWatchFile(PRELOAD_SRC)
+    },
+    handleHotUpdate({ file, server }) {
+      if (file === PRELOAD_SRC) {
+        copy()
+        server.ws.send({ type: 'full-reload' })
+      }
+    }
+  }
+}
 
 export default defineConfig({
   plugins: [
     react(),
+    copyPreloadPlugin(),
     electron([
       {
         entry: 'src/electron/main.ts',
@@ -17,27 +44,8 @@ export default defineConfig({
             }
           }
         }
-      },
-      {
-        entry: 'src/electron/preload.ts',
-        onstart(options) {
-          options.reload()
-        },
-        vite: {
-          build: {
-            outDir: 'dist-electron',
-            lib: {
-              entry: 'src/electron/preload.ts',
-              formats: ['cjs']
-            },
-            rollupOptions: {
-              external: ['electron']
-            }
-          }
-        }
       }
-    ]),
-    electronRenderer()
+    ])
   ],
   build: {
     outDir: 'dist',
