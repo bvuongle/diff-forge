@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
-import { renderWithTheme } from '@testing/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+
+import { renderWithTheme } from '@testing/test-utils'
 
 import { MainLayout } from './MainLayout'
 

@@ -1,34 +1,136 @@
-import DownloadIcon from '@mui/icons-material/Download'
-import { AppBar, Box, Button, Toolbar, Tooltip, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
+
+import FileUploadIcon from '@mui/icons-material/FileUpload'
+import FolderIcon from '@mui/icons-material/Folder'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+import KeyboardIcon from '@mui/icons-material/Keyboard'
+import {
+  AppBar,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Toolbar,
+  Tooltip,
+  Typography
+} from '@mui/material'
+
+import { reasonMessage } from '@domain/workspace/workspaceContext'
+import { useGraphStore } from '@state/graphStore'
+import { exportTopology, performWorkspaceSwitch, requestWorkspaceSwitch } from '@state/projectCommands'
+import { useUIStore } from '@state/uiStore'
+import { useWorkspaceStore } from '@state/workspaceStore'
+import { getWorkspaceStatus } from '@adapters/electronWorkspace'
+
+import { AboutDialog } from './AboutDialog'
+import { HotkeyReferenceDialog } from './HotkeyReferenceDialog'
+import { exportButtonSx, logoSx, toolbarSx, workspaceChipSx } from './topbarStyles'
 
 function Topbar() {
+  const dirty = useGraphStore((s) => s.dirty)
+  const workspace = useWorkspaceStore((s) => s.status)
+  const setWorkspaceStatus = useWorkspaceStore((s) => s.setStatus)
+  const switchConfirmOpen = useUIStore((s) => s.switchConfirmOpen)
+  const setSwitchConfirmOpen = useUIStore((s) => s.setSwitchConfirmOpen)
+
+  const [hotkeysOpen, setHotkeysOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
+
+  useEffect(() => {
+    if (workspace === null) getWorkspaceStatus().then(setWorkspaceStatus)
+  }, [workspace, setWorkspaceStatus])
+
+  const exportDisabled = !workspace?.valid
+  const tooltipTitle = (() => {
+    if (workspace === null) return 'Checking workspace...'
+    if (!workspace.valid) return reasonMessage(workspace.reason)
+    return `Write ${workspace.projectName}.forge.json to ${workspace.cwd}`
+  })()
+
+  const onConfirmDiscard = () => {
+    setSwitchConfirmOpen(false)
+    performWorkspaceSwitch()
+  }
+
+  const openDialog =
+    (setter: (open: boolean) => void) =>
+    (event: React.MouseEvent<HTMLElement>): void => {
+      event.currentTarget.blur()
+      setter(true)
+    }
+
   return (
     <AppBar position="static" elevation={0} color="transparent">
-      <Toolbar
-        sx={{
-          gap: 1,
-          minHeight: 48,
-          px: 2,
-          bgcolor: 'var(--toolbar-bg)',
-          borderBottom: '1px solid',
-          borderColor: 'var(--panel-border)'
-        }}
-      >
+      <Toolbar sx={toolbarSx}>
+        <Box component="img" src="/logo.svg" sx={logoSx} alt="Logo" />
         <Typography variant="h6" color="text.primary">
           Diff Forge
         </Typography>
+        {workspace?.valid && (
+          <Tooltip title={`${workspace.cwd} - click to switch workspace`}>
+            <Chip
+              icon={<FolderIcon fontSize="small" />}
+              label={workspace.projectName + (dirty ? ' *' : '')}
+              onClick={(event) => {
+                event.currentTarget.blur()
+                requestWorkspaceSwitch()
+              }}
+              size="small"
+              variant="outlined"
+              aria-label="Switch workspace"
+              sx={workspaceChipSx}
+            />
+          </Tooltip>
+        )}
         <Box flex={1} />
-        <Tooltip title="Save project topology">
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<DownloadIcon fontSize="small" />}
-            sx={{ bgcolor: 'var(--accent-blue)' }}
-          >
-            Save Project
-          </Button>
+        <Tooltip title="Keyboard & mouse reference">
+          <IconButton size="small" onClick={openDialog(setHotkeysOpen)} aria-label="Keyboard reference">
+            <KeyboardIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="About Diff Forge">
+          <IconButton size="small" onClick={openDialog(setAboutOpen)} aria-label="About">
+            <HelpOutlineIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={tooltipTitle}>
+          <span>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<FileUploadIcon fontSize="small" />}
+              onClick={() => exportTopology()}
+              disabled={exportDisabled}
+              aria-label="Export Topology"
+              sx={exportButtonSx}
+            >
+              Export Topology
+            </Button>
+          </span>
         </Tooltip>
       </Toolbar>
+      <Dialog open={switchConfirmOpen} onClose={() => setSwitchConfirmOpen(false)}>
+        <DialogTitle>Unsaved changes</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Switching workspace will discard unsaved changes. Export the current topology first, or continue and lose
+            them.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSwitchConfirmOpen(false)}>Cancel</Button>
+          <Button onClick={onConfirmDiscard} color="warning">
+            Discard &amp; switch
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <HotkeyReferenceDialog open={hotkeysOpen} onClose={() => setHotkeysOpen(false)} />
+      <AboutDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </AppBar>
   )
 }
