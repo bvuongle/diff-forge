@@ -1,5 +1,6 @@
-import { makeEdge, makeNode } from '@testing/fixtures'
 import { describe, expect, it, vi } from 'vitest'
+
+import { makeEdge, makeNode } from '@testing/fixtures'
 
 import { createFileGraphPersistence } from './FileGraphPersistence'
 

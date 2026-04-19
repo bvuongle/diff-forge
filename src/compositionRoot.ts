@@ -1,10 +1,10 @@
 import type { CatalogSource } from '@contracts/CatalogSource'
 import type { GraphPersistence } from '@contracts/GraphPersistence'
-import type { TopologyExporter } from '@contracts/TopologyExporter'
+import type { ProjectExporter } from '@contracts/ProjectExporter'
 
 type AppServices = {
   catalogSource: CatalogSource
-  topologyExporter: TopologyExporter
+  projectExporter: ProjectExporter
   graphPersistence: GraphPersistence
 }
 
