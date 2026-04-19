@@ -18,8 +18,6 @@ test.describe('Ctrl+A selects all nodes', () => {
     await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 450 })
   })
 
-  // SKIPPED: Hotkeys are fragile in headless Chromium without source-side hacks.
-  // The logic is verified via unit tests.
   test.skip('Ctrl+A selects all nodes on canvas', async ({ page }) => {
     await page.keyboard.press('Escape')
     await page.locator('body').click()
@@ -41,20 +39,16 @@ test.describe('Space toggles canvas mode', () => {
   })
 
   test('Space key toggles from select to pan mode', async ({ page }) => {
-    // Default mode is select
     const selectBtn = page.getByRole('button', { name: 'Select mode' })
     const panBtn = page.getByRole('button', { name: 'Pan mode' })
-    
+
     await expect(selectBtn).toHaveAttribute('aria-pressed', 'true')
 
-    // Click body to ensure focus
     await page.locator('body').click()
 
-    // Press Space to toggle to pan
     await page.keyboard.down('Space')
     await expect(panBtn).toHaveAttribute('aria-pressed', 'true')
 
-    // Release Space to restore select
     await page.keyboard.up('Space')
     await expect(selectBtn).toHaveAttribute('aria-pressed', 'true')
   })
@@ -115,51 +109,19 @@ test.describe('Max connections enforced', () => {
     await dropCatalogComponent(page, 'LinkGsm', { x: 300, y: 400 })
     await dropCatalogComponent(page, 'MessageSource', { x: 650, y: 300 })
 
-    // Connect LinkEth -> MessageSource.link (max 1)
     await connectPorts(page, outPortSel('linkEth0'), inPortSel('messageSource0', 'link'))
     await expect.poll(() => edgeCount(page)).toBe(1)
 
-    // Try connecting LinkGsm -> same slot (should fail, max 1)
     await connectPorts(page, outPortSel('linkGsm0'), inPortSel('messageSource0', 'link'))
 
-    // Should still only have 1 edge to the 'link' slot
     await expect(page.locator('.react-flow__edge')).toHaveCount(1)
   })
 })
 
 test.describe('Canvas app title', () => {
   test('renders Diff Forge title in topbar', async ({ page }) => {
-    await page.goto('/')
-    await expect(page.getByText('Diff Forge')).toBeVisible()
+    await waitForCanvasReady(page)
+    await expect(page.getByRole('banner').getByText('Diff Forge', { exact: true })).toBeVisible()
   })
 })
 
-// DEFERRED: Keyboard zoom hotkeys (Ctrl+=, Ctrl+-, Ctrl+0)
-// The app does not currently bind these specifically in useCanvasHotkeys.
-// React Flow's native keyboard handling might interfere or not be configured.
-/*
-test.describe('Zoom hotkeys (Deferred)', () => {
-  test.beforeEach(async ({ page }) => { await waitForCanvasReady(page) })
-
-  test('Ctrl+= zooms in', async ({ page }) => {
-    const zoomButton = page.getByRole('button', { name: 'Zoom presets' })
-    await page.locator('.react-flow__pane').click()
-    await page.keyboard.press('Control+=')
-    await expect(zoomButton).not.toContainText('100%')
-  })
-
-  test('Ctrl+- zooms out', async ({ page }) => {
-    const zoomButton = page.getByRole('button', { name: 'Zoom presets' })
-    await page.locator('.react-flow__pane').click()
-    await page.keyboard.press('Control+-')
-    await expect(zoomButton).not.toContainText('100%')
-  })
-
-  test('Ctrl+0 resets zoom', async ({ page }) => {
-    const zoomButton = page.getByRole('button', { name: 'Zoom presets' })
-    await page.getByRole('button', { name: 'Zoom in' }).click()
-    await page.keyboard.press('Control+0')
-    await expect(zoomButton).toContainText('100%')
-  })
-})
-*/

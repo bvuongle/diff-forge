@@ -28,12 +28,10 @@ test.describe('Catalog panel', () => {
     await searchInput.fill('Link')
     await expect(page.getByText('LinkEth')).toBeVisible()
     await expect(page.getByText('LinkGsm')).toBeVisible()
-    // MessageSource should be filtered out
     await expect(page.locator('text=MessageSource')).not.toBeVisible()
   })
 
   test('shows component count', async ({ page }) => {
-    // Footer shows total count
     await expect(page.getByText('Components', { exact: true })).toBeVisible()
   })
 })
@@ -95,15 +93,12 @@ test.describe('Node display', () => {
 
   test('node with input ports shows port circles', async ({ page }) => {
     await dropCatalogComponent(page, 'MessageSource')
-    // MessageSource has 'link' and 'backupLink' input ports
     const portHandles = page.locator(nodeSel('messageSource0')).locator('.react-flow__handle')
-    // Should have 2 input ports + 1 output (OUT_HANDLE_ID)
     await expect(portHandles).toHaveCount(3)
   })
 
   test('node with output shows output port', async ({ page }) => {
     await dropCatalogComponent(page, 'LinkEth')
-    // LinkEth implements ILink, so it has an output port on the right
     await expect(page.locator(outPortSel('linkEth0'))).toHaveCount(1)
   })
 })

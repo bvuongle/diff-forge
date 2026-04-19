@@ -5,6 +5,8 @@ exports[`Topology export snapshot > matches JSON output format 1`] = `
   {
     "type": "LinkEth",
     "id": "linkEth0",
+    "version": "1.0.0",
+    "source": "diff_broker",
     "dependencies": [],
     "config": {}
   }
@@ -17,7 +19,9 @@ exports[`Topology export snapshot > matches snapshot for a typical 3-node graph 
     "config": {},
     "dependencies": [],
     "id": "linkEth0",
+    "source": "diff_broker",
     "type": "LinkEth",
+    "version": "1.0.0",
   },
   {
     "config": {
@@ -25,7 +29,9 @@ exports[`Topology export snapshot > matches snapshot for a typical 3-node graph 
     },
     "dependencies": [],
     "id": "linkGsm0",
+    "source": "diff_broker",
     "type": "LinkGsm",
+    "version": "1.0.0",
   },
   {
     "config": {
@@ -37,7 +43,9 @@ exports[`Topology export snapshot > matches snapshot for a typical 3-node graph 
       "linkGsm0",
     ],
     "id": "messageSource0",
+    "source": "diff_broker",
     "type": "MessageSource",
+    "version": "1.0.0",
   },
 ]
 `;
@@ -50,7 +58,9 @@ exports[`Topology export snapshot > matches snapshot for isolated nodes 1`] = `
     },
     "dependencies": [],
     "id": "timer0",
+    "source": "diff_broker",
     "type": "Timer",
+    "version": "1.0.0",
   },
   {
     "config": {
@@ -58,7 +68,9 @@ exports[`Topology export snapshot > matches snapshot for isolated nodes 1`] = `
     },
     "dependencies": [],
     "id": "sensor0",
+    "source": "diff_broker",
     "type": "Sensor",
+    "version": "1.0.0",
   },
 ]
 `;

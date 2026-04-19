@@ -85,7 +85,6 @@ test.describe('Edge selection', () => {
 
   test('clicking an edge selects it', async ({ page }) => {
     const edge = page.locator('.react-flow__edge').first()
-    // Target the hit area for more reliable clicking
     await edge.locator('.canvas-edge__hit-area').click({ force: true })
     await expect(edge).toHaveClass(/selected/)
   })
@@ -130,7 +129,6 @@ test.describe('Invalid connection rejected', () => {
   })
 
   test('connecting incompatible interfaces does not create edge', async ({ page }) => {
-    // Sensor implements IDataSource, MessageSource requires ILink
     await connectPorts(page, outPortSel('sensor0'), inPortSel('messageSource0', 'link'))
     expect(await edgeCount(page)).toBe(0)
   })
@@ -174,11 +172,9 @@ test.describe('Expanded node — config editing', () => {
     await countField.fill('42')
     await countField.blur()
 
-    // Collapse
     await toggleNode(page, 'messageSource0')
     await expect(page.getByText('CONFIGURATION')).not.toBeVisible()
-    
-    // Re-expand
+
     await toggleNode(page, 'messageSource0')
     await expect(page.getByLabel('count')).toHaveValue('42')
   })
