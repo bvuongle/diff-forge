@@ -1,4 +1,3 @@
-import { makeEdge, makeNode } from '@testing/fixtures'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -12,7 +11,8 @@ import {
   updateNodeConfig,
   validateEdge
 } from '@domain/graph/GraphOperations'
-import type { Graph, Slot } from '@domain/graph/GraphTypes'
+import type { Graph, GraphEdge, Slot } from '@domain/graph/GraphTypes'
+import { makeEdge, makeNode } from '@testing/fixtures'
 
 function emptyGraph(): Graph {
   return { nodes: [], edges: [] }
@@ -331,6 +331,23 @@ describe('isEdgeInvalid', () => {
       makeNode('b', { slots: [{ name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }] })
     ]
     const edge = makeEdge('e1', 'a', 'b')
+    expect(isEdgeInvalid(edge, nodes)).toBe(true)
+  })
+
+  it('returns true when source and target slot interfaces do not match', () => {
+    const nodes = [
+      makeNode('a', {
+        slots: [{ name: 'IProcessable', interface: 'IProcessable', direction: 'out', maxConnections: Infinity }]
+      }),
+      makeNode('b', { slots: [{ name: 'routable', interface: 'IRoutable', direction: 'in', maxConnections: 1 }] })
+    ]
+    const edge: GraphEdge = {
+      id: 'e1',
+      sourceNodeId: 'a',
+      sourceSlot: 'IProcessable',
+      targetNodeId: 'b',
+      targetSlot: 'routable'
+    }
     expect(isEdgeInvalid(edge, nodes)).toBe(true)
   })
 })
