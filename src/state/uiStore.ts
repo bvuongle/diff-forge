@@ -15,6 +15,8 @@ type UIStore = {
   toggleSnapToGrid: () => void
   animateEdges: boolean
   toggleAnimateEdges: () => void
+  switchConfirmOpen: boolean
+  setSwitchConfirmOpen: (open: boolean) => void
 }
 
 const useUIStore = create<UIStore>((set) => ({
@@ -35,7 +37,9 @@ const useUIStore = create<UIStore>((set) => ({
   snapToGrid: false,
   toggleSnapToGrid: () => set((s) => ({ snapToGrid: !s.snapToGrid })),
   animateEdges: false,
-  toggleAnimateEdges: () => set((s) => ({ animateEdges: !s.animateEdges }))
+  toggleAnimateEdges: () => set((s) => ({ animateEdges: !s.animateEdges })),
+  switchConfirmOpen: false,
+  setSwitchConfirmOpen: (open) => set({ switchConfirmOpen: open })
 }))
 
 export { useUIStore }

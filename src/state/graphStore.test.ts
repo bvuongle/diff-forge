@@ -1,12 +1,13 @@
-import { makeEdge, makeNode } from '@testing/fixtures'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useGraphStore } from '@state/graphStore'
+import { makeEdge, makeNode } from '@testing/fixtures'
 
 describe('graphStore', () => {
   beforeEach(() => {
     useGraphStore.setState({
       graph: { nodes: [], edges: [] },
+      dirty: false,
       selectedNodeIds: new Set(),
       selectedEdgeIds: new Set()
     })
@@ -228,6 +229,64 @@ describe('graphStore', () => {
       const edge = useGraphStore.getState().graph.edges[0]
       expect(edge.sourceNodeId).toBe('renamed')
       expect(edge.targetNodeId).toBe('n2')
+    })
+  })
+
+  describe('dirty tracking', () => {
+    it('starts clean', () => {
+      expect(useGraphStore.getState().dirty).toBe(false)
+    })
+
+    it('addNode marks dirty', () => {
+      useGraphStore.getState().addNode(makeNode('n1'))
+      expect(useGraphStore.getState().dirty).toBe(true)
+    })
+
+    it('addEdge, moveNode, updateNodeConfig, removeNode, removeEdge, renameNode, removeSelected all mark dirty', () => {
+      const s = useGraphStore.getState()
+      s.addNode(makeNode('n1'))
+      s.addNode(makeNode('n2'))
+      s.markClean()
+      s.addEdge(makeEdge('e1', 'n1', 'n2'))
+      expect(useGraphStore.getState().dirty).toBe(true)
+      s.markClean()
+      s.moveNode('n1', { x: 10, y: 10 })
+      expect(useGraphStore.getState().dirty).toBe(true)
+      s.markClean()
+      s.updateNodeConfig('n1', { a: 1 })
+      expect(useGraphStore.getState().dirty).toBe(true)
+      s.markClean()
+      s.renameNode('n1', 'renamed')
+      expect(useGraphStore.getState().dirty).toBe(true)
+      s.markClean()
+      s.removeEdge('e1')
+      expect(useGraphStore.getState().dirty).toBe(true)
+      s.markClean()
+      s.selectNode('renamed')
+      expect(useGraphStore.getState().dirty).toBe(false)
+      s.removeSelected()
+      expect(useGraphStore.getState().dirty).toBe(true)
+    })
+
+    it('selection changes do not mark dirty', () => {
+      useGraphStore.getState().addNode(makeNode('n1'))
+      useGraphStore.getState().markClean()
+      useGraphStore.getState().selectNode('n1')
+      useGraphStore.getState().clearSelection()
+      expect(useGraphStore.getState().dirty).toBe(false)
+    })
+
+    it('setGraph resets dirty to false', () => {
+      useGraphStore.getState().addNode(makeNode('n1'))
+      expect(useGraphStore.getState().dirty).toBe(true)
+      useGraphStore.getState().setGraph({ nodes: [], edges: [] })
+      expect(useGraphStore.getState().dirty).toBe(false)
+    })
+
+    it('markClean clears dirty', () => {
+      useGraphStore.getState().addNode(makeNode('n1'))
+      useGraphStore.getState().markClean()
+      expect(useGraphStore.getState().dirty).toBe(false)
     })
   })
 })

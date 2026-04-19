@@ -14,8 +14,11 @@ import { Graph, GraphEdge, GraphNode, Position } from '@domain/graph/GraphTypes'
 
 type GraphStore = {
   graph: Graph
+  dirty: boolean
   selectedNodeIds: Set<string>
   selectedEdgeIds: Set<string>
+  setGraph: (graph: Graph) => void
+  markClean: () => void
   addNode: (node: GraphNode) => void
   removeNode: (nodeId: string) => void
   addEdge: (edge: GraphEdge) => void
@@ -33,12 +36,24 @@ type GraphStore = {
 const useGraphStore = create<GraphStore>()(
   subscribeWithSelector((set) => ({
     graph: { nodes: [], edges: [] },
+    dirty: false,
     selectedNodeIds: new Set(),
     selectedEdgeIds: new Set(),
 
+    setGraph: (graph) =>
+      set({
+        graph,
+        dirty: false,
+        selectedNodeIds: new Set(),
+        selectedEdgeIds: new Set()
+      }),
+
+    markClean: () => set({ dirty: false }),
+
     addNode: (node) =>
       set((state) => ({
-        graph: addNode(state.graph, node)
+        graph: addNode(state.graph, node),
+        dirty: true
       })),
 
     removeNode: (nodeId) =>
@@ -47,13 +62,15 @@ const useGraphStore = create<GraphStore>()(
         next.delete(nodeId)
         return {
           graph: removeNode(state.graph, nodeId),
-          selectedNodeIds: next
+          selectedNodeIds: next,
+          dirty: true
         }
       }),
 
     addEdge: (edge) =>
       set((state) => ({
-        graph: addEdge(state.graph, edge)
+        graph: addEdge(state.graph, edge),
+        dirty: true
       })),
 
     removeEdge: (edgeId) =>
@@ -62,18 +79,21 @@ const useGraphStore = create<GraphStore>()(
         nextEdgeIds.delete(edgeId)
         return {
           graph: removeEdge(state.graph, edgeId),
-          selectedEdgeIds: nextEdgeIds
+          selectedEdgeIds: nextEdgeIds,
+          dirty: true
         }
       }),
 
     moveNode: (nodeId, position) =>
       set((state) => ({
-        graph: moveNode(state.graph, nodeId, position)
+        graph: moveNode(state.graph, nodeId, position),
+        dirty: true
       })),
 
     updateNodeConfig: (nodeId, config) =>
       set((state) => ({
-        graph: updateNodeConfig(state.graph, nodeId, config)
+        graph: updateNodeConfig(state.graph, nodeId, config),
+        dirty: true
       })),
 
     renameNode: (oldId, newId) =>
@@ -85,7 +105,8 @@ const useGraphStore = create<GraphStore>()(
         }
         return {
           graph: renameNode(state.graph, oldId, newId),
-          selectedNodeIds: next
+          selectedNodeIds: next,
+          dirty: true
         }
       }),
 
@@ -118,7 +139,7 @@ const useGraphStore = create<GraphStore>()(
         for (const edgeId of state.selectedEdgeIds) {
           g = removeEdge(g, edgeId)
         }
-        return { graph: g, selectedNodeIds: new Set(), selectedEdgeIds: new Set() }
+        return { graph: g, selectedNodeIds: new Set(), selectedEdgeIds: new Set(), dirty: true }
       })
   }))
 )
