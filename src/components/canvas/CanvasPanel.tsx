@@ -176,6 +176,11 @@ function CanvasPanelInner() {
           justifyContent="center"
         >
           <Box textAlign="center">
+            <Box
+              component="img"
+              src="/logo.svg"
+              sx={{ height: 96, width: 96, mb: 2, opacity: 0.1, filter: 'grayscale(1)' }}
+            />
             <Typography variant="h6" color="text.secondary" gutterBottom>
               Canvas
             </Typography>

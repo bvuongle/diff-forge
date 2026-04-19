@@ -1,12 +1,12 @@
 import { screen } from '@testing-library/react'
-import { makeNode } from '@testing/fixtures'
-import { renderWithTheme } from '@testing/test-utils'
 import { Position, ReactFlowProvider, type EdgeProps } from '@xyflow/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
 import { useGraphStore } from '@state/graphStore'
 import type { CanvasEdge as CanvasEdgeType } from '@canvas/canvasTypes'
+import { makeNode } from '@testing/fixtures'
+import { renderWithTheme } from '@testing/test-utils'
 
 import { CanvasEdge } from './CanvasEdge'
 
@@ -82,7 +82,6 @@ describe('CanvasEdge', () => {
   })
 
   it('renders with error color when invalid', () => {
-    // Make target node missing to trigger invalid state
     useGraphStore.setState({ graph: { nodes: [nodes[0]], edges: [edge] } })
 
     renderWithTheme(
@@ -97,7 +96,6 @@ describe('CanvasEdge', () => {
   })
 
   it('shows source label only when source node has multiple outputs', () => {
-    // Multiple outputs case
     const multiOutNode = makeNode('n1', {
       slots: [
         { name: 'out1', direction: 'out', interface: 'I1', maxConnections: Infinity },
@@ -115,7 +113,6 @@ describe('CanvasEdge', () => {
     )
     expect(screen.getByText('out1')).toBeInTheDocument()
 
-    // Single output case
     useGraphStore.setState({ graph: { nodes, edges: [edge] } })
     rerender(
       <ReactFlowProvider>
@@ -128,7 +125,6 @@ describe('CanvasEdge', () => {
   })
 
   it('applies dimmed opacity when unrelated elements are selected', () => {
-    // Select an unrelated node
     useGraphStore.setState({
       graph: { nodes: [...nodes, makeNode('n3')], edges: [edge] },
       selectedNodeIds: new Set(['n3'])

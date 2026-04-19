@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
-import { makeNode } from '@testing/fixtures'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
+import { makeNode } from '@testing/fixtures'
 
 import { useCanvasHotkeys } from './useCanvasHotkeys'
 

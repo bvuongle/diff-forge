@@ -1,11 +1,11 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { makeNode } from '@testing/fixtures'
-import { renderWithTheme } from '@testing/test-utils'
 import { ReactFlowProvider } from '@xyflow/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
+import { makeNode } from '@testing/fixtures'
+import { renderWithTheme } from '@testing/test-utils'
 
 import { CanvasToolkit } from './CanvasToolkit'
 

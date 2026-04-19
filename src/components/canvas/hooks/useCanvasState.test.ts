@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { makeEdge, makeNode } from '@testing/fixtures'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useGraphStore } from '@state/graphStore'
+import { makeEdge, makeNode } from '@testing/fixtures'
 
 import { useCanvasState } from './useCanvasState'
 
@@ -57,7 +57,6 @@ describe('useCanvasState', () => {
     expect(result.current.canvasNodes[0].selected).toBe(true)
 
     act(() => {
-      // Simulate store update that doesn't change selection
       useGraphStore.getState().addNode(makeNode('n2'))
     })
 

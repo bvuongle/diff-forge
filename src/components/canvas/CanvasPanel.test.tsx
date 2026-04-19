@@ -1,14 +1,12 @@
 import { render, screen } from '@testing-library/react'
-import { makeEdge, makeNode } from '@testing/fixtures'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
+import { makeEdge, makeNode } from '@testing/fixtures'
 
 import { CanvasPanel } from './CanvasPanel'
 
-// Mock @xyflow/react — CanvasPanel renders ReactFlow which needs a full DOM canvas.
-// We mock it to expose the key callbacks for testing.
 let capturedProps: Record<string, unknown> = {}
 
 vi.mock('@xyflow/react', () => ({
@@ -48,7 +46,6 @@ vi.mock('@xyflow/react', () => ({
   getViewportForBounds: () => ({ x: 0, y: 0, zoom: 1 })
 }))
 
-// Mock html-to-image (used by CanvasToolkit)
 vi.mock('html-to-image', () => ({
   toPng: vi.fn()
 }))
@@ -109,7 +106,6 @@ describe('CanvasPanel', () => {
 
     useUIStore.setState({ snapToGrid: true })
     const { unmount } = render(<CanvasPanel />)
-    // Need to get the latest captured props from the re-render
     expect(capturedProps.snapToGrid).toBe(true)
     unmount()
   })

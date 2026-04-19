@@ -2,7 +2,8 @@ import { memo, useCallback, useMemo } from 'react'
 
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Box, Chip, Divider, IconButton, Typography } from '@mui/material'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import { Box, Chip, Collapse, Divider, IconButton, Tooltip, Typography } from '@mui/material'
 import { useConnection, type NodeProps } from '@xyflow/react'
 
 import { useCatalogStore } from '@state/catalogStore'
@@ -33,9 +34,13 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
   const catalogComponent = useMemo(
     () =>
-      catalog?.components.find((c) => c.type === graphNode.componentType && c.version === graphNode.version) ?? null,
-    [catalog, graphNode.componentType, graphNode.version]
+      catalog?.components.find(
+        (c) => c.type === graphNode.componentType && c.version === graphNode.version && c.source === graphNode.source
+      ) ?? null,
+    [catalog, graphNode.componentType, graphNode.version, graphNode.source]
   )
+
+  const isUnresolved = catalog !== null && catalogComponent === null
 
   const connectionCounts = useMemo(() => getConnectionCounts(id, edges), [id, edges])
   const edgeSourceMap = useMemo(() => getEdgeSourceMap(id, { nodes: graphNodes, edges }), [id, graphNodes, edges])
@@ -62,7 +67,12 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
   const handleToggle = useCallback(() => toggleNodeExpanded(id), [id, toggleNodeExpanded])
 
-  const containerClass = ['canvas-node', selected && 'canvas-node--selected', isDimmed && 'canvas-node--dimmed']
+  const containerClass = [
+    'canvas-node',
+    selected && 'canvas-node--selected',
+    isDimmed && 'canvas-node--dimmed',
+    isUnresolved && 'canvas-node--unresolved'
+  ]
     .filter(Boolean)
     .join(' ')
 
@@ -72,6 +82,17 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
       <Box className="canvas-node__header">
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+            {isUnresolved && (
+              <Tooltip
+                title={`No catalog entry for ${graphNode.componentType}@${graphNode.version} (${graphNode.source || 'unknown source'})`}
+              >
+                <WarningAmberIcon
+                  fontSize="small"
+                  aria-label="Unresolved component"
+                  sx={{ color: 'var(--accent-amber, #f59e0b)', fontSize: '1rem' }}
+                />
+              </Tooltip>
+            )}
             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }} noWrap>
               {graphNode.componentType}
             </Typography>
@@ -86,52 +107,52 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
         </IconButton>
       </Box>
 
-      {/* Expanded content */}
-      {isExpanded && catalogComponent && (
-        <Box className="canvas-node__expanded nodrag nowheel nopan" onClick={(e) => e.stopPropagation()}>
-          <NodeInfoSection node={graphNode} graphNodes={graphNodes} renameNode={renameNode} />
+      <Collapse in={isExpanded && !!catalogComponent} timeout={220} mountOnEnter unmountOnExit>
+        {catalogComponent ? (
+          <Box className="canvas-node__expanded nodrag nowheel nopan" onClick={(e) => e.stopPropagation()}>
+            <NodeInfoSection node={graphNode} graphNodes={graphNodes} renameNode={renameNode} />
 
-          {catalogComponent.implements.length > 0 && (
-            <Box display="flex" gap={0.5} flexWrap="wrap" mt={1}>
-              {catalogComponent.implements.map((iface) => (
-                <Chip
-                  key={iface}
-                  label={iface}
-                  size="small"
-                  variant="outlined"
-                  sx={{ height: 22, fontSize: '0.7rem' }}
-                />
-              ))}
+            {catalogComponent.implements.length > 0 && (
+              <Box display="flex" gap={0.5} flexWrap="wrap" mt={1}>
+                {catalogComponent.implements.map((iface) => (
+                  <Chip
+                    key={iface}
+                    label={iface}
+                    size="small"
+                    variant="outlined"
+                    sx={{ height: 22, fontSize: '0.7rem' }}
+                  />
+                ))}
+              </Box>
+            )}
+
+            <Divider sx={{ my: 1.5 }} />
+
+            <Typography variant="caption" color="text.secondary" fontWeight={600} className="section-heading">
+              REQUIREMENTS
+            </Typography>
+            <Box mt={0.5}>
+              <NodeRequirementsSection
+                nodeId={id}
+                inputSlots={inputSlots}
+                outputSlots={outputSlots}
+                connectionCounts={connectionCounts}
+                edgeSourceMap={edgeSourceMap}
+                dragInfo={dragInfo}
+              />
             </Box>
-          )}
 
-          <Divider sx={{ my: 1.5 }} />
-
-          <Typography variant="caption" color="text.secondary" fontWeight={600} className="section-heading">
-            REQUIREMENTS
-          </Typography>
-          <Box mt={0.5}>
-            <NodeRequirementsSection
-              nodeId={id}
-              inputSlots={inputSlots}
-              outputSlots={outputSlots}
-              connectionCounts={connectionCounts}
-              edgeSourceMap={edgeSourceMap}
-              dragInfo={dragInfo}
+            <Divider sx={{ my: 1.5 }} />
+            <NodeConfigurationSection
+              node={graphNode}
+              catalogComponent={catalogComponent}
+              updateNodeConfig={updateNodeConfig}
             />
           </Box>
+        ) : null}
+      </Collapse>
 
-          <Divider sx={{ my: 1.5 }} />
-          <NodeConfigurationSection
-            node={graphNode}
-            catalogComponent={catalogComponent}
-            updateNodeConfig={updateNodeConfig}
-          />
-        </Box>
-      )}
-
-      {/* Compact port rows */}
-      {!isExpanded && (
+      <Collapse in={!isExpanded} timeout={220} mountOnEnter unmountOnExit>
         <Box className="canvas-node__compact">
           <NodeRequirementsSection
             nodeId={id}
@@ -142,7 +163,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
             dragInfo={dragInfo}
           />
         </Box>
-      )}
+      </Collapse>
     </Box>
   )
 }

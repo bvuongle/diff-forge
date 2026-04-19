@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react'
-import { renderWithTheme } from '@testing/test-utils'
 import { ReactFlowProvider } from '@xyflow/react'
 import { describe, expect, it, vi } from 'vitest'
+
+import { renderWithTheme } from '@testing/test-utils'
 
 import { NodeRequirementsSection } from './NodeRequirementsSection'
 
@@ -51,9 +52,7 @@ describe('NodeRequirementsSection', () => {
       </ReactFlowProvider>
     )
 
-    // in2 has 3 connections out of 8
     expect(screen.getByText('3/8')).toBeInTheDocument()
-    // in1 has max 1, so no count indicator
     expect(screen.queryByText('1/1')).toBeNull()
   })
 

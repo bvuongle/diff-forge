@@ -1,3 +1,5 @@
+import { KeyboardEvent, memo, useEffect, useRef, useState } from 'react'
+
 import { FormControlLabel, Switch, TextField } from '@mui/material'
 
 import { ConfigValueSchema } from '@domain/catalog/CatalogTypes'
@@ -24,7 +26,27 @@ const NUMERIC_BOUNDS: Record<string, { min?: number; max?: number; step?: string
   double: { step: 'any' }
 }
 
-function ConfigFieldRenderer({ fieldName, schema, value, onChange }: ConfigFieldRendererProps) {
+function onEnterKey(e: KeyboardEvent<Element>, commit: () => void) {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    commit()
+  }
+}
+
+function useLocalValue(value: unknown, fallback: unknown) {
+  const initial = String(value ?? fallback ?? '')
+  const [local, setLocal] = useState(initial)
+  const focusedRef = useRef(false)
+  useEffect(() => {
+    if (focusedRef.current) return
+    const next = String(value ?? fallback ?? '')
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocal((prev) => (prev === next ? prev : next))
+  }, [value, fallback])
+  return { local, setLocal, focusedRef }
+}
+
+function ConfigFieldRendererImpl({ fieldName, schema, value, onChange }: ConfigFieldRendererProps) {
   if (schema.type === 'bool') {
     return (
       <FormControlLabel
@@ -43,35 +65,74 @@ function ConfigFieldRenderer({ fieldName, schema, value, onChange }: ConfigField
 
   const bounds = NUMERIC_BOUNDS[schema.type]
   if (bounds) {
-    const min = schema.min ?? bounds.min
-    const max = schema.max ?? bounds.max
-    const step = bounds.step ?? '1'
-    return (
-      <TextField
-        label={fieldName}
-        type="number"
-        size="small"
-        fullWidth
-        value={value ?? schema.default ?? ''}
-        slotProps={{ htmlInput: { min, max, step } }}
-        onChange={(e) => {
-          const num = Number(e.target.value)
-          if (!Number.isNaN(num)) onChange(fieldName, num)
-        }}
-      />
-    )
+    return <NumericField fieldName={fieldName} schema={schema} value={value} bounds={bounds} onChange={onChange} />
   }
+
+  return <TextInputField fieldName={fieldName} schema={schema} value={value} onChange={onChange} />
+}
+
+type NumericFieldProps = ConfigFieldRendererProps & {
+  bounds: { min?: number; max?: number; step?: string }
+}
+
+function NumericField({ fieldName, schema, value, bounds, onChange }: NumericFieldProps) {
+  const { local, setLocal, focusedRef } = useLocalValue(value, schema.default)
+  const min = schema.min ?? bounds.min
+  const max = schema.max ?? bounds.max
+  const step = bounds.step ?? '1'
+
+  const commit = () => {
+    if (local === '') return
+    const num = Number(local)
+    if (!Number.isNaN(num)) onChange(fieldName, num)
+  }
+
+  return (
+    <TextField
+      label={fieldName}
+      type="number"
+      size="small"
+      fullWidth
+      value={local}
+      slotProps={{ htmlInput: { min, max, step } }}
+      onFocus={() => {
+        focusedRef.current = true
+      }}
+      onBlur={() => {
+        focusedRef.current = false
+        commit()
+      }}
+      onKeyDown={(e) => onEnterKey(e, commit)}
+      onChange={(e) => setLocal(e.target.value)}
+    />
+  )
+}
+
+function TextInputField({ fieldName, schema, value, onChange }: ConfigFieldRendererProps) {
+  const { local, setLocal, focusedRef } = useLocalValue(value, schema.default)
+  const maxLength = schema.max != null ? schema.max : undefined
+  const commit = () => onChange(fieldName, local)
 
   return (
     <TextField
       label={fieldName}
       size="small"
       fullWidth
-      value={String(value ?? schema.default ?? '')}
-      slotProps={{ htmlInput: schema.max != null ? { maxLength: schema.max } : {} }}
-      onChange={(e) => onChange(fieldName, e.target.value)}
+      value={local}
+      slotProps={{ htmlInput: maxLength != null ? { maxLength } : {} }}
+      onFocus={() => {
+        focusedRef.current = true
+      }}
+      onBlur={() => {
+        focusedRef.current = false
+        commit()
+      }}
+      onKeyDown={(e) => onEnterKey(e, commit)}
+      onChange={(e) => setLocal(e.target.value)}
     />
   )
 }
+
+const ConfigFieldRenderer = memo(ConfigFieldRendererImpl)
 
 export { ConfigFieldRenderer }

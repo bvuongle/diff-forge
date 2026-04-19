@@ -17,7 +17,7 @@ export function useCanvasHotkeys() {
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         removeSelected()
-      } else if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey)) {
+      } else if ((e.code === 'KeyA' || e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         const allIds = useGraphStore.getState().graph.nodes.map((n) => n.id)
         selectElements(allIds, [])

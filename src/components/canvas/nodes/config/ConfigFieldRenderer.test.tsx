@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { renderWithTheme } from '@testing/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+
+import { renderWithTheme } from '@testing/test-utils'
 
 import { ConfigFieldRenderer } from './ConfigFieldRenderer'
 
@@ -15,13 +16,16 @@ describe('ConfigFieldRenderer', () => {
       expect(input.value).toBe('hello')
     })
 
-    it('fires onChange with string value', () => {
+    it('fires onChange with string value on blur', () => {
       const onChange = vi.fn()
       renderWithTheme(
         <ConfigFieldRenderer fieldName="content" schema={{ type: 'string' }} value="" onChange={onChange} />
       )
       const input = screen.getByLabelText('content')
+      fireEvent.focus(input)
       fireEvent.change(input, { target: { value: 'world' } })
+      expect(onChange).not.toHaveBeenCalled()
+      fireEvent.blur(input)
       expect(onChange).toHaveBeenCalledWith('content', 'world')
     })
 
@@ -89,20 +93,35 @@ describe('ConfigFieldRenderer', () => {
       expect(input.value).toBe('5')
     })
 
-    it('fires onChange with numeric value', () => {
+    it('fires onChange with numeric value on blur', () => {
       const onChange = vi.fn()
       renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
+      fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '10' } })
+      expect(onChange).not.toHaveBeenCalled()
+      fireEvent.blur(input)
       expect(onChange).toHaveBeenCalledWith('count', 10)
     })
 
-    it('treats non-numeric input as 0 (jsdom coerces type=number empty to 0)', () => {
+    it('commits on Enter key', () => {
+      const onChange = vi.fn()
+      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
+      const input = screen.getByLabelText('count') as HTMLInputElement
+      fireEvent.focus(input)
+      fireEvent.change(input, { target: { value: '42' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(onChange).toHaveBeenCalledWith('count', 42)
+    })
+
+    it('skips commit for non-numeric draft (jsdom coerces type=number empty to 0)', () => {
       const onChange = vi.fn()
       renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
+      fireEvent.focus(input)
       fireEvent.change(input, { target: { value: 'abc' } })
-      expect(onChange).toHaveBeenCalledWith('count', 0)
+      fireEvent.blur(input)
+      expect(onChange).not.toHaveBeenCalled()
     })
   })
 
