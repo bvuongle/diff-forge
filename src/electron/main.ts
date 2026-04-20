@@ -46,10 +46,6 @@ function createWindow() {
   })
 }
 
-ipcMain.handle('catalog:load', async () => {
-  return { schema: 'diff.catalog.v0', components: [] }
-})
-
 ipcMain.handle('workspace:status', async () => {
   return checkWorkspace(process.cwd(), homedir())
 })

@@ -14,9 +14,6 @@ type OpenWorkspaceOutcome =
   | { status: 'error'; message: string }
 
 type ElectronAPI = {
-  catalog: {
-    load: () => Promise<unknown>
-  }
   workspace: {
     status: () => Promise<WorkspaceStatus>
     openAtPath: (payload: { path: string }) => Promise<OpenWorkspaceOutcome>

@@ -1,5 +1,4 @@
 import { Graph, GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
-import { NODE_MIN_WIDTH_COMPACT } from '@canvas/canvasConstants'
 
 import { Topology, TopologyEntry } from './TopologyTypes'
 
@@ -86,37 +85,4 @@ function graphToTopology(graph: Graph): Topology {
   return result
 }
 
-function topologyToGraph(topology: Topology): Graph {
-  const nodes = topology.map((entry, index) => ({
-    id: entry.id,
-    instanceId: entry.id,
-    componentType: entry.type,
-    source: entry.source,
-    version: entry.version,
-    position: { x: index * NODE_MIN_WIDTH_COMPACT, y: 0 },
-    config: entry.config,
-    slots: []
-  }))
-
-  const edges: GraphEdge[] = []
-
-  let edgeId = 0
-  for (const entry of topology) {
-    for (const depId of entry.dependencies) {
-      edges.push({
-        id: `edge-${edgeId++}`,
-        sourceNodeId: depId,
-        sourceSlot: '',
-        targetNodeId: entry.id,
-        targetSlot: ''
-      })
-    }
-  }
-
-  return {
-    nodes,
-    edges
-  }
-}
-
-export { graphToTopology, topologyToGraph }
+export { graphToTopology }

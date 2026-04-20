@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { makeEdge, makeNode } from '@testing/fixtures'
 
-import { graphToTopology, topologyToGraph } from './TopologyMapper'
+import { graphToTopology } from './TopologyMapper'
 
 describe('graphToTopology', () => {
   it('returns empty array for empty graph', () => {
@@ -117,68 +117,5 @@ describe('graphToTopology', () => {
       edges: [makeEdge('e1', 'a', 'b'), makeEdge('e2', 'b', 'a')]
     })
     expect(result.map((e) => e.id).sort()).toEqual(['a0', 'b0'])
-  })
-})
-
-describe('topologyToGraph', () => {
-  it('creates nodes from topology entries', () => {
-    const topology = [
-      { type: 'LinkEth', id: 'linkEth0', version: '1.0.0', source: 'diff_broker', dependencies: [], config: {} },
-      {
-        type: 'MessageSource',
-        id: 'msg0',
-        version: '1.0.0',
-        source: 'diff_broker',
-        dependencies: ['linkEth0'],
-        config: { count: 5 }
-      }
-    ]
-    const graph = topologyToGraph(topology)
-    expect(graph.nodes).toHaveLength(2)
-    expect(graph.nodes[0].instanceId).toBe('linkEth0')
-    expect(graph.nodes[1].config).toEqual({ count: 5 })
-  })
-
-  it('creates edges from dependencies', () => {
-    const topology = [
-      { type: 'LinkEth', id: 'linkEth0', version: '1.0.0', source: 'diff_broker', dependencies: [], config: {} },
-      {
-        type: 'MessageSource',
-        id: 'msg0',
-        version: '1.0.0',
-        source: 'diff_broker',
-        dependencies: ['linkEth0'],
-        config: {}
-      }
-    ]
-    const graph = topologyToGraph(topology)
-    expect(graph.edges).toHaveLength(1)
-    expect(graph.edges[0].sourceNodeId).toBe('linkEth0')
-    expect(graph.edges[0].targetNodeId).toBe('msg0')
-  })
-
-  it('spaces nodes horizontally', () => {
-    const topology = [
-      { type: 'A', id: 'a', version: '1.0.0', source: 'diff_broker', dependencies: [], config: {} },
-      { type: 'B', id: 'b', version: '1.0.0', source: 'diff_broker', dependencies: [], config: {} }
-    ]
-    const graph = topologyToGraph(topology)
-    expect(graph.nodes[0].position.x).toBe(0)
-    expect(graph.nodes[1].position.x).toBe(graph.nodes[0].position.x + 180)
-  })
-
-  it('preserves version and source from topology entry', () => {
-    const topology = [
-      { type: 'LinkEth', id: 'linkEth0', version: '2.3.1', source: 'my_source', dependencies: [], config: {} }
-    ]
-    const graph = topologyToGraph(topology)
-    expect(graph.nodes[0].version).toBe('2.3.1')
-    expect(graph.nodes[0].source).toBe('my_source')
-  })
-
-  it('returns empty graph for empty topology', () => {
-    const graph = topologyToGraph([])
-    expect(graph.nodes).toEqual([])
-    expect(graph.edges).toEqual([])
   })
 })

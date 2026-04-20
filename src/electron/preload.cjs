@@ -3,9 +3,6 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 const electronAPI = {
-  catalog: {
-    load: () => ipcRenderer.invoke('catalog:load')
-  },
   workspace: {
     status: () => ipcRenderer.invoke('workspace:status'),
     openAtPath: (payload) => ipcRenderer.invoke('workspace:openAtPath', payload)
