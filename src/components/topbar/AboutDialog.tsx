@@ -21,9 +21,9 @@ type Props = { open: boolean; onClose: () => void }
 function AboutDialog({ open, onClose }: Props) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ pr: 6 }}>
+      <DialogTitle className="diff-about__title">
         About Diff Forge
-        <IconButton aria-label="Close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+        <IconButton aria-label="Close" onClick={onClose} className="diff-about__close-btn">
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
@@ -43,19 +43,19 @@ function AboutDialog({ open, onClose }: Props) {
           Getting started
         </Typography>
         <List dense disablePadding>
-          <ListItem disableGutters sx={{ display: 'list-item', ml: 2 }}>
+          <ListItem disableGutters className="diff-about__list-item">
             <ListItemText
               primary="Launch from a project folder"
               secondary="Run `diff_forge .` from the project directory, or use Open Folder to pick one."
             />
           </ListItem>
-          <ListItem disableGutters sx={{ display: 'list-item', ml: 2 }}>
+          <ListItem disableGutters className="diff-about__list-item">
             <ListItemText
               primary="Point the catalog at your Artifactory repos"
               secondary="Set Artifactory URLs in environment variables before launch. The catalog is read once at startup."
             />
           </ListItem>
-          <ListItem disableGutters sx={{ display: 'list-item', ml: 2 }}>
+          <ListItem disableGutters className="diff-about__list-item">
             <ListItemText
               primary="Export to topology.json"
               secondary="Click Export Topology to write <project>.forge.json into the current workspace. Re-open the workspace to load it."

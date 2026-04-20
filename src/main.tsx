@@ -8,6 +8,8 @@ import './styles/globals.css'
 import './styles/canvas-nodes.css'
 import './styles/canvas-edges.css'
 import './styles/canvas-toolkit.css'
+import './styles/topbar.css'
+import './styles/welcome.css'
 
 setupStateSubscriptions()
 

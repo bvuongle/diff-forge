@@ -29,7 +29,6 @@ import { getWorkspaceStatus } from '@adapters/electronWorkspace'
 
 import { AboutDialog } from './AboutDialog'
 import { HotkeyReferenceDialog } from './HotkeyReferenceDialog'
-import { exportButtonSx, logoSx, toolbarSx, workspaceChipSx } from './topbarStyles'
 
 function Topbar() {
   const dirty = useGraphStore((s) => s.dirty)
@@ -66,8 +65,8 @@ function Topbar() {
 
   return (
     <AppBar position="static" elevation={0} color="transparent">
-      <Toolbar sx={toolbarSx}>
-        <Box component="img" src="/logo.svg" sx={logoSx} alt="Logo" />
+      <Toolbar className="diff-topbar__toolbar">
+        <Box component="img" src="/logo.svg" className="diff-topbar__logo" alt="Logo" />
         <Typography variant="h6" color="text.primary">
           Diff Forge
         </Typography>
@@ -83,11 +82,11 @@ function Topbar() {
               size="small"
               variant="outlined"
               aria-label="Switch workspace"
-              sx={workspaceChipSx}
+              className="diff-topbar__workspace-chip"
             />
           </Tooltip>
         )}
-        <Box flex={1} />
+        <Box className="diff-topbar__spacer" />
         <Tooltip title="Keyboard & mouse reference">
           <IconButton size="small" onClick={openDialog(setHotkeysOpen)} aria-label="Keyboard reference">
             <KeyboardIcon fontSize="small" />
@@ -107,7 +106,7 @@ function Topbar() {
               onClick={() => exportTopology()}
               disabled={exportDisabled}
               aria-label="Export Topology"
-              sx={exportButtonSx}
+              className="diff-topbar__export-btn"
             >
               Export Topology
             </Button>

@@ -59,9 +59,9 @@ function WelcomeScreen() {
   }
 
   return (
-    <Box display="flex" alignItems="center" justifyContent="center" height="100vh" bgcolor="var(--app-bg)">
-      <Stack spacing={3} alignItems="center" maxWidth={480} textAlign="center" px={4}>
-        <Box component="img" src="/logo.svg" alt="Diff Forge" sx={{ width: 72, height: 72 }} />
+    <Box className="diff-welcome">
+      <Stack spacing={3} alignItems="center" className="diff-welcome__stack">
+        <Box component="img" src="/logo.svg" alt="Diff Forge" className="diff-welcome__logo" />
         <Typography variant="h4" color="text.primary">
           Welcome to Diff Forge
         </Typography>
@@ -79,12 +79,12 @@ function WelcomeScreen() {
         >
           Open Folder...
         </Button>
-        <Divider flexItem sx={{ '&::before, &::after': { borderColor: 'divider' } }}>
+        <Divider flexItem>
           <Typography variant="caption" color="text.secondary">
             or paste an absolute path
           </Typography>
         </Divider>
-        <Box component="form" onSubmit={onSubmitPath} sx={{ width: '100%' }}>
+        <Box component="form" onSubmit={onSubmitPath} className="diff-welcome__form">
           <Stack direction="row" spacing={1} alignItems="center">
             <TextField
               size="small"
@@ -105,7 +105,7 @@ function WelcomeScreen() {
               variant="outlined"
               disabled={busy || !pathInput.trim()}
               aria-label="Use path"
-              sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+              className="diff-welcome__path-btn"
             >
               Use path
             </Button>

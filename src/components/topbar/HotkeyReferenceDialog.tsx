@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 import CloseIcon from '@mui/icons-material/Close'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
@@ -19,71 +17,19 @@ import { HOTKEY_SECTIONS, type Combo } from './hotkeys'
 
 type Props = { open: boolean; onClose: () => void }
 
-function isMacPlatform(): boolean {
-  if (typeof navigator === 'undefined') return false
-  return /Mac|iPhone|iPad|iPod/i.test(navigator.platform)
-}
-
-const MAC_LABELS: Record<string, string> = {
-  mod: '\u2318',
-  shift: '\u21E7',
-  alt: '\u2325',
-  ctrl: '\u2303'
-}
-
-const PC_LABELS: Record<string, string> = {
-  mod: 'Ctrl',
-  shift: 'Shift',
-  alt: 'Alt',
-  ctrl: 'Ctrl'
-}
-
-function chipLabel(token: string, isMac: boolean): string {
-  const table = isMac ? MAC_LABELS : PC_LABELS
-  return table[token] ?? token
-}
-
-type KbdProps = { children: string; mono?: boolean }
-
-function Kbd({ children, mono }: KbdProps) {
-  return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 26,
-        height: 26,
-        px: 0.85,
-        borderRadius: 1,
-        border: '1px solid',
-        borderColor: 'divider',
-        bgcolor: 'action.hover',
-        color: 'text.primary',
-        fontFamily: mono ? 'ui-monospace, SFMono-Regular, Menlo, monospace' : 'inherit',
-        fontSize: 12,
-        fontWeight: 600,
-        lineHeight: 1,
-        boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.18)'
-      }}
-    >
-      {children}
-    </Box>
-  )
-}
-
-function ComboRow({ combo, isMac }: { combo: Combo; isMac: boolean }) {
+function ComboRow({ combo }: { combo: Combo }) {
   return (
     <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap">
       {combo.chips.map((token, idx) => (
-        <Stack key={`${token}-${idx}`} direction="row" spacing={0.5} alignItems="center">
+        <Stack key={idx} direction="row" spacing={0.5} alignItems="center">
           {idx > 0 && (
             <Typography component="span" variant="caption" color="text.secondary" sx={{ px: 0.25 }}>
               +
             </Typography>
           )}
-          <Kbd mono={token.length === 1}>{chipLabel(token, isMac)}</Kbd>
+          <Box component="span" className={`diff-hotkey__kbd${token.length === 1 ? ' diff-hotkey__kbd--mono' : ''}`}>
+            {token}
+          </Box>
         </Stack>
       ))}
       {combo.note && (
@@ -96,13 +42,11 @@ function ComboRow({ combo, isMac }: { combo: Combo; isMac: boolean }) {
 }
 
 function HotkeyReferenceDialog({ open, onClose }: Props) {
-  const isMac = useMemo(() => isMacPlatform(), [])
-
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ pr: 6 }}>
+      <DialogTitle className="diff-hotkey__dialog-title">
         Keyboard & mouse reference
-        <IconButton aria-label="Close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+        <IconButton aria-label="Close" onClick={onClose} className="diff-hotkey__close-btn">
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>
@@ -113,12 +57,7 @@ function HotkeyReferenceDialog({ open, onClose }: Props) {
             defaultExpanded={sectionIdx < 2}
             disableGutters
             elevation={0}
-            sx={{
-              '&:before': { display: 'none' },
-              borderBottom: '1px solid',
-              borderColor: 'divider',
-              '&:last-of-type': { borderBottom: 'none' }
-            }}
+            className="diff-hotkey__section"
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon fontSize="small" />} sx={{ px: 2 }}>
               <Typography variant="subtitle2" color="text.secondary">
@@ -128,14 +67,8 @@ function HotkeyReferenceDialog({ open, onClose }: Props) {
             <AccordionDetails sx={{ pt: 0, px: 2, pb: 2 }}>
               <Stack spacing={1.25}>
                 {section.hotkeys.map((hk, hkIdx) => (
-                  <Stack
-                    key={`${section.title}-${hkIdx}`}
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ gap: 2 }}
-                  >
-                    <Typography variant="body2" color="text.primary" sx={{ flex: 1 }}>
+                  <Box key={hkIdx} className="diff-hotkey__row">
+                    <Typography variant="body2" color="text.primary" className="diff-hotkey__row-label">
                       {hk.description}
                     </Typography>
                     <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap">
@@ -146,11 +79,11 @@ function HotkeyReferenceDialog({ open, onClose }: Props) {
                               or
                             </Typography>
                           )}
-                          <ComboRow combo={combo} isMac={isMac} />
+                          <ComboRow combo={combo} />
                         </Stack>
                       ))}
                     </Stack>
-                  </Stack>
+                  </Box>
                 ))}
               </Stack>
             </AccordionDetails>

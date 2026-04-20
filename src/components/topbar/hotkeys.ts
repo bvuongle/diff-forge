@@ -8,11 +8,11 @@ const HOTKEY_SECTIONS: HotkeySection[] = [
     hotkeys: [
       {
         description: 'Export topology to <project>.forge.json',
-        combos: [{ chips: ['mod', 'S'] }]
+        combos: [{ chips: ['Ctrl/Cmd', 'S'] }]
       },
       {
         description: 'Open / switch workspace folder',
-        combos: [{ chips: ['mod', 'O'] }]
+        combos: [{ chips: ['Ctrl/Cmd', 'O'] }]
       }
     ]
   },
@@ -25,7 +25,7 @@ const HOTKEY_SECTIONS: HotkeySection[] = [
       },
       {
         description: 'Select all nodes',
-        combos: [{ chips: ['mod', 'A'] }]
+        combos: [{ chips: ['Ctrl/Cmd', 'A'] }]
       },
       {
         description: 'Temporarily toggle pan mode',
