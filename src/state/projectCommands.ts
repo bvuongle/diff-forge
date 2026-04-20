@@ -3,15 +3,12 @@ import { useGraphStore } from '@state/graphStore'
 import { notify } from '@state/notificationsStore'
 import { useUIStore } from '@state/uiStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
-import { saveProjectViaElectron } from '@adapters/electronProjectBridge'
 import { openWorkspacePicker } from '@adapters/electronWorkspace'
-import { createJsonProjectExporter } from '@adapters/JsonProjectExporter'
+import { saveTopology } from '@adapters/topologyExporter'
 
 function basename(p: string): string {
   return p.split('/').pop() ?? p
 }
-
-const exporter = createJsonProjectExporter({ saveProject: saveProjectViaElectron })
 
 async function exportTopology(): Promise<void> {
   const workspace = useWorkspaceStore.getState().status
@@ -20,7 +17,7 @@ async function exportTopology(): Promise<void> {
     return
   }
   const graph = useGraphStore.getState().graph
-  const outcome = await exporter.export(graph)
+  const outcome = await saveTopology(graph)
   if (outcome.status === 'saved') {
     notify.success(`Wrote ${basename(outcome.topologyPath)}`)
     useGraphStore.getState().markClean()

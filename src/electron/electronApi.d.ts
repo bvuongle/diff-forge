@@ -1,5 +1,9 @@
-import type { ProjectExportOutcome } from '../contracts/ProjectExporter'
-import type { WorkspaceStatus } from '../domain/workspace/WorkspaceTypes'
+import type { WorkspaceInvalidReason, WorkspaceStatus } from '../domain/workspace/WorkspaceTypes'
+
+type ProjectExportOutcome =
+  | { status: 'saved'; topologyPath: string; projectName: string }
+  | { status: 'invalidWorkspace'; reason: WorkspaceInvalidReason }
+  | { status: 'error'; message: string }
 
 type ProjectLoadOutcome =
   | { status: 'loaded'; topology: string; topologyPath: string }
@@ -33,4 +37,4 @@ declare global {
   }
 }
 
-export type { ElectronAPI, ProjectLoadOutcome, ProjectPayload, OpenWorkspaceOutcome }
+export type { ElectronAPI, ProjectExportOutcome, ProjectLoadOutcome, ProjectPayload, OpenWorkspaceOutcome }
