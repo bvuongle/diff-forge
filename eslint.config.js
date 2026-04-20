@@ -3,8 +3,18 @@ import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
+const RENDERER_ONLY = [
+  '@canvas/*',
+  '@catalog/*',
+  '@topbar/*',
+  '@layout/*',
+  '@state/*',
+  '@adapters/*',
+  '@contracts/*'
+]
+
 export default tseslint.config(
-  { ignores: ['dist', 'out', 'node_modules', '*.config.*'] },
+  { ignores: ['dist', 'out', 'node_modules', '*.config.*', 'src/electron/preload.cjs'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -18,6 +28,18 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'error',
       'no-console': 'warn'
+    }
+  },
+  {
+    files: ['src/domain/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: RENDERER_ONLY }]
+    }
+  },
+  {
+    files: ['src/electron/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: RENDERER_ONLY }]
     }
   }
 )

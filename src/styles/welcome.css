@@ -1,0 +1,27 @@
+.diff-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--app-bg);
+}
+
+.diff-welcome__stack {
+  max-width: 480px;
+  padding: 0 32px;
+  text-align: center;
+}
+
+.diff-welcome__logo {
+  width: 72px;
+  height: 72px;
+}
+
+.diff-welcome__form {
+  width: 100%;
+}
+
+.diff-welcome__path-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}

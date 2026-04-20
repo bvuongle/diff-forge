@@ -1,0 +1,2 @@
+export const AUTO_LAYOUT_COLUMN_WIDTH = 320
+export const AUTO_LAYOUT_ROW_HEIGHT = 180

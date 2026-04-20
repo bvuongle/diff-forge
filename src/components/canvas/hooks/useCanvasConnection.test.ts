@@ -1,10 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
-import { makeEdge, makeNode } from '@testing/fixtures'
 import type { Connection } from '@xyflow/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useGraphStore } from '@state/graphStore'
 import type { CanvasEdge } from '@canvas/canvasTypes'
+import { makeEdge, makeNode } from '@testing/fixtures'
 
 import { useCanvasConnection } from './useCanvasConnection'
 
@@ -178,7 +178,6 @@ describe('useCanvasConnection', () => {
         } as CanvasEdge)
       })
 
-      // Old edge removed by onReconnect, new edge added; onReconnectEnd should not remove anything
       const edges = useGraphStore.getState().graph.edges
       expect(edges).toHaveLength(1)
       expect(edges[0].id).toBe('src:ILink->tgt2:link')

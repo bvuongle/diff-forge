@@ -1,5 +1,6 @@
-import { makeEdge, makeNode, makeSlot } from '@testing/fixtures'
 import { describe, expect, it } from 'vitest'
+
+import { makeEdge, makeNode, makeSlot } from '@testing/fixtures'
 
 import { getConnectionCounts, getEdgeSourceMap, getPortDragState, getSlotTooltip, isNodeDimmed } from './nodeUtils'
 

@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- High-contrast pure F-Graph for Favicon -->
+  <path d="M8 6V26M8 6H26M8 16H22" stroke="#3B82F6" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="8" cy="6" r="4.5" fill="#3B82F6"/>
+  <circle cx="26" cy="6" r="4.5" fill="#3B82F6"/>
+  <circle cx="8" cy="16" r="4" fill="#3B82F6"/>
+  <circle cx="22" cy="16" r="4" fill="#3B82F6"/>
+  <circle cx="8" cy="26" r="4" fill="#3B82F6"/>
+  
+  <!-- Center White Dots for maximum crispness -->
+  <circle cx="8" cy="6" r="1.5" fill="white"/>
+  <circle cx="26" cy="6" r="1.5" fill="white"/>
+</svg>

@@ -1,9 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { renderWithTheme } from '@testing/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import type { GraphNode } from '@domain/graph/GraphTypes'
+import { renderWithTheme } from '@testing/test-utils'
 
 import { NodeConfigurationSection } from './NodeConfigurationSection'
 
@@ -32,7 +32,6 @@ describe('NodeConfigurationSection', () => {
     fireEvent.click(jsonTab)
 
     expect(jsonTab).toHaveAttribute('aria-pressed', 'true')
-    // JsonConfigEditor renders a textarea by default in our current setup
     expect(screen.getByRole('textbox')).toBeInTheDocument()
   })
 

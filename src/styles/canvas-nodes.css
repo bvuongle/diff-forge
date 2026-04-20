@@ -7,7 +7,9 @@
   border: 2px solid var(--panel-border);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   user-select: none;
-  transition: opacity 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    min-width 0.22s ease;
 }
 
 .canvas-node:hover {
@@ -25,6 +27,15 @@
 
 .canvas-node--dimmed {
   opacity: 0.3;
+}
+
+.canvas-node--unresolved {
+  border-color: var(--accent-amber, #f59e0b);
+  background-color: color-mix(in srgb, var(--accent-amber, #f59e0b) 6%, var(--panel-bg));
+}
+
+.canvas-node--unresolved:hover {
+  border-color: var(--accent-amber, #f59e0b);
 }
 
 .canvas-node__header {

@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { renderWithTheme } from '@testing/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+
+import { renderWithTheme } from '@testing/test-utils'
 
 import { JsonConfigEditor } from './JsonConfigEditor'
 
@@ -35,11 +36,9 @@ describe('JsonConfigEditor', () => {
     const onSave = vi.fn()
     const { rerender } = renderWithTheme(<JsonConfigEditor config={{}} onSave={onSave} />)
     const textarea = screen.getByRole('textbox')
-    // Make it invalid
     fireEvent.change(textarea, { target: { value: '{bad' } })
     fireEvent.blur(textarea)
     expect(screen.getByText('Invalid JSON')).toBeTruthy()
-    // Rerender with new config
     rerender(<JsonConfigEditor config={{ newKey: 'val' }} onSave={onSave} />)
     expect(screen.queryByText('Invalid JSON')).toBeNull()
   })

@@ -1,8 +1,8 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { renderWithTheme } from '@testing/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { GraphNode } from '@domain/graph/GraphTypes'
+import { renderWithTheme } from '@testing/test-utils'
 
 import { NodeInfoSection } from './NodeInfoSection'
 

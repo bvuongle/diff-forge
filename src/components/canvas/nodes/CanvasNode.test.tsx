@@ -1,6 +1,4 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { makeNode } from '@testing/fixtures'
-import { renderWithTheme } from '@testing/test-utils'
 import { ReactFlowProvider, type NodeProps } from '@xyflow/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -9,6 +7,8 @@ import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
 import type { CanvasNode as CanvasNodeType } from '@canvas/canvasTypes'
+import { makeNode } from '@testing/fixtures'
+import { renderWithTheme } from '@testing/test-utils'
 
 import { CanvasNode } from './CanvasNode'
 
@@ -24,7 +24,12 @@ vi.mock('@xyflow/react', async () => {
 })
 
 describe('CanvasNode', () => {
-  const node = makeNode('n1', { componentType: 'TestType', instanceId: 'testInst', version: '1.0.0' })
+  const node = makeNode('n1', {
+    componentType: 'TestType',
+    instanceId: 'testInst',
+    version: '1.0.0',
+    source: 'test.cpp'
+  })
   const catalog = {
     version: '1.0.0',
     components: [
@@ -114,7 +119,6 @@ describe('CanvasNode', () => {
       </ReactFlowProvider>
     )
 
-    // The outermost box should have the dimmed CSS class
     expect(container.firstChild).toHaveClass('canvas-node--dimmed')
   })
 })

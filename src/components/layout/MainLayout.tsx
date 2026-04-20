@@ -1,7 +1,7 @@
-import { CatalogPanel } from '@catalog/CatalogPanel'
 import { Box, Divider } from '@mui/material'
-import { Topbar } from '@topbar/Topbar'
 
+import { Topbar } from '@topbar/Topbar'
+import { CatalogPanel } from '@catalog/CatalogPanel'
 import { CanvasPanel } from '@canvas/CanvasPanel'
 
 import { CATALOG_PANEL_WIDTH_PX } from '../catalog/catalogConstants'

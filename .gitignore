@@ -38,5 +38,8 @@ coverage/
 .nyc_output/
 
 # Playwright
-/test-results/
+/tests/e2e/test-results/
 /playwright/.cache/
+
+# Local topology exports
+*.forge.json

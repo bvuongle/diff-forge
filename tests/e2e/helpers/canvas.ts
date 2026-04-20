@@ -1,6 +1,26 @@
 import { Page } from '@playwright/test'
 
+export async function installWorkspaceStub(page: Page, projectName = 'test-workspace') {
+  await page.addInitScript((name) => {
+    const status = { valid: true, projectName: name, cwd: `/tmp/${name}` }
+    ;(window as unknown as { electronAPI: unknown }).electronAPI = {
+      workspace: {
+        status: async () => status,
+        openAtPath: async () => ({ status: 'opened', workspace: status })
+      },
+      dialog: {
+        openWorkspace: async () => ({ status: 'opened', workspace: status })
+      },
+      topology: {
+        export: async () => ({ status: 'saved', topologyPath: `/tmp/${name}/topology.json`, projectName: name }),
+        load: async () => ({ status: 'notFound' })
+      }
+    }
+  }, projectName)
+}
+
 export async function waitForCanvasReady(page: Page) {
+  await installWorkspaceStub(page)
   await page.goto('/')
   await page.waitForSelector('text=Component Catalog')
   await page.waitForSelector('.react-flow__pane')
@@ -18,11 +38,6 @@ export function inPortSel(id: string, slot: string) {
   return `${nodeSel(id)} .react-flow__handle[data-handlepos="left"][data-handleid="${slot}"]`
 }
 
-/**
- * Drag a catalog item onto the React Flow pane by dispatching real HTML5
- * drag events with the custom application/x-diff-component payload.
- * targetPosition is relative to the pane bounding box.
- */
 export async function dropCatalogComponent(
   page: Page,
   componentType: string,
@@ -36,8 +51,6 @@ export async function dropCatalogComponent(
   const clientX = paneBox.x + targetPosition.x
   const clientY = paneBox.y + targetPosition.y
 
-  // Read the JSON payload straight out of the catalog item's onDragStart by
-  // synthesising a dragstart, reading dataTransfer, and forwarding it.
   const payload = await catalogItem.evaluate((el) => {
     const dt = new DataTransfer()
     const start = new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: dt })
@@ -60,10 +73,6 @@ export async function dropCatalogComponent(
   )
 }
 
-/**
- * Draw a connection between two React Flow handles using real mouse events.
- * React Flow's connection engine listens to mousedown/move/up, so this works.
- */
 export async function connectPorts(page: Page, sourceSelector: string, targetSelector: string) {
   const src = page.locator(sourceSelector)
   const tgt = page.locator(targetSelector)
@@ -76,23 +85,19 @@ export async function connectPorts(page: Page, sourceSelector: string, targetSel
   const ty = tBox.y + tBox.height / 2
   await page.mouse.move(sx, sy)
   await page.mouse.down()
-  // Multi-step move lets React Flow paint the pending edge.
   await page.mouse.move((sx + tx) / 2, (sy + ty) / 2, { steps: 8 })
   await page.mouse.move(tx, ty, { steps: 8 })
   await page.mouse.up()
 }
 
-/** Count the real React Flow edges (ignores the pending connection line). */
 export function edgeCount(page: Page) {
   return page.locator('.react-flow__edge').count()
 }
 
-/** Select a node by clicking its heading. */
 export async function selectNode(page: Page, instanceId: string) {
   await page.getByRole('heading', { name: instanceId, exact: true }).click()
 }
 
-/** Expand or collapse a node by clicking its header button. */
 export async function toggleNode(page: Page, instanceId: string) {
   const node = page.locator(nodeSel(instanceId))
   await node.locator('.canvas-node__header button').click()

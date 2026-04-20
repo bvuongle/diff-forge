@@ -1,5 +1,6 @@
-import { makeEdge, makeNode } from '@testing/fixtures'
 import { describe, expect, it } from 'vitest'
+
+import { makeEdge, makeNode } from '@testing/fixtures'
 
 import { OUT_HANDLE_ID } from './canvasConstants'
 import { toCanvasEdges, toCanvasNodes } from './canvasTypes'

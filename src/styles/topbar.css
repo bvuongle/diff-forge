@@ -1,0 +1,88 @@
+.diff-topbar__toolbar {
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  background-color: var(--toolbar-bg);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.diff-topbar__logo {
+  width: 40px;
+  height: 40px;
+  margin-right: 12px;
+}
+
+.diff-topbar__workspace-chip {
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.diff-topbar__export-btn {
+  background-color: var(--accent-green, #2e7d32);
+}
+
+.diff-topbar__spacer {
+  flex: 1;
+}
+
+.diff-about__title,
+.diff-hotkey__dialog-title {
+  position: relative;
+  padding-right: 48px;
+}
+
+.MuiIconButton-root.diff-about__close-btn,
+.MuiIconButton-root.diff-hotkey__close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.diff-about__list-item {
+  display: list-item;
+  margin-left: 16px;
+}
+
+.diff-hotkey__kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.diff-hotkey__kbd--mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.diff-hotkey__section {
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.diff-hotkey__section:last-of-type {
+  border-bottom: none;
+}
+
+.diff-hotkey__section::before {
+  display: none;
+}
+
+.diff-hotkey__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.diff-hotkey__row-label {
+  flex: 1;
+}

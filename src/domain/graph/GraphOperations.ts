@@ -72,7 +72,8 @@ function isEdgeInvalid(edge: GraphEdge, nodes: GraphNode[]): boolean {
   if (!src || !tgt) return true
   const srcSlot = src.slots.find((s) => s.name === edge.sourceSlot && s.direction === 'out')
   const tgtSlot = tgt.slots.find((s) => s.name === edge.targetSlot && s.direction === 'in')
-  return !srcSlot || !tgtSlot
+  if (!srcSlot || !tgtSlot) return true
+  return srcSlot.interface !== tgtSlot.interface
 }
 
 type EdgeValidation = { valid: boolean; reason?: string }
