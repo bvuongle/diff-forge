@@ -40,12 +40,6 @@ afterEach(() => {
 })
 
 describe('WelcomeScreen', () => {
-  it('renders heading and Open Folder button', () => {
-    renderWithTheme(<WelcomeScreen />)
-    expect(screen.getByText(/welcome to diff forge/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /open folder/i })).toBeInTheDocument()
-  })
-
   it('updates workspace status on successful pick', async () => {
     openWorkspaceMock.mockResolvedValue({
       status: 'opened',

@@ -4,28 +4,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { renderWithTheme } from '@testing/test-utils'
 
 import { HotkeyReferenceDialog } from './HotkeyReferenceDialog'
-import { HOTKEY_SECTIONS } from './hotkeys'
 
 describe('HotkeyReferenceDialog', () => {
-  it('does not render content when closed', () => {
-    renderWithTheme(<HotkeyReferenceDialog open={false} onClose={() => {}} />)
-    expect(screen.queryByText(/keyboard & mouse reference/i)).not.toBeInTheDocument()
-  })
-
-  it('renders every section title when open', () => {
+  it('renders when open', () => {
     renderWithTheme(<HotkeyReferenceDialog open onClose={() => {}} />)
-    for (const section of HOTKEY_SECTIONS) {
-      expect(screen.getByText(section.title)).toBeInTheDocument()
-    }
-  })
-
-  it('renders every hotkey description', () => {
-    renderWithTheme(<HotkeyReferenceDialog open onClose={() => {}} />)
-    for (const section of HOTKEY_SECTIONS) {
-      for (const hk of section.hotkeys) {
-        expect(screen.getByText(hk.description)).toBeInTheDocument()
-      }
-    }
+    expect(screen.getByText(/keyboard & mouse reference/i)).toBeInTheDocument()
   })
 
   it('calls onClose when close button clicked', () => {

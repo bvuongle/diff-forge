@@ -15,26 +15,16 @@ type NotificationsStore = {
   dismiss: (id: number) => void
 }
 
-const DEFAULT_DURATION: Record<Severity, number> = {
-  success: 4000,
-  info: 4000,
-  warning: 8000,
-  error: 8000
-}
-
 let nextId = 1
 
 const useNotificationsStore = create<NotificationsStore>((set) => ({
   notifications: [],
   push: (message, severity, duration) => {
     const id = nextId++
-    const entry: Notification = {
-      id,
-      message,
-      severity,
-      duration: duration ?? DEFAULT_DURATION[severity]
-    }
-    set((state) => ({ notifications: [...state.notifications, entry] }))
+    const defaultDuration = severity === 'warning' || severity === 'error' ? 8000 : 4000
+    set((state) => ({
+      notifications: [...state.notifications, { id, message, severity, duration: duration ?? defaultDuration }]
+    }))
     return id
   },
   dismiss: (id) => set((state) => ({ notifications: state.notifications.filter((n) => n.id !== id) }))

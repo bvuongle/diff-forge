@@ -6,10 +6,6 @@ import { useWorkspaceStore } from '@state/workspaceStore'
 import { openWorkspacePicker } from '@adapters/electronWorkspace'
 import { saveTopology } from '@adapters/topologyExporter'
 
-function basename(p: string): string {
-  return p.split('/').pop() ?? p
-}
-
 async function exportTopology(): Promise<void> {
   const workspace = useWorkspaceStore.getState().status
   if (!workspace?.valid) {
@@ -19,7 +15,7 @@ async function exportTopology(): Promise<void> {
   const graph = useGraphStore.getState().graph
   const outcome = await saveTopology(graph)
   if (outcome.status === 'saved') {
-    notify.success(`Wrote ${basename(outcome.topologyPath)}`)
+    notify.success(`Wrote ${outcome.topologyPath.split('/').pop() ?? outcome.topologyPath}`)
     useGraphStore.getState().markClean()
   } else if (outcome.status === 'invalidWorkspace') {
     notify.error(`Export blocked: ${reasonMessage(outcome.reason)}`)

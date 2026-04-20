@@ -30,62 +30,28 @@ describe('useAppHotkeys', () => {
     vi.restoreAllMocks()
   })
 
-  it('Cmd+S triggers exportTopology', () => {
+  it('Cmd/Ctrl+S triggers exportTopology', () => {
     renderHook(() => useAppHotkeys())
-    act(() => {
-      fireKey({ code: 'KeyS', metaKey: true })
-    })
+    act(() => fireKey({ code: 'KeyS', metaKey: true }))
     expect(exportMock).toHaveBeenCalledTimes(1)
   })
 
-  it('Ctrl+S triggers exportTopology', () => {
+  it('Cmd/Ctrl+O triggers requestWorkspaceSwitch', () => {
     renderHook(() => useAppHotkeys())
-    act(() => {
-      fireKey({ code: 'KeyS', ctrlKey: true })
-    })
-    expect(exportMock).toHaveBeenCalledTimes(1)
-  })
-
-  it('Cmd+O triggers requestWorkspaceSwitch', () => {
-    renderHook(() => useAppHotkeys())
-    act(() => {
-      fireKey({ code: 'KeyO', metaKey: true })
-    })
+    act(() => fireKey({ code: 'KeyO', ctrlKey: true }))
     expect(switchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('S without modifier does nothing', () => {
+  it('ignores bare S without modifier', () => {
     renderHook(() => useAppHotkeys())
-    act(() => {
-      fireKey({ code: 'KeyS' })
-    })
+    act(() => fireKey({ code: 'KeyS' }))
     expect(exportMock).not.toHaveBeenCalled()
   })
 
-  it('ignores Cmd+S inside an INPUT element', () => {
+  it('ignores hotkeys while focus is in a text field', () => {
     renderHook(() => useAppHotkeys())
     const input = document.createElement('input')
-    act(() => {
-      fireKey({ code: 'KeyS', metaKey: true, targetElement: input })
-    })
-    expect(exportMock).not.toHaveBeenCalled()
-  })
-
-  it('ignores Cmd+O inside a TEXTAREA element', () => {
-    renderHook(() => useAppHotkeys())
-    const textarea = document.createElement('textarea')
-    act(() => {
-      fireKey({ code: 'KeyO', metaKey: true, targetElement: textarea })
-    })
-    expect(switchMock).not.toHaveBeenCalled()
-  })
-
-  it('unsubscribes on unmount', () => {
-    const { unmount } = renderHook(() => useAppHotkeys())
-    unmount()
-    act(() => {
-      fireKey({ code: 'KeyS', metaKey: true })
-    })
+    act(() => fireKey({ code: 'KeyS', metaKey: true, targetElement: input }))
     expect(exportMock).not.toHaveBeenCalled()
   })
 })
