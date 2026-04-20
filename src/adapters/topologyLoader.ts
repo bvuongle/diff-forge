@@ -1,6 +1,6 @@
 import { Topology } from '@domain/topology/TopologyTypes'
 
-type ProjectLoadResult =
+type TopologyLoadResult =
   | { status: 'loaded'; topology: Topology; topologyPath: string }
   | { status: 'notFound' }
   | { status: 'unavailable' }
@@ -20,11 +20,11 @@ function isTopology(data: unknown): data is Topology {
   )
 }
 
-async function loadProjectFromCwd(): Promise<ProjectLoadResult> {
+async function loadTopologyFromWorkspace(): Promise<TopologyLoadResult> {
   if (typeof window === 'undefined' || !window.electronAPI) {
     return { status: 'unavailable' }
   }
-  const outcome = await window.electronAPI.project.load()
+  const outcome = await window.electronAPI.topology.load()
   if (outcome.status === 'notFound') return { status: 'notFound' }
   if (outcome.status === 'error') return { status: 'error', message: outcome.message }
 
@@ -43,5 +43,5 @@ async function loadProjectFromCwd(): Promise<ProjectLoadResult> {
   }
 }
 
-export { loadProjectFromCwd }
-export type { ProjectLoadResult }
+export { loadTopologyFromWorkspace }
+export type { TopologyLoadResult }

@@ -22,7 +22,7 @@ import {
 
 import { reasonMessage } from '@domain/workspace/workspaceContext'
 import { useGraphStore } from '@state/graphStore'
-import { exportTopology, performWorkspaceSwitch, requestWorkspaceSwitch } from '@state/projectCommands'
+import { exportTopology, performWorkspaceSwitch, requestWorkspaceSwitch } from '@state/topologyCommands'
 import { useUIStore } from '@state/uiStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
 import { getWorkspaceStatus } from '@adapters/electronWorkspace'

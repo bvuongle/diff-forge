@@ -1,16 +1,16 @@
 import type { WorkspaceInvalidReason, WorkspaceStatus } from '../domain/workspace/WorkspaceTypes'
 
-type ProjectExportOutcome =
+type TopologyExportOutcome =
   | { status: 'saved'; topologyPath: string; projectName: string }
   | { status: 'invalidWorkspace'; reason: WorkspaceInvalidReason }
   | { status: 'error'; message: string }
 
-type ProjectLoadOutcome =
+type TopologyLoadOutcome =
   | { status: 'loaded'; topology: string; topologyPath: string }
   | { status: 'notFound' }
   | { status: 'error'; message: string }
 
-type ProjectPayload = { topology: string }
+type TopologyPayload = { topology: string }
 
 type OpenWorkspaceOutcome =
   | { status: 'opened'; workspace: WorkspaceStatus }
@@ -25,9 +25,9 @@ type ElectronAPI = {
   dialog: {
     openWorkspace: () => Promise<OpenWorkspaceOutcome>
   }
-  project: {
-    export: (payload: ProjectPayload) => Promise<ProjectExportOutcome>
-    load: () => Promise<ProjectLoadOutcome>
+  topology: {
+    export: (payload: TopologyPayload) => Promise<TopologyExportOutcome>
+    load: () => Promise<TopologyLoadOutcome>
   }
 }
 
@@ -37,4 +37,4 @@ declare global {
   }
 }
 
-export type { ElectronAPI, ProjectExportOutcome, ProjectLoadOutcome, ProjectPayload, OpenWorkspaceOutcome }
+export type { ElectronAPI, TopologyExportOutcome, TopologyLoadOutcome, TopologyPayload, OpenWorkspaceOutcome }

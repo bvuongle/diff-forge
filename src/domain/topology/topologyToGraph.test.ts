@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { Topology } from '@domain/topology/TopologyTypes'
 import { makeCatalog } from '@testing/fixtures'
 
-import { reconstituteGraph } from './reconstituteGraph'
+import { topologyToGraph } from './topologyToGraph'
 
-describe('reconstituteGraph', () => {
+describe('topologyToGraph', () => {
   const linkEthCatalog = makeCatalog({
     type: 'LinkEth',
     implements: ['ILink'],
@@ -28,7 +28,7 @@ describe('reconstituteGraph', () => {
         config: {}
       }
     ]
-    const { graph, unresolved } = reconstituteGraph(topology, [linkEthCatalog])
+    const { graph, unresolved } = topologyToGraph(topology, [linkEthCatalog])
     expect(unresolved).toEqual([])
     expect(graph.nodes[0].slots).toHaveLength(1)
     expect(graph.nodes[0].slots[0].direction).toBe('out')
@@ -45,7 +45,7 @@ describe('reconstituteGraph', () => {
         config: {}
       }
     ]
-    const { graph, unresolved } = reconstituteGraph(topology, [])
+    const { graph, unresolved } = topologyToGraph(topology, [])
     expect(unresolved).toEqual(['unknown0'])
     expect(graph.nodes[0].slots).toEqual([])
   })
@@ -63,7 +63,7 @@ describe('reconstituteGraph', () => {
         config: {}
       }
     ]
-    const { graph, unresolved } = reconstituteGraph(topology, [v1, v2])
+    const { graph, unresolved } = topologyToGraph(topology, [v1, v2])
     expect(unresolved).toEqual([])
     expect(graph.nodes[0].slots[0].interface).toBe('ILinkV2')
   })
@@ -80,7 +80,7 @@ describe('reconstituteGraph', () => {
         config: {}
       }
     ]
-    const { graph } = reconstituteGraph(topology, [linkEthCatalog, msgCatalog])
+    const { graph } = topologyToGraph(topology, [linkEthCatalog, msgCatalog])
     const link = graph.nodes.find((n) => n.id === 'linkEth0')!
     const msg = graph.nodes.find((n) => n.id === 'msg0')!
     expect(link.position.x).toBe(0)
@@ -106,7 +106,7 @@ describe('reconstituteGraph', () => {
         config: {}
       }
     ]
-    const { graph } = reconstituteGraph(topology, [linkEthCatalog, msgCatalog])
+    const { graph } = topologyToGraph(topology, [linkEthCatalog, msgCatalog])
     expect(graph.edges).toHaveLength(1)
     expect(graph.edges[0].sourceNodeId).toBe('linkEth0')
     expect(graph.edges[0].targetNodeId).toBe('msg0')
@@ -134,7 +134,7 @@ describe('reconstituteGraph', () => {
         config: {}
       }
     ]
-    const { graph } = reconstituteGraph(topology, [linkSatCatalog, routerCatalog])
+    const { graph } = topologyToGraph(topology, [linkSatCatalog, routerCatalog])
     const routerEdges = graph.edges.filter((e) => e.targetNodeId === 'router0')
     expect(routerEdges).toHaveLength(3)
     for (const e of routerEdges) {
@@ -173,7 +173,7 @@ describe('reconstituteGraph', () => {
         config: {}
       }
     ]
-    const { graph } = reconstituteGraph(topology, [msgCat, routerCat, dispatcherCat])
+    const { graph } = topologyToGraph(topology, [msgCat, routerCat, dispatcherCat])
     const edges = graph.edges.filter((e) => e.targetNodeId === 'dispatcher0')
     expect(edges).toHaveLength(2)
     const routable = edges.find((e) => e.targetSlot === 'routable')!
@@ -206,7 +206,7 @@ describe('reconstituteGraph', () => {
         config: {}
       }
     ]
-    const { graph } = reconstituteGraph(topology, [linkEthCatalog, linkGsmCatalog, multiMsg])
+    const { graph } = topologyToGraph(topology, [linkEthCatalog, linkGsmCatalog, multiMsg])
     const msgEdges = graph.edges.filter((e) => e.targetNodeId === 'msg0')
     expect(msgEdges).toHaveLength(2)
     expect(msgEdges[0].sourceNodeId).toBe('eth0')

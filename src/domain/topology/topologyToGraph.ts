@@ -1,9 +1,8 @@
 import { buildSlots } from '@domain/catalog/buildSlots'
 import { CatalogComponent } from '@domain/catalog/CatalogTypes'
 import { Graph, GraphEdge, GraphNode, Position } from '@domain/graph/GraphTypes'
+import { layoutByLevels } from '@domain/layout/layoutByLevels'
 import { Topology, TopologyEntry } from '@domain/topology/TopologyTypes'
-
-import { layoutByLevels } from './layoutByLevels'
 
 type CatalogKey = string
 
@@ -84,7 +83,7 @@ type ReconstitutionResult = {
   unresolved: string[]
 }
 
-function reconstituteGraph(topology: Topology, catalog: CatalogComponent[]): ReconstitutionResult {
+function topologyToGraph(topology: Topology, catalog: CatalogComponent[]): ReconstitutionResult {
   const catalogIndex = buildCatalogIndex(catalog)
   const unresolved: string[] = []
   const nodes: GraphNode[] = []
@@ -108,5 +107,5 @@ function reconstituteGraph(topology: Topology, catalog: CatalogComponent[]): Rec
   return { graph: { nodes, edges }, unresolved }
 }
 
-export { reconstituteGraph }
+export { topologyToGraph }
 export type { ReconstitutionResult }

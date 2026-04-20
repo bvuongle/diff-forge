@@ -28,10 +28,9 @@ beforeEach(() => {
   Object.defineProperty(window, 'electronAPI', {
     configurable: true,
     value: {
-      catalog: { load: vi.fn() },
       workspace: { status: vi.fn(), openAtPath: openAtPathMock },
       dialog: { openWorkspace: openWorkspaceMock },
-      project: { export: vi.fn(), load: vi.fn() }
+      topology: { export: vi.fn(), load: vi.fn() }
     }
   })
 })

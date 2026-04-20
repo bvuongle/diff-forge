@@ -6,7 +6,7 @@ import { useAppHotkeys } from '@layout/useAppHotkeys'
 const exportMock = vi.fn()
 const switchMock = vi.fn()
 
-vi.mock('@state/projectCommands', () => ({
+vi.mock('@state/topologyCommands', () => ({
   exportTopology: () => exportMock(),
   requestWorkspaceSwitch: () => switchMock()
 }))

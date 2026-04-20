@@ -40,10 +40,9 @@ beforeEach(() => {
   Object.defineProperty(window, 'electronAPI', {
     configurable: true,
     value: {
-      catalog: { load: vi.fn() },
       workspace: { status: workspaceStatusMock },
       dialog: { openWorkspace: openWorkspaceMock },
-      project: { export: exportMock, load: loadMock }
+      topology: { export: exportMock, load: loadMock }
     }
   })
   useGraphStore.setState({

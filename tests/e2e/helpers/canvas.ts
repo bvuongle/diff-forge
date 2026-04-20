@@ -4,7 +4,6 @@ export async function installWorkspaceStub(page: Page, projectName = 'test-works
   await page.addInitScript((name) => {
     const status = { valid: true, projectName: name, cwd: `/tmp/${name}` }
     ;(window as unknown as { electronAPI: unknown }).electronAPI = {
-      catalog: { load: async () => null },
       workspace: {
         status: async () => status,
         openAtPath: async () => ({ status: 'opened', workspace: status })
@@ -12,7 +11,7 @@ export async function installWorkspaceStub(page: Page, projectName = 'test-works
       dialog: {
         openWorkspace: async () => ({ status: 'opened', workspace: status })
       },
-      project: {
+      topology: {
         export: async () => ({ status: 'saved', topologyPath: `/tmp/${name}/topology.json`, projectName: name }),
         load: async () => ({ status: 'notFound' })
       }

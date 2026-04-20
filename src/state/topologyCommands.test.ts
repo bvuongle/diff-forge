@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useGraphStore } from '@state/graphStore'
 import { useNotificationsStore } from '@state/notificationsStore'
-import { exportTopology, performWorkspaceSwitch, requestWorkspaceSwitch } from '@state/projectCommands'
+import { exportTopology, performWorkspaceSwitch, requestWorkspaceSwitch } from '@state/topologyCommands'
 import { useUIStore } from '@state/uiStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
 
@@ -15,10 +15,9 @@ beforeEach(() => {
   Object.defineProperty(window, 'electronAPI', {
     configurable: true,
     value: {
-      catalog: { load: vi.fn() },
       workspace: { status: vi.fn(), openAtPath: vi.fn() },
       dialog: { openWorkspace: openWorkspaceMock },
-      project: { export: exportMock, load: vi.fn() }
+      topology: { export: exportMock, load: vi.fn() }
     }
   })
   useGraphStore.setState({

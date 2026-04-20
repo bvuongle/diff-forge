@@ -5,13 +5,13 @@ import { ThemeProvider } from '@mui/material/styles'
 import { ZodError } from 'zod'
 
 import { CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
-import { reconstituteGraph } from '@domain/project/reconstituteGraph'
+import { topologyToGraph } from '@domain/topology/topologyToGraph'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { notify } from '@state/notificationsStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
-import { loadProjectFromCwd } from '@adapters/electronProjectLoader'
 import { getWorkspaceStatus } from '@adapters/electronWorkspace'
+import { loadTopologyFromWorkspace } from '@adapters/topologyLoader'
 import { MainLayout } from '@layout/MainLayout'
 import { NotificationHost } from '@layout/NotificationHost'
 import { useAppHotkeys } from '@layout/useAppHotkeys'
@@ -52,10 +52,10 @@ function App() {
   useEffect(() => {
     if (!catalog || !workspace?.valid) return
     let cancelled = false
-    loadProjectFromCwd().then((result) => {
+    loadTopologyFromWorkspace().then((result) => {
       if (cancelled) return
       if (result.status === 'loaded') {
-        const { graph } = reconstituteGraph(result.topology, catalog.components)
+        const { graph } = topologyToGraph(result.topology, catalog.components)
         setGraph(graph)
         notify.success(`Loaded ${workspace.projectName}.forge.json`)
       } else if (result.status === 'notFound') {

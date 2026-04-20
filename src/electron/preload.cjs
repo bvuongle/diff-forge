@@ -10,9 +10,9 @@ const electronAPI = {
   dialog: {
     openWorkspace: () => ipcRenderer.invoke('dialog:openWorkspace')
   },
-  project: {
-    export: (payload) => ipcRenderer.invoke('project:export', payload),
-    load: () => ipcRenderer.invoke('project:load')
+  topology: {
+    export: (payload) => ipcRenderer.invoke('topology:export', payload),
+    load: () => ipcRenderer.invoke('topology:load')
   }
 }
 

@@ -97,7 +97,7 @@ ipcMain.handle('workspace:openAtPath', async (_event, payload: { path: string })
   }
 })
 
-ipcMain.handle('project:export', async (_event, payload: { topology: string }) => {
+ipcMain.handle('topology:export', async (_event, payload: { topology: string }) => {
   const status = checkWorkspace(process.cwd(), homedir())
   if (!status.valid) return { status: 'invalidWorkspace', reason: status.reason }
 
@@ -125,7 +125,7 @@ async function tryRead(target: string): Promise<string | null> {
   }
 }
 
-ipcMain.handle('project:load', async () => {
+ipcMain.handle('topology:load', async () => {
   const status = checkWorkspace(process.cwd(), homedir())
   if (!status.valid) return { status: 'notFound' }
 

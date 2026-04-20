@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { exportTopology, requestWorkspaceSwitch } from '@state/projectCommands'
+import { exportTopology, requestWorkspaceSwitch } from '@state/topologyCommands'
 
 function useAppHotkeys(): void {
   useEffect(() => {
