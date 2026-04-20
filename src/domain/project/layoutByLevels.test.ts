@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT } from '@domain/layout/constants'
 import { Topology } from '@domain/topology/TopologyTypes'
-import { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT } from '@canvas/canvasConstants'
 
 import { layoutByLevels } from './layoutByLevels'
 

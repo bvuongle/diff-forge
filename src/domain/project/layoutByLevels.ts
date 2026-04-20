@@ -1,6 +1,6 @@
 import { Position } from '@domain/graph/GraphTypes'
+import { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT } from '@domain/layout/constants'
 import { Topology } from '@domain/topology/TopologyTypes'
-import { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT } from '@canvas/canvasConstants'
 
 function layoutByLevels(topology: Topology): Record<string, Position> {
   if (topology.length === 0) return {}
