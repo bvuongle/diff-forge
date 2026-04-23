@@ -9,6 +9,19 @@ const PRELOAD_SRC = resolve(__dirname, 'src/electron/preload.cjs')
 const PRELOAD_OUT_DIR = resolve(__dirname, 'dist-electron')
 const PRELOAD_OUT = resolve(PRELOAD_OUT_DIR, 'preload.cjs')
 
+const srcAliases = {
+  '@': '/src',
+  '@domain': '/src/domain',
+  '@contracts': '/src/contracts',
+  '@adapters': '/src/adapters',
+  '@state': '/src/state',
+  '@canvas': '/src/components/canvas',
+  '@catalog': '/src/components/catalog',
+  '@topbar': '/src/components/topbar',
+  '@layout': '/src/components/layout',
+  '@testing': '/src/testing'
+}
+
 function copyPreloadPlugin(): PluginOption {
   const copy = () => {
     if (!existsSync(PRELOAD_OUT_DIR)) mkdirSync(PRELOAD_OUT_DIR, { recursive: true })
@@ -37,6 +50,7 @@ export default defineConfig({
       {
         entry: 'src/electron/main.ts',
         vite: {
+          resolve: { alias: srcAliases },
           build: {
             outDir: 'dist-electron',
             rollupOptions: {
@@ -52,17 +66,6 @@ export default defineConfig({
     emptyOutDir: true
   },
   resolve: {
-    alias: {
-      '@': '/src',
-      '@domain': '/src/domain',
-      '@contracts': '/src/contracts',
-      '@adapters': '/src/adapters',
-      '@state': '/src/state',
-      '@canvas': '/src/components/canvas',
-      '@catalog': '/src/components/catalog',
-      '@topbar': '/src/components/topbar',
-      '@layout': '/src/components/layout',
-      '@testing': '/src/testing'
-    }
+    alias: srcAliases
   }
 })
