@@ -43,7 +43,7 @@ beforeEach(() => {
   useWorkspaceStore.setState({
     status: { valid: true, projectName: 'diff-forge', cwd: '/Users/dev/diff-forge' }
   })
-  useCatalogStore.setState({ catalog: null, loading: false, error: null })
+  useCatalogStore.setState({ status: { status: 'loading' }, catalog: null })
   useNotificationsStore.setState({ notifications: [] })
   useUIStore.setState({ switchConfirmOpen: false })
 })

@@ -9,8 +9,12 @@ import { SectionHeader } from './SectionHeader'
 import { setRoundedDragImage } from './setRoundedDragImage'
 
 function CatalogPanel() {
-  const { catalog, loading, error } = useCatalogStore()
+  const status = useCatalogStore((s) => s.status)
+  const catalog = useCatalogStore((s) => s.catalog)
   const { searchQuery } = useUIStore()
+
+  const loading = status.status === 'loading'
+  const errorMessage = status.status === 'error' ? status.message : status.status === 'partial' ? status.message : null
 
   const components = catalog?.components ?? []
   const filtered = searchQuery
@@ -41,17 +45,17 @@ function CatalogPanel() {
             Loading catalog...
           </Typography>
         )}
-        {error && (
+        {errorMessage && (
           <Typography variant="body2" color="error" px={1}>
-            {error}
+            {errorMessage}
           </Typography>
         )}
-        {!loading && !error && filtered.length === 0 && (
+        {!loading && filtered.length === 0 && !errorMessage && (
           <Typography variant="body2" color="text.secondary" px={1}>
             No matches found.
           </Typography>
         )}
-        {!loading && !error && filtered.length > 0 && (
+        {!loading && filtered.length > 0 && (
           <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {filtered.map((component) => (
               <ListItemButton
