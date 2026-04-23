@@ -5,6 +5,9 @@ import { fileURLToPath } from 'url'
 
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 
+import { createFsCatalogCache } from '../adapters/FsCatalogCache'
+import type { CatalogCache } from '../contracts/CatalogCache'
+import { parseEnv, REPOS_VAR, TOKEN_VAR } from '../domain/catalog/envRepos'
 import { checkWorkspace } from '../domain/workspace/workspaceContext'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -143,7 +146,73 @@ ipcMain.handle('topology:load', async () => {
   }
 })
 
-app.on('ready', createWindow)
+let catalogCache: CatalogCache | null = null
+
+async function handleCatalogLoad() {
+  const env = parseEnv(process.env)
+  if (env.status === 'unconfigured') {
+    return { status: 'unconfigured', missing: env.missing }
+  }
+  if (env.status === 'invalid') {
+    return { status: 'error', message: env.message, repos: [] }
+  }
+  if (!catalogCache) return { status: 'error', message: 'Catalog cache not initialized', repos: [] }
+
+  const snapshot = await catalogCache.read()
+  const repoSummaries = env.repos.map((r) => {
+    const record = snapshot.repos.find((rec) => rec.slug === r.slug)
+    return (
+      record ?? {
+        url: r.url,
+        slug: r.slug,
+        state: { status: 'failed' as const, reason: 'never-fetched' }
+      }
+    )
+  })
+
+  if (snapshot.merged) {
+    const anyFailed = repoSummaries.some((r) => r.state.status === 'failed')
+    if (anyFailed) {
+      return {
+        status: 'partial',
+        catalog: JSON.stringify(snapshot.merged),
+        repos: repoSummaries,
+        message: 'Some repositories were never fetched. Using cached catalog.'
+      }
+    }
+    return { status: 'ready', catalog: JSON.stringify(snapshot.merged), repos: repoSummaries }
+  }
+
+  return {
+    status: 'error',
+    message: 'No cached catalog yet. Click Refresh to fetch from configured repositories.',
+    repos: repoSummaries
+  }
+}
+
+ipcMain.handle('catalog:load', handleCatalogLoad)
+ipcMain.handle('catalog:refresh', handleCatalogLoad)
+
+function reportStartupEnv(): void {
+  const config = parseEnv(process.env)
+  if (config.status === 'unconfigured') {
+    // Intentional CLI stderr: user launched from terminal; no UI yet to show this.
+    // eslint-disable-next-line no-console
+    console.error(
+      `[diff-forge] ${REPOS_VAR} is not set. Catalog will be empty until configured.\n` +
+        `Example:\n` +
+        `  export ${REPOS_VAR}="https://repo.example/artifactory/conan-repo"\n` +
+        `  export ${TOKEN_VAR}="<optional-bearer-token>"\n` +
+        `Then relaunch: diff_forge .`
+    )
+  }
+}
+
+app.on('ready', () => {
+  catalogCache = createFsCatalogCache({ baseDir: app.getPath('userData') })
+  reportStartupEnv()
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
