@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import RefreshIcon from '@mui/icons-material/Refresh'
-import { Alert, Box, Button, Chip, Divider, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, Chip, Divider, Stack, TextField, Tooltip, Typography } from '@mui/material'
 
+import type { RepoSummary } from '@domain/catalog/CatalogStatus'
 import { reasonMessage } from '@domain/workspace/workspaceContext'
 import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
@@ -58,15 +60,39 @@ function CatalogSection() {
     }
   }
 
-  if (status.status === 'ready' || status.status === 'partial') {
+  if (status.status === 'ready') {
     return (
-      <Stack direction="row" spacing={1} alignItems="center">
-        <CheckCircleOutlineIcon color="success" />
-        <Typography variant="body2">
-          Catalog ready: {status.catalog.components.length} components across {status.repos.length} repositor
-          {status.repos.length === 1 ? 'y' : 'ies'}
-        </Typography>
+      <Stack spacing={1} alignItems="center" width="100%">
+        <Stack direction="row" spacing={1} alignItems="center">
+          <CheckCircleOutlineIcon color="success" />
+          <Typography variant="body2">
+            Catalog ready: {status.catalog.components.length} components across {status.repos.length}{' '}
+            {status.repos.length === 1 ? 'repository' : 'repositories'}
+          </Typography>
+        </Stack>
+        <RepoStatusList repos={status.repos} />
+        <Button size="small" startIcon={<RefreshIcon />} onClick={onRefresh} disabled={busy}>
+          Refresh
+        </Button>
       </Stack>
+    )
+  }
+
+  if (status.status === 'partial') {
+    return (
+      <Alert severity="warning" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
+        <Stack spacing={1}>
+          <Typography variant="body2">
+            {status.catalog.components.length} components loaded. {status.message}
+          </Typography>
+          <RepoStatusList repos={status.repos} />
+          <Box>
+            <Button size="small" startIcon={<RefreshIcon />} onClick={onRefresh} disabled={busy}>
+              Refresh
+            </Button>
+          </Box>
+        </Stack>
+      </Alert>
     )
   }
 
@@ -109,19 +135,54 @@ diff_forge .`}
 
   return (
     <Alert severity="error" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
-      <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+      <Stack spacing={1}>
         <Typography variant="body2">{status.message}</Typography>
-        <Button
-          size="small"
-          startIcon={<RefreshIcon />}
-          onClick={onRefresh}
-          disabled={busy}
-          aria-label="Refresh catalog"
-        >
-          Refresh
-        </Button>
+        {status.repos.length > 0 && <RepoStatusList repos={status.repos} />}
+        <Box>
+          <Button
+            size="small"
+            startIcon={<RefreshIcon />}
+            onClick={onRefresh}
+            disabled={busy}
+            aria-label="Refresh catalog"
+          >
+            Refresh
+          </Button>
+        </Box>
       </Stack>
     </Alert>
+  )
+}
+
+function RepoStatusList({ repos }: { repos: RepoSummary[] }) {
+  if (repos.length === 0) return null
+  return (
+    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+      {repos.map((repo) => (
+        <RepoChip key={repo.slug} repo={repo} />
+      ))}
+    </Stack>
+  )
+}
+
+function RepoChip({ repo }: { repo: RepoSummary }) {
+  const isOk = repo.state.status === 'fresh' || repo.state.status === 'stale'
+  const reason = repo.state.status === 'failed' ? repo.state.reason : null
+  const chip = (
+    <Chip
+      size="small"
+      icon={isOk ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
+      color={isOk ? 'success' : 'error'}
+      variant="outlined"
+      label={repo.slug}
+    />
+  )
+  return reason ? (
+    <Tooltip title={reason} placement="top">
+      {chip}
+    </Tooltip>
+  ) : (
+    chip
   )
 }
 
