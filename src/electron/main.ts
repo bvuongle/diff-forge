@@ -5,9 +5,12 @@ import { fileURLToPath } from 'url'
 
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 
+import { createArtifactoryRestFetcher } from '../adapters/ArtifactoryRestFetcher'
 import { createFsCatalogCache } from '../adapters/FsCatalogCache'
-import type { CatalogCache } from '../contracts/CatalogCache'
-import { parseEnv, REPOS_VAR, TOKEN_VAR } from '../domain/catalog/envRepos'
+import type { CatalogCache, RepoFetchRecord } from '../contracts/CatalogCache'
+import type { CatalogRepoFetcher, RepoFetchResult } from '../contracts/CatalogRepoFetcher'
+import { parseEnv, REPOS_VAR, TOKEN_VAR, type RepoConfig } from '../domain/catalog/envRepos'
+import { mergeCatalogs } from '../domain/catalog/mergeCatalogs'
 import { checkWorkspace } from '../domain/workspace/workspaceContext'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -147,6 +150,7 @@ ipcMain.handle('topology:load', async () => {
 })
 
 let catalogCache: CatalogCache | null = null
+let repoFetcher: CatalogRepoFetcher | null = null
 
 async function handleCatalogLoad() {
   const env = parseEnv(process.env)
@@ -190,8 +194,54 @@ async function handleCatalogLoad() {
   }
 }
 
+async function handleCatalogRefresh() {
+  const env = parseEnv(process.env)
+  if (env.status === 'unconfigured') {
+    return { status: 'unconfigured', missing: env.missing }
+  }
+  if (env.status === 'invalid') {
+    return { status: 'error', message: env.message, repos: [] }
+  }
+  if (!catalogCache || !repoFetcher) {
+    return { status: 'error', message: 'Catalog services not initialized', repos: [] }
+  }
+
+  const results = await Promise.all(env.repos.map((repo: RepoConfig) => repoFetcher!.fetch(repo, env.token)))
+
+  const successes = results.filter((r): r is Extract<RepoFetchResult, { status: 'ok' }> => r.status === 'ok')
+  const failures = results.filter((r): r is Extract<RepoFetchResult, { status: 'failed' }> => r.status === 'failed')
+
+  const records: RepoFetchRecord[] = results.map((r) =>
+    r.status === 'ok'
+      ? { slug: r.slug, url: r.url, state: { status: 'fresh', fetchedAt: r.fetchedAt } }
+      : { slug: r.slug, url: r.url, state: { status: 'failed', reason: r.reason } }
+  )
+  await catalogCache.writeRepos(records)
+
+  if (successes.length === 0) {
+    return {
+      status: 'error',
+      message: `All ${failures.length} repositories failed to refresh. See repo details.`,
+      repos: records
+    }
+  }
+
+  const merged = mergeCatalogs(successes.map((s) => s.catalog))
+  await catalogCache.writeMerged(merged)
+
+  if (failures.length === 0) {
+    return { status: 'ready', catalog: JSON.stringify(merged), repos: records }
+  }
+  return {
+    status: 'partial',
+    catalog: JSON.stringify(merged),
+    repos: records,
+    message: `${failures.length} of ${results.length} repositories failed. Showing partial catalog.`
+  }
+}
+
 ipcMain.handle('catalog:load', handleCatalogLoad)
-ipcMain.handle('catalog:refresh', handleCatalogLoad)
+ipcMain.handle('catalog:refresh', handleCatalogRefresh)
 
 function reportStartupEnv(): void {
   const config = parseEnv(process.env)
@@ -210,6 +260,7 @@ function reportStartupEnv(): void {
 
 app.on('ready', () => {
   catalogCache = createFsCatalogCache({ baseDir: app.getPath('userData') })
+  repoFetcher = createArtifactoryRestFetcher({ fetch })
   reportStartupEnv()
   createWindow()
 })
