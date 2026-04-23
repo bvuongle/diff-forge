@@ -2,14 +2,13 @@ import { useEffect } from 'react'
 
 import { CssBaseline } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
-import { ZodError } from 'zod'
 
-import { CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
 import { topologyToGraph } from '@domain/topology/topologyToGraph'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { notify } from '@state/notificationsStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
+import { loadCatalog } from '@adapters/catalogLoader'
 import { getWorkspaceStatus } from '@adapters/electronWorkspace'
 import { loadTopologyFromWorkspace } from '@adapters/topologyLoader'
 import { MainLayout } from '@layout/MainLayout'
@@ -17,12 +16,12 @@ import { NotificationHost } from '@layout/NotificationHost'
 import { useAppHotkeys } from '@layout/useAppHotkeys'
 import { WelcomeScreen } from '@layout/WelcomeScreen'
 
-import catalogData from '@/assets/mock/catalog.v1.json'
 import { theme } from '@/styles/theme'
 
 function App() {
-  const { setCatalog, setLoading, setError } = useCatalogStore()
+  const setCatalogStatus = useCatalogStore((s) => s.setStatus)
   const catalog = useCatalogStore((s) => s.catalog)
+  const catalogStatus = useCatalogStore((s) => s.status)
   const setGraph = useGraphStore((s) => s.setGraph)
   const workspace = useWorkspaceStore((s) => s.status)
   const setWorkspaceStatus = useWorkspaceStore((s) => s.setStatus)
@@ -30,20 +29,26 @@ function App() {
   useAppHotkeys()
 
   useEffect(() => {
-    setLoading(true)
-    try {
-      const loaded = CatalogDocumentZ.parse(catalogData)
-      setCatalog(loaded)
-    } catch (err) {
-      if (err instanceof ZodError) {
-        setError(`Invalid catalog schema: ${err.issues.length} validation error(s)`)
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to load catalog')
+    loadCatalog().then((result) => {
+      if (result.status === 'unavailable') {
+        setCatalogStatus({
+          status: 'error',
+          message: 'Catalog IPC unavailable (non-Electron runtime)',
+          repos: []
+        })
+        return
       }
-    } finally {
-      setLoading(false)
-    }
-  }, [setCatalog, setLoading, setError])
+      if (result.status === 'unconfigured') {
+        setCatalogStatus({ status: 'unconfigured' })
+        return
+      }
+      if (result.status === 'error') {
+        setCatalogStatus({ status: 'error', message: result.message, repos: result.repos })
+        return
+      }
+      setCatalogStatus(result)
+    })
+  }, [setCatalogStatus])
 
   useEffect(() => {
     getWorkspaceStatus().then(setWorkspaceStatus)
@@ -68,7 +73,9 @@ function App() {
     }
   }, [catalog, workspace, setGraph])
 
-  const showWelcome = workspace !== null && !workspace.valid
+  const workspaceReady = workspace?.valid === true
+  const catalogReady = catalogStatus.status === 'ready' || catalogStatus.status === 'partial'
+  const showWelcome = !workspaceReady || !catalogReady
 
   return (
     <ThemeProvider theme={theme}>
