@@ -7,6 +7,7 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import { Alert, Box, Button, Chip, Divider, Stack, TextField, Tooltip, Typography } from '@mui/material'
 
 import type { RepoSummary } from '@domain/catalog/CatalogStatus'
+import { relativeTime } from '@domain/catalog/relativeTime'
 import { reasonMessage } from '@domain/workspace/workspaceContext'
 import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
@@ -167,7 +168,7 @@ function RepoStatusList({ repos }: { repos: RepoSummary[] }) {
 
 function RepoChip({ repo }: { repo: RepoSummary }) {
   const isOk = repo.state.status === 'fresh' || repo.state.status === 'stale'
-  const reason = repo.state.status === 'failed' ? repo.state.reason : null
+  const tooltip = chipTooltip(repo)
   const chip = (
     <Chip
       size="small"
@@ -177,13 +178,18 @@ function RepoChip({ repo }: { repo: RepoSummary }) {
       label={repo.slug}
     />
   )
-  return reason ? (
-    <Tooltip title={reason} placement="top">
+  return tooltip ? (
+    <Tooltip title={tooltip} placement="top">
       {chip}
     </Tooltip>
   ) : (
     chip
   )
+}
+
+function chipTooltip(repo: RepoSummary): string | null {
+  if (repo.state.status === 'failed') return repo.state.reason
+  return `fetched ${relativeTime(repo.state.fetchedAt, new Date())}`
 }
 
 function WorkspaceSection() {
