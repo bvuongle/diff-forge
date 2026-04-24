@@ -4,7 +4,18 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import RefreshIcon from '@mui/icons-material/Refresh'
-import { Alert, Box, Button, Chip, Divider, Stack, TextField, Tooltip, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 
 import type { RepoSummary } from '@domain/catalog/CatalogStatus'
 import { relativeTime } from '@domain/catalog/relativeTime'
@@ -72,9 +83,7 @@ function CatalogSection() {
           </Typography>
         </Stack>
         <RepoStatusList repos={status.repos} />
-        <Button size="small" startIcon={<RefreshIcon />} onClick={onRefresh} disabled={busy}>
-          Refresh
-        </Button>
+        <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} />
       </Stack>
     )
   }
@@ -88,9 +97,7 @@ function CatalogSection() {
           </Typography>
           <RepoStatusList repos={status.repos} />
           <Box>
-            <Button size="small" startIcon={<RefreshIcon />} onClick={onRefresh} disabled={busy}>
-              Refresh
-            </Button>
+            <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} />
           </Box>
         </Stack>
       </Alert>
@@ -140,18 +147,39 @@ diff_forge .`}
         <Typography variant="body2">{status.message}</Typography>
         {status.repos.length > 0 && <RepoStatusList repos={status.repos} />}
         <Box>
-          <Button
-            size="small"
-            startIcon={<RefreshIcon />}
-            onClick={onRefresh}
-            disabled={busy}
-            aria-label="Refresh catalog"
-          >
-            Refresh
-          </Button>
+          <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} ariaLabel="Refresh catalog" />
         </Box>
       </Stack>
     </Alert>
+  )
+}
+
+function RefreshButton({
+  busy,
+  repoCount,
+  onClick,
+  ariaLabel
+}: {
+  busy: boolean
+  repoCount: number
+  onClick: () => void
+  ariaLabel?: string
+}) {
+  const label = busy
+    ? repoCount > 0
+      ? `Refreshing ${repoCount} ${repoCount === 1 ? 'repository' : 'repositories'}...`
+      : 'Refreshing...'
+    : 'Refresh'
+  return (
+    <Button
+      size="small"
+      startIcon={busy ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
+      onClick={onClick}
+      disabled={busy}
+      aria-label={ariaLabel}
+    >
+      {label}
+    </Button>
   )
 }
 
