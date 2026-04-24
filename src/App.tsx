@@ -11,10 +11,10 @@ import { useWorkspaceStore } from '@state/workspaceStore'
 import { loadCatalog } from '@adapters/catalogLoader'
 import { getWorkspaceStatus } from '@adapters/electronWorkspace'
 import { loadTopologyFromWorkspace } from '@adapters/topologyLoader'
+import { InitialLayout } from '@layout/InitialLayout'
 import { MainLayout } from '@layout/MainLayout'
 import { NotificationHost } from '@layout/NotificationHost'
 import { useAppHotkeys } from '@layout/useAppHotkeys'
-import { WelcomeScreen } from '@layout/WelcomeScreen'
 
 import { theme } from '@/styles/theme'
 
@@ -80,7 +80,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {showWelcome ? <WelcomeScreen /> : <MainLayout />}
+      {showWelcome ? <InitialLayout /> : <MainLayout />}
       <NotificationHost />
     </ThemeProvider>
   )

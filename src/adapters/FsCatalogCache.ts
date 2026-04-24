@@ -61,7 +61,7 @@ async function readRepos(target: string): Promise<RepoFetchRecord[]> {
       return parsed.repos.map(normalizeRecord)
     }
   } catch {
-    // fall through
+    return []
   }
   return []
 }

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { Badge, Box, IconButton, Popover, Stack, Tooltip, Typography } from '@mui/material'
 
-import type { RepoSummary } from '@domain/catalog/CatalogStatus'
+import type { CatalogStatus, RepoSummary } from '@domain/catalog/CatalogStatus'
 import { useCatalogStore } from '@state/catalogStore'
 
 function CatalogHealthIndicator() {
@@ -55,7 +55,7 @@ function CatalogHealthIndicator() {
   )
 }
 
-function failedRepos(status: ReturnType<typeof useCatalogStore.getState>['status']): RepoSummary[] {
+function failedRepos(status: CatalogStatus): RepoSummary[] {
   if (status.status !== 'ready' && status.status !== 'partial' && status.status !== 'error') return []
   return status.repos.filter((r) => r.state.status === 'failed')
 }
