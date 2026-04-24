@@ -17,6 +17,20 @@ type OpenWorkspaceOutcome =
   | { status: 'canceled' }
   | { status: 'error'; message: string }
 
+type RepoFetchStateDto = { status: 'ok' } | { status: 'failed'; reason: string }
+
+type RepoSummaryDto = {
+  url: string
+  slug: string
+  state: RepoFetchStateDto
+}
+
+type CatalogLoadOutcome =
+  | { status: 'unconfigured'; missing: string[] }
+  | { status: 'ready'; catalog: string; repos: RepoSummaryDto[] }
+  | { status: 'partial'; catalog: string; repos: RepoSummaryDto[]; message: string }
+  | { status: 'error'; message: string; repos: RepoSummaryDto[] }
+
 type ElectronAPI = {
   workspace: {
     status: () => Promise<WorkspaceStatus>
@@ -29,6 +43,10 @@ type ElectronAPI = {
     export: (payload: TopologyPayload) => Promise<TopologyExportOutcome>
     load: () => Promise<TopologyLoadOutcome>
   }
+  catalog: {
+    load: () => Promise<CatalogLoadOutcome>
+    refresh: () => Promise<CatalogLoadOutcome>
+  }
 }
 
 declare global {
@@ -37,4 +55,13 @@ declare global {
   }
 }
 
-export type { ElectronAPI, TopologyExportOutcome, TopologyLoadOutcome, TopologyPayload, OpenWorkspaceOutcome }
+export type {
+  ElectronAPI,
+  TopologyExportOutcome,
+  TopologyLoadOutcome,
+  TopologyPayload,
+  OpenWorkspaceOutcome,
+  CatalogLoadOutcome,
+  RepoSummaryDto,
+  RepoFetchStateDto
+}

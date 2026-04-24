@@ -28,6 +28,7 @@ import { useWorkspaceStore } from '@state/workspaceStore'
 import { getWorkspaceStatus } from '@adapters/electronWorkspace'
 
 import { AboutDialog } from './AboutDialog'
+import { CatalogHealthIndicator } from './CatalogHealthIndicator'
 import { HotkeyReferenceDialog } from './HotkeyReferenceDialog'
 
 function Topbar() {
@@ -87,6 +88,7 @@ function Topbar() {
           </Tooltip>
         )}
         <Box className="diff-topbar__spacer" />
+        <CatalogHealthIndicator />
         <Tooltip title="Keyboard & mouse reference">
           <IconButton size="small" onClick={openDialog(setHotkeysOpen)} aria-label="Keyboard reference">
             <KeyboardIcon fontSize="small" />

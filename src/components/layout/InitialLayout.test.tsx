@@ -5,13 +5,13 @@ import { useNotificationsStore } from '@state/notificationsStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
 import { renderWithTheme } from '@testing/test-utils'
 
+import { InitialLayout } from './InitialLayout'
 import { NotificationHost } from './NotificationHost'
-import { WelcomeScreen } from './WelcomeScreen'
 
-function renderWelcome() {
+function renderInitial() {
   return renderWithTheme(
     <>
-      <WelcomeScreen />
+      <InitialLayout />
       <NotificationHost />
     </>
   )
@@ -39,13 +39,13 @@ afterEach(() => {
   delete (window as unknown as { electronAPI?: unknown }).electronAPI
 })
 
-describe('WelcomeScreen', () => {
+describe('InitialLayout', () => {
   it('updates workspace status on successful pick', async () => {
     openWorkspaceMock.mockResolvedValue({
       status: 'opened',
       workspace: { valid: true, projectName: 'foo', cwd: '/tmp/foo' }
     })
-    renderWithTheme(<WelcomeScreen />)
+    renderWithTheme(<InitialLayout />)
     fireEvent.click(screen.getByRole('button', { name: /open folder/i }))
     await waitFor(() => {
       expect(useWorkspaceStore.getState().status).toEqual({
@@ -58,14 +58,14 @@ describe('WelcomeScreen', () => {
 
   it('shows error when IPC fails', async () => {
     openWorkspaceMock.mockResolvedValue({ status: 'error', message: 'denied' })
-    renderWelcome()
+    renderInitial()
     fireEvent.click(screen.getByRole('button', { name: /open folder/i }))
     expect(await screen.findByText(/denied/i)).toBeInTheDocument()
   })
 
   it('leaves state unchanged on cancel', async () => {
     openWorkspaceMock.mockResolvedValue({ status: 'canceled' })
-    renderWithTheme(<WelcomeScreen />)
+    renderWithTheme(<InitialLayout />)
     fireEvent.click(screen.getByRole('button', { name: /open folder/i }))
     await waitFor(() => expect(openWorkspaceMock).toHaveBeenCalled())
     expect(useWorkspaceStore.getState().status?.valid).toBe(false)
@@ -76,7 +76,7 @@ describe('WelcomeScreen', () => {
       status: 'opened',
       workspace: { valid: true, projectName: 'bar', cwd: '/tmp/bar' }
     })
-    renderWithTheme(<WelcomeScreen />)
+    renderWithTheme(<InitialLayout />)
     fireEvent.change(screen.getByLabelText(/workspace path/i), {
       target: { value: '/tmp/bar' }
     })
@@ -93,7 +93,7 @@ describe('WelcomeScreen', () => {
 
   it('shows error when pasted path is invalid', async () => {
     openAtPathMock.mockResolvedValue({ status: 'error', message: 'Directory does not exist' })
-    renderWelcome()
+    renderInitial()
     fireEvent.change(screen.getByLabelText(/workspace path/i), {
       target: { value: '/nope' }
     })
@@ -102,7 +102,7 @@ describe('WelcomeScreen', () => {
   })
 
   it('disables Use path button when input is empty', () => {
-    renderWithTheme(<WelcomeScreen />)
+    renderWithTheme(<InitialLayout />)
     expect(screen.getByRole('button', { name: /use path/i })).toBeDisabled()
   })
 })

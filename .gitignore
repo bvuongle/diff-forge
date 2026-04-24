@@ -43,3 +43,6 @@ coverage/
 
 # Local topology exports
 *.forge.json
+
+# Dev-only catalog publish tooling
+tools/catalog-publish/

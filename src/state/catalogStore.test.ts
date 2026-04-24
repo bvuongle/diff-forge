@@ -19,43 +19,22 @@ const mockCatalog: CatalogDocument = {
 
 describe('catalogStore', () => {
   beforeEach(() => {
-    useCatalogStore.setState({
-      catalog: null,
-      loading: false,
-      error: null
-    })
+    useCatalogStore.setState({ status: { status: 'loading' }, catalog: null })
   })
 
-  it('starts with null catalog', () => {
+  it('starts in loading status with null catalog', () => {
+    expect(useCatalogStore.getState().status).toEqual({ status: 'loading' })
     expect(useCatalogStore.getState().catalog).toBeNull()
   })
 
-  it('starts not loading', () => {
-    expect(useCatalogStore.getState().loading).toBe(false)
-  })
-
-  it('starts with no error', () => {
-    expect(useCatalogStore.getState().error).toBeNull()
-  })
-
-  it('setCatalog sets the catalog', () => {
-    useCatalogStore.getState().setCatalog(mockCatalog)
+  it('setStatus(ready) exposes the catalog', () => {
+    useCatalogStore.getState().setStatus({ status: 'ready', catalog: mockCatalog, repos: [] })
     expect(useCatalogStore.getState().catalog).toEqual(mockCatalog)
   })
 
-  it('setLoading sets loading state', () => {
-    useCatalogStore.getState().setLoading(true)
-    expect(useCatalogStore.getState().loading).toBe(true)
-  })
-
-  it('setError sets the error message', () => {
-    useCatalogStore.getState().setError('Failed to load')
-    expect(useCatalogStore.getState().error).toBe('Failed to load')
-  })
-
-  it('setError(null) clears the error', () => {
-    useCatalogStore.getState().setError('error')
-    useCatalogStore.getState().setError(null)
-    expect(useCatalogStore.getState().error).toBeNull()
+  it('setStatus(unconfigured) clears the catalog', () => {
+    useCatalogStore.getState().setStatus({ status: 'ready', catalog: mockCatalog, repos: [] })
+    useCatalogStore.getState().setStatus({ status: 'unconfigured' })
+    expect(useCatalogStore.getState().catalog).toBeNull()
   })
 })

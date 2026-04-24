@@ -13,6 +13,10 @@ const electronAPI = {
   topology: {
     export: (payload) => ipcRenderer.invoke('topology:export', payload),
     load: () => ipcRenderer.invoke('topology:load')
+  },
+  catalog: {
+    load: () => ipcRenderer.invoke('catalog:load'),
+    refresh: () => ipcRenderer.invoke('catalog:refresh')
   }
 }
 
