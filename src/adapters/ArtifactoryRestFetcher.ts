@@ -27,13 +27,7 @@ function createArtifactoryRestFetcher(deps: Deps): CatalogRepoFetcher {
         const components = await Promise.all(targets.map((target) => fetchFragment(deps.fetch, target, token)))
 
         const catalog: CatalogDocument = { schema: 'diff.catalog.v1', components }
-        return {
-          status: 'ok',
-          slug: repo.slug,
-          url: repo.url,
-          catalog,
-          fetchedAt: new Date().toISOString()
-        }
+        return { status: 'ok', slug: repo.slug, url: repo.url, catalog }
       } catch (err) {
         return failed(repo, err instanceof Error ? err.message : String(err))
       }

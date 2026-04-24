@@ -213,7 +213,7 @@ async function handleCatalogRefresh() {
 
   const records: RepoFetchRecord[] = results.map((r) =>
     r.status === 'ok'
-      ? { slug: r.slug, url: r.url, state: { status: 'fresh', fetchedAt: r.fetchedAt } }
+      ? { slug: r.slug, url: r.url, state: { status: 'ok' } }
       : { slug: r.slug, url: r.url, state: { status: 'failed', reason: r.reason } }
   )
   await catalogCache.writeRepos(records)

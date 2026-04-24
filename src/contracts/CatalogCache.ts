@@ -3,10 +3,7 @@ import type { CatalogDocument } from '@domain/catalog/CatalogSchema'
 type RepoFetchRecord = {
   slug: string
   url: string
-  state:
-    | { status: 'fresh'; fetchedAt: string }
-    | { status: 'stale'; fetchedAt: string; reason: string }
-    | { status: 'failed'; reason: string }
+  state: { status: 'ok' } | { status: 'failed'; reason: string }
 }
 
 type CacheSnapshot = {

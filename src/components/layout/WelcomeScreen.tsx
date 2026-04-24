@@ -18,7 +18,6 @@ import {
 } from '@mui/material'
 
 import type { RepoSummary } from '@domain/catalog/CatalogStatus'
-import { relativeTime } from '@domain/catalog/relativeTime'
 import { reasonMessage } from '@domain/workspace/workspaceContext'
 import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
@@ -195,8 +194,7 @@ function RepoStatusList({ repos }: { repos: RepoSummary[] }) {
 }
 
 function RepoChip({ repo }: { repo: RepoSummary }) {
-  const isOk = repo.state.status === 'fresh' || repo.state.status === 'stale'
-  const tooltip = chipTooltip(repo)
+  const isOk = repo.state.status === 'ok'
   const chip = (
     <Chip
       size="small"
@@ -206,18 +204,14 @@ function RepoChip({ repo }: { repo: RepoSummary }) {
       label={repo.slug}
     />
   )
-  return tooltip ? (
-    <Tooltip title={tooltip} placement="top">
-      {chip}
-    </Tooltip>
-  ) : (
-    chip
-  )
-}
-
-function chipTooltip(repo: RepoSummary): string | null {
-  if (repo.state.status === 'failed') return repo.state.reason
-  return `fetched ${relativeTime(repo.state.fetchedAt, new Date())}`
+  if (repo.state.status === 'failed') {
+    return (
+      <Tooltip title={repo.state.reason} placement="top">
+        {chip}
+      </Tooltip>
+    )
+  }
+  return chip
 }
 
 function WorkspaceSection() {

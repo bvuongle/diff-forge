@@ -17,10 +17,7 @@ type OpenWorkspaceOutcome =
   | { status: 'canceled' }
   | { status: 'error'; message: string }
 
-type RepoFetchStateDto =
-  | { status: 'fresh'; fetchedAt: string }
-  | { status: 'stale'; fetchedAt: string; reason: string }
-  | { status: 'failed'; reason: string }
+type RepoFetchStateDto = { status: 'ok' } | { status: 'failed'; reason: string }
 
 type RepoSummaryDto = {
   url: string

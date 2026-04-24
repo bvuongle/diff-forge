@@ -1,9 +1,6 @@
 import type { CatalogDocument } from './CatalogSchema'
 
-type RepoFetchState =
-  | { status: 'fresh'; fetchedAt: string }
-  | { status: 'stale'; fetchedAt: string; reason: string }
-  | { status: 'failed'; reason: string }
+type RepoFetchState = { status: 'ok' } | { status: 'failed'; reason: string }
 
 type RepoSummary = {
   url: string

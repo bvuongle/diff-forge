@@ -46,16 +46,33 @@ async function readMerged(target: string): Promise<CatalogDocument | null> {
   }
 }
 
+type LegacyRepoRecord = {
+  slug: string
+  url: string
+  state: { status: string; reason?: string }
+}
+
 async function readRepos(target: string): Promise<RepoFetchRecord[]> {
   const body = await readOptional(target)
   if (body === null) return []
   try {
-    const parsed = JSON.parse(body) as { version?: number; repos?: RepoFetchRecord[] }
-    if (parsed?.version === 1 && Array.isArray(parsed.repos)) return parsed.repos
+    const parsed = JSON.parse(body) as { version?: number; repos?: LegacyRepoRecord[] }
+    if (parsed?.version === 1 && Array.isArray(parsed.repos)) {
+      return parsed.repos.map(normalizeRecord)
+    }
   } catch {
     // fall through
   }
   return []
+}
+
+// Legacy records from pre-simplification used { status: 'fresh', fetchedAt } / 'stale'.
+// Both now collapse to { status: 'ok' }; 'failed' is preserved with its reason.
+function normalizeRecord(record: LegacyRepoRecord): RepoFetchRecord {
+  if (record.state.status === 'failed') {
+    return { slug: record.slug, url: record.url, state: { status: 'failed', reason: record.state.reason ?? '' } }
+  }
+  return { slug: record.slug, url: record.url, state: { status: 'ok' } }
 }
 
 async function readOptional(target: string): Promise<string | null> {
