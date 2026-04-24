@@ -11,7 +11,7 @@ type CacheSnapshot = {
   repos: RepoFetchRecord[]
 }
 
-interface CatalogCache {
+type CatalogCache = {
   read(): Promise<CacheSnapshot>
   writeMerged(catalog: CatalogDocument): Promise<void>
   writeRepos(records: RepoFetchRecord[]): Promise<void>

@@ -5,7 +5,7 @@ type RepoFetchResult =
   | { status: 'ok'; slug: string; url: string; catalog: CatalogDocument }
   | { status: 'failed'; slug: string; url: string; reason: string }
 
-interface CatalogRepoFetcher {
+type CatalogRepoFetcher = {
   fetch(repo: RepoConfig, token: string | null): Promise<RepoFetchResult>
 }
 
