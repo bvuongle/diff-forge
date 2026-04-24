@@ -8,9 +8,12 @@ type FsCatalogCacheDeps = {
   baseDir: string
 }
 
+// NOTE: subfolder is 'catalog-cache' (not 'cache') because Electron manages a
+// 'Cache/' folder under userData for its HTTP cache, and macOS is case-insensitive
+// so 'cache' and 'Cache' collide. Electron wipes unknown files in that dir on boot.
 function createFsCatalogCache(deps: FsCatalogCacheDeps): CatalogCache {
-  const mergedPath = path.join(deps.baseDir, 'cache', 'merged.json')
-  const metaPath = path.join(deps.baseDir, 'cache', 'meta.json')
+  const mergedPath = path.join(deps.baseDir, 'catalog-cache', 'merged.json')
+  const metaPath = path.join(deps.baseDir, 'catalog-cache', 'meta.json')
 
   async function ensureDir(): Promise<void> {
     await mkdir(path.dirname(mergedPath), { recursive: true })
