@@ -6,6 +6,7 @@ describe('uiStore', () => {
   beforeEach(() => {
     useUIStore.setState({
       searchQuery: '',
+      searchMode: 'name',
       expandedNodeIds: new Set(),
       canvasMode: 'select',
       snapToGrid: false,
@@ -21,6 +22,17 @@ describe('uiStore', () => {
     it('setSearchQuery updates the query', () => {
       useUIStore.getState().setSearchQuery('Link')
       expect(useUIStore.getState().searchQuery).toBe('Link')
+    })
+  })
+
+  describe('searchMode', () => {
+    it('defaults to name', () => {
+      expect(useUIStore.getState().searchMode).toBe('name')
+    })
+
+    it('setSearchMode switches to interface', () => {
+      useUIStore.getState().setSearchMode('interface')
+      expect(useUIStore.getState().searchMode).toBe('interface')
     })
   })
 

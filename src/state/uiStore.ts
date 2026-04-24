@@ -1,10 +1,14 @@
 import { create } from 'zustand'
 
+import type { SearchMode } from '@domain/catalog/searchCatalog'
+
 type CanvasMode = 'select' | 'pan'
 
 type UIStore = {
   searchQuery: string
   setSearchQuery: (query: string) => void
+  searchMode: SearchMode
+  setSearchMode: (mode: SearchMode) => void
   expandedNodeIds: Set<string>
   toggleNodeExpanded: (nodeId: string) => void
   expandAll: (nodeIds: string[]) => void
@@ -22,6 +26,8 @@ type UIStore = {
 const useUIStore = create<UIStore>((set) => ({
   searchQuery: '',
   setSearchQuery: (query) => set({ searchQuery: query }),
+  searchMode: 'name',
+  setSearchMode: (mode) => set({ searchMode: mode }),
   expandedNodeIds: new Set(),
   toggleNodeExpanded: (nodeId) =>
     set((s) => {
