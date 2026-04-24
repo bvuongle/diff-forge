@@ -107,6 +107,44 @@ describe('createArtifactoryRestFetcher', () => {
     expect(result.reason).toContain('403')
   })
 
+  it('flags 401 on index with a token-rejected hint when token is provided', async () => {
+    const fetchFn = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => errorResponse(401, 'Unauthorized'))
+    const fetcher = createArtifactoryRestFetcher({ fetch: fetchFn })
+    const result = await fetcher.fetch(repo, 'expired-token')
+    expect(result.status).toBe('failed')
+    if (result.status !== 'failed') return
+    expect(result.reason).toContain('401')
+    expect(result.reason).toContain('token rejected or expired')
+  })
+
+  it('flags 401 on index with a token-missing hint when no token', async () => {
+    const fetchFn = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => errorResponse(401, 'Unauthorized'))
+    const fetcher = createArtifactoryRestFetcher({ fetch: fetchFn })
+    const result = await fetcher.fetch(repo, null)
+    expect(result.status).toBe('failed')
+    if (result.status !== 'failed') return
+    expect(result.reason).toContain('401')
+    expect(result.reason).toContain('token missing')
+  })
+
+  it('flags 403 on a fragment with the same auth hint', async () => {
+    const fetchFn = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
+      return String(url).endsWith('/_index.json')
+        ? jsonResponse({
+            schema: 'diff.catalog.index.v2',
+            components: [{ source: 'diff_broker', type: 'LinkEth', versions: ['1.0.0'] }]
+          })
+        : errorResponse(403, 'Forbidden')
+    })
+    const fetcher = createArtifactoryRestFetcher({ fetch: fetchFn })
+    const result = await fetcher.fetch(repo, 'expired-token')
+    expect(result.status).toBe('failed')
+    if (result.status !== 'failed') return
+    expect(result.reason).toContain('LinkEth@1.0.0')
+    expect(result.reason).toContain('403')
+    expect(result.reason).toContain('token rejected or expired')
+  })
+
   it('returns failed when the index body fails schema validation', async () => {
     const fetchFn = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) =>
       jsonResponse({ schema: 'wrong.schema', components: [] })

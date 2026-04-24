@@ -13,7 +13,7 @@ function createArtifactoryRestFetcher(deps: Deps): CatalogRepoFetcher {
       try {
         const indexResp = await request(deps.fetch, `${base}/_index.json`, token)
         if (!indexResp.ok) {
-          return failed(repo, `_index.json: HTTP ${indexResp.status} ${indexResp.statusText}`)
+          return failed(repo, describeHttpFailure('_index.json', indexResp, token))
         }
         const index = CatalogIndexZ.parse(await indexResp.json())
 
@@ -48,10 +48,18 @@ async function fetchFragment(
 ): Promise<CatalogComponent> {
   const resp = await request(fetchFn, target.url, token)
   if (!resp.ok) {
-    throw new Error(`${target.label}: HTTP ${resp.status} ${resp.statusText}`)
+    throw new Error(describeHttpFailure(target.label, resp, token))
   }
   const fragment = ComponentFragmentZ.parse(await resp.json())
   return fragmentToComponent(fragment)
+}
+
+function describeHttpFailure(label: string, resp: Response, token: string | null): string {
+  if (resp.status === 401 || resp.status === 403) {
+    const hint = token ? 'token rejected or expired' : 'token missing'
+    return `${label}: HTTP ${resp.status} - ${hint}`
+  }
+  return `${label}: HTTP ${resp.status} ${resp.statusText}`
 }
 
 function request(fetchFn: FetchFn, url: string, token: string | null): Promise<Response> {
