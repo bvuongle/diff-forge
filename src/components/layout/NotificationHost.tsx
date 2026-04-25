@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { Alert, Snackbar, Stack } from '@mui/material'
+import { Alert, Stack } from '@mui/material'
 
 import { useNotificationsStore, type Severity } from '@state/notificationsStore'
 
@@ -8,21 +8,31 @@ function NotificationHost() {
   const notifications = useNotificationsStore((s) => s.notifications)
   const dismiss = useNotificationsStore((s) => s.dismiss)
 
+  if (notifications.length === 0) return null
+
   return (
-    <Snackbar open={notifications.length > 0} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-      <Stack spacing={1} sx={{ width: '100%', maxWidth: 420 }}>
-        {notifications.map((n) => (
-          <AutoDismissAlert
-            key={n.id}
-            id={n.id}
-            message={n.message}
-            severity={n.severity}
-            duration={n.duration}
-            onDismiss={dismiss}
-          />
-        ))}
-      </Stack>
-    </Snackbar>
+    <Stack
+      spacing={1}
+      alignItems="flex-end"
+      sx={{
+        position: 'fixed',
+        bottom: 24,
+        right: 24,
+        zIndex: (theme) => theme.zIndex.snackbar,
+        pointerEvents: 'none'
+      }}
+    >
+      {notifications.map((n) => (
+        <AutoDismissAlert
+          key={n.id}
+          id={n.id}
+          message={n.message}
+          severity={n.severity}
+          duration={n.duration}
+          onDismiss={dismiss}
+        />
+      ))}
+    </Stack>
   )
 }
 
@@ -41,7 +51,12 @@ function AutoDismissAlert({ id, message, severity, duration, onDismiss }: AutoDi
   }, [id, duration, onDismiss])
 
   return (
-    <Alert severity={severity} variant="filled" onClose={() => onDismiss(id)} sx={{ boxShadow: 3 }}>
+    <Alert
+      severity={severity}
+      variant="filled"
+      onClose={() => onDismiss(id)}
+      sx={{ boxShadow: 3, width: 'fit-content', maxWidth: 480, pointerEvents: 'auto' }}
+    >
       {message}
     </Alert>
   )
