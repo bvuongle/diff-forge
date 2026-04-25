@@ -1,38 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { CatalogIndexZ, ComponentFragmentZ, fragmentToComponent } from './CatalogWireSchema'
-
-describe('CatalogIndexZ', () => {
-  it('parses a valid index', () => {
-    const parsed = CatalogIndexZ.parse({
-      schema: 'diff.catalog.index.v2',
-      repo: 'core',
-      components: [{ source: 'diff_broker', type: 'LinkEth', versions: ['1.0.0', '1.1.0'] }]
-    })
-    expect(parsed.components).toHaveLength(1)
-    expect(parsed.components[0].versions).toEqual(['1.0.0', '1.1.0'])
-  })
-
-  it('rejects index with wrong schema literal', () => {
-    expect(() => CatalogIndexZ.parse({ schema: 'diff.catalog.v1', components: [] })).toThrow()
-  })
-
-  it('rejects entry with empty versions', () => {
-    expect(() =>
-      CatalogIndexZ.parse({
-        schema: 'diff.catalog.index.v2',
-        components: [{ source: 's', type: 't', versions: [] }]
-      })
-    ).toThrow()
-  })
-})
+import { ComponentFragmentZ, fragmentToComponent } from './CatalogWireSchema'
 
 describe('ComponentFragmentZ', () => {
-  it('parses a valid fragment', () => {
+  it('parses a valid fragment without source', () => {
     const parsed = ComponentFragmentZ.parse({
-      schema: 'diff.component.v2',
       type: 'LinkEth',
-      source: 'diff_broker',
       version: '1.1.0',
       implements: ['ILink'],
       requires: [],
@@ -41,32 +14,29 @@ describe('ComponentFragmentZ', () => {
     expect(parsed.version).toBe('1.1.0')
   })
 
-  it('rejects fragment without schema field', () => {
+  it('rejects fragment missing required fields', () => {
     expect(() =>
       ComponentFragmentZ.parse({
         type: 'LinkEth',
-        source: 'diff_broker',
-        version: '1.0.0',
-        implements: [],
-        requires: [],
-        configSchema: {}
+        version: '1.0.0'
       })
     ).toThrow()
   })
 })
 
 describe('fragmentToComponent', () => {
-  it('drops the schema discriminator', () => {
-    const component = fragmentToComponent({
-      schema: 'diff.component.v2',
-      type: 'LinkEth',
-      source: 'diff_broker',
-      version: '1.0.0',
-      implements: [],
-      requires: [],
-      configSchema: {}
-    })
-    expect(component).not.toHaveProperty('schema')
+  it('stamps source from the fetcher onto a sourceless fragment', () => {
+    const component = fragmentToComponent(
+      {
+        type: 'LinkEth',
+        version: '1.0.0',
+        implements: [],
+        requires: [],
+        configSchema: {}
+      },
+      'https://art.example/artifactory/diff'
+    )
     expect(component.type).toBe('LinkEth')
+    expect(component.source).toBe('https://art.example/artifactory/diff')
   })
 })

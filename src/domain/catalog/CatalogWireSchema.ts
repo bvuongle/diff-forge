@@ -2,30 +2,14 @@ import { z } from 'zod'
 
 import { CatalogComponentZ, type CatalogComponent } from './CatalogSchema'
 
-const CatalogIndexEntryZ = z.object({
-  source: z.string().min(1),
-  type: z.string().min(1),
-  versions: z.array(z.string().min(1)).min(1)
-})
+const ComponentFragmentZ = CatalogComponentZ.omit({ source: true })
 
-const CatalogIndexZ = z.object({
-  schema: z.literal('diff.catalog.index.v2'),
-  repo: z.string().optional(),
-  components: z.array(CatalogIndexEntryZ)
-})
-
-const ComponentFragmentZ = CatalogComponentZ.extend({
-  schema: z.literal('diff.component.v2')
-})
-
-type CatalogIndex = z.infer<typeof CatalogIndexZ>
-type CatalogIndexEntry = z.infer<typeof CatalogIndexEntryZ>
 type ComponentFragment = z.infer<typeof ComponentFragmentZ>
 
-function fragmentToComponent(fragment: ComponentFragment): CatalogComponent {
+function fragmentToComponent(fragment: ComponentFragment, source: string): CatalogComponent {
   return {
     type: fragment.type,
-    source: fragment.source,
+    source,
     version: fragment.version,
     implements: fragment.implements,
     requires: fragment.requires,
@@ -33,5 +17,5 @@ function fragmentToComponent(fragment: ComponentFragment): CatalogComponent {
   }
 }
 
-export { CatalogIndexZ, CatalogIndexEntryZ, ComponentFragmentZ, fragmentToComponent }
-export type { CatalogIndex, CatalogIndexEntry, ComponentFragment }
+export { ComponentFragmentZ, fragmentToComponent }
+export type { ComponentFragment }
