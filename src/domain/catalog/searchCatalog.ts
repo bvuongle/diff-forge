@@ -14,7 +14,9 @@ function searchCatalog(components: CatalogComponent[], query: string, mode: Sear
   if (mode === 'name') {
     return {
       kind: 'flat',
-      matches: components.filter((c) => c.type.toLowerCase().includes(trimmed))
+      matches: components.filter(
+        (c) => c.type.toLowerCase().includes(trimmed) || c.source.toLowerCase().includes(trimmed)
+      )
     }
   }
 

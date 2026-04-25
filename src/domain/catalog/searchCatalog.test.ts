@@ -57,10 +57,10 @@ describe('searchCatalog', () => {
       expect(result.matches).toEqual([linkEth, linkGsm])
     })
 
-    it('does not match the source field', () => {
+    it('matches source (module) field as well as type', () => {
       const result = searchCatalog(all, 'message_source', 'name')
       if (result.kind !== 'flat') throw new Error('expected flat')
-      expect(result.matches).toEqual([])
+      expect(result.matches).toEqual([messageSource])
     })
 
     it('returns empty matches when nothing matches', () => {
