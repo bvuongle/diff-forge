@@ -1,29 +1,37 @@
-import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
-import { Box, Chip, Divider, List, ListItemButton, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
 
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import { Alert, Box, Divider, IconButton, List, Stack, Tooltip, Typography } from '@mui/material'
+
+import type { CatalogComponent } from '@domain/catalog/CatalogSchema'
+import { listSources, searchCatalog, type SearchResult } from '@domain/catalog/searchCatalog'
 import { useCatalogStore } from '@state/catalogStore'
 import { useUIStore } from '@state/uiStore'
 
+import { CatalogListItem } from './CatalogListItem'
+import { CollapsibleSection } from './CollapsibleSection'
+import { RefreshCatalogButton } from './RefreshCatalogButton'
 import { SearchInput } from './SearchInput'
 import { SectionHeader } from './SectionHeader'
-import { setRoundedDragImage } from './setRoundedDragImage'
+import { SourceFilter } from './SourceFilter'
 
 function CatalogPanel() {
   const status = useCatalogStore((s) => s.status)
   const catalog = useCatalogStore((s) => s.catalog)
-  const { searchQuery } = useUIStore()
+  const searchQuery = useUIStore((s) => s.searchQuery)
+  const searchMode = useUIStore((s) => s.searchMode)
+  const sourceFilters = useUIStore((s) => s.sourceFilters)
+  const toggleCollapsed = useUIStore((s) => s.toggleCatalogPanelCollapsed)
 
   const loading = status.status === 'loading'
-  const errorMessage = status.status === 'error' ? status.message : status.status === 'partial' ? status.message : null
+  const errorMessage = status.status === 'error' ? status.message : null
+  const warningMessage = status.status === 'partial' ? status.message : null
 
   const components = catalog?.components ?? []
-  const filtered = searchQuery
-    ? components.filter(
-        (c) =>
-          c.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.source.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : components
+  const sources = listSources(components)
+  const result = searchCatalog(components, searchQuery, searchMode, sourceFilters)
+  const totalCount = result.kind === 'flat' ? result.matches.length : result.provides.length + result.accepts.length
+  const placeholder = searchMode === 'name' ? 'Search by name' : 'Search by interface'
 
   return (
     <Box
@@ -35,8 +43,19 @@ function CatalogPanel() {
       minHeight={0}
     >
       <Box px={2} pt={2} pb={1}>
-        <SectionHeader title="Component Catalog" />
-        <SearchInput />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+          <SectionHeader title="Component Catalog" />
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <SourceFilter sources={sources} />
+            <RefreshCatalogButton />
+            <Tooltip title="Hide catalog">
+              <IconButton size="small" onClick={toggleCollapsed} aria-label="Hide catalog">
+                <ChevronLeftIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        </Stack>
+        <SearchInput placeholder={placeholder} />
       </Box>
       <Divider />
       <Box flex={1} overflow="auto" px={1} py={1} minHeight={0}>
@@ -50,55 +69,11 @@ function CatalogPanel() {
             {errorMessage}
           </Typography>
         )}
-        {!loading && filtered.length === 0 && !errorMessage && (
-          <Typography variant="body2" color="text.secondary" px={1}>
-            No matches found.
-          </Typography>
-        )}
-        {!loading && filtered.length > 0 && (
-          <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {filtered.map((component) => (
-              <ListItemButton
-                key={`${component.source}-${component.type}-${component.version}`}
-                draggable
-                onDragStart={(event) => {
-                  event.dataTransfer.setData('application/x-diff-component', JSON.stringify(component))
-                  event.dataTransfer.effectAllowed = 'copy'
-                  setRoundedDragImage(event)
-                }}
-                sx={{
-                  alignItems: 'flex-start',
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'var(--panel-border)',
-                  bgcolor: 'var(--panel-bg)',
-                  cursor: 'grab',
-                  '&:hover': {
-                    bgcolor: 'var(--accent-blue-light)'
-                  }
-                }}
-              >
-                <Stack direction="row" spacing={1.5} alignItems="flex-start" width="100%">
-                  <WidgetsOutlinedIcon fontSize="small" sx={{ color: 'var(--text-secondary)' }} />
-                  <Box flex={1} minWidth={0}>
-                    <Typography variant="subtitle2" fontWeight={600}>
-                      {component.type}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {component.source}
-                    </Typography>
-                    <Box mt={1}>
-                      <Chip
-                        size="small"
-                        label={`v${component.version}`}
-                        sx={{ bgcolor: 'var(--input-background)', height: 22 }}
-                      />
-                    </Box>
-                  </Box>
-                </Stack>
-              </ListItemButton>
-            ))}
-          </List>
+        {!loading && !errorMessage && (
+          <Stack spacing={1}>
+            {warningMessage && <DismissibleWarning key={warningMessage} message={warningMessage} />}
+            <ResultsView result={result} />
+          </Stack>
         )}
       </Box>
       <Divider />
@@ -108,11 +83,64 @@ function CatalogPanel() {
             Components
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {filtered.length}
+            {totalCount}
           </Typography>
         </Stack>
       </Box>
     </Box>
+  )
+}
+
+function DismissibleWarning({ message }: { message: string }) {
+  const [dismissed, setDismissed] = useState(false)
+  if (dismissed) return null
+  return (
+    <Alert severity="warning" variant="outlined" onClose={() => setDismissed(true)} sx={{ mx: 1 }}>
+      {message}
+    </Alert>
+  )
+}
+
+function ResultsView({ result }: { result: SearchResult }) {
+  if (result.kind === 'flat') {
+    if (result.matches.length === 0) return <EmptyState />
+    return <ComponentList components={result.matches} />
+  }
+
+  const empty = result.provides.length === 0 && result.accepts.length === 0
+  if (empty) return <EmptyState />
+
+  return (
+    <Stack spacing={1.5}>
+      {result.provides.length > 0 && (
+        <CollapsibleSection title="Provides" count={result.provides.length}>
+          <ComponentList components={result.provides} />
+        </CollapsibleSection>
+      )}
+      {result.accepts.length > 0 && (
+        <CollapsibleSection title="Accepts" count={result.accepts.length}>
+          <ComponentList components={result.accepts} />
+        </CollapsibleSection>
+      )}
+    </Stack>
+  )
+}
+
+function ComponentList({ components }: { components: CatalogComponent[] }) {
+  return (
+    <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {components.map((component) => (
+        <CatalogListItem key={`${component.source}-${component.type}-${component.version}`} component={component} />
+      ))}
+    </List>
+  )
+}
+
+function EmptyState() {
+  return (
+    <Typography variant="body2" color="text.secondary" px={1}>
+      No matches found.
+    </Typography>
   )
 }
 

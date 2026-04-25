@@ -10,6 +10,8 @@ import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
 import { refreshCatalog } from '@adapters/catalogLoader'
 
+type FailedRepo = { url: string; reason: string }
+
 function CatalogSection() {
   const status = useCatalogStore((s) => s.status)
   const setStatus = useCatalogStore((s) => s.setStatus)
@@ -57,7 +59,7 @@ function CatalogSection() {
           <Typography variant="body2">
             {status.catalog.components.length} components loaded. {status.message}
           </Typography>
-          <RepoStatusList repos={status.repos} />
+          <FailedReposList repos={collectFailures(status.repos)} />
           <Box>
             <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} />
           </Box>
@@ -107,12 +109,38 @@ diff_forge .`}
     <Alert severity="error" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
       <Stack spacing={1}>
         <Typography variant="body2">{status.message}</Typography>
-        {status.repos.length > 0 && <RepoStatusList repos={status.repos} />}
+        <FailedReposList repos={collectFailures(status.repos)} />
         <Box>
           <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} ariaLabel="Refresh catalog" />
         </Box>
       </Stack>
     </Alert>
+  )
+}
+
+function collectFailures(repos: RepoSummary[]): FailedRepo[] {
+  return repos
+    .filter((r) => r.state.status === 'failed')
+    .map((r) => ({ url: r.url, reason: r.state.status === 'failed' ? r.state.reason : '' }))
+}
+
+function FailedReposList({ repos }: { repos: FailedRepo[] }) {
+  if (repos.length === 0) return null
+  return (
+    <Box component="ul" sx={{ m: 0, pl: 3 }}>
+      {repos.map((repo) => (
+        <Box component="li" key={repo.url} sx={{ mb: 0.5 }}>
+          <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
+            {repo.url}
+          </Typography>
+          {repo.reason && (
+            <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word', display: 'block' }}>
+              {repo.reason}
+            </Typography>
+          )}
+        </Box>
+      ))}
+    </Box>
   )
 }
 
@@ -150,31 +178,33 @@ function RepoStatusList({ repos }: { repos: RepoSummary[] }) {
   return (
     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
       {repos.map((repo) => (
-        <RepoChip key={repo.slug} repo={repo} />
+        <RepoChip key={repo.url} repo={repo} />
       ))}
     </Stack>
   )
 }
 
+function repoLabel(url: string): string {
+  const trimmed = url.replace(/\/+$/, '')
+  const last = trimmed.split('/').pop()
+  return last && last.length > 0 ? last : trimmed
+}
+
 function RepoChip({ repo }: { repo: RepoSummary }) {
   const isOk = repo.state.status === 'ok'
-  const chip = (
-    <Chip
-      size="small"
-      icon={isOk ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
-      color={isOk ? 'success' : 'error'}
-      variant="outlined"
-      label={repo.slug}
-    />
+  const label = repoLabel(repo.url)
+  const tooltipTitle = repo.state.status === 'failed' ? `${repo.url}\n${repo.state.reason}` : repo.url
+  return (
+    <Tooltip title={tooltipTitle} placement="top">
+      <Chip
+        size="small"
+        icon={isOk ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
+        color={isOk ? 'success' : 'error'}
+        variant="outlined"
+        label={label}
+      />
+    </Tooltip>
   )
-  if (repo.state.status === 'failed') {
-    return (
-      <Tooltip title={repo.state.reason} placement="top">
-        {chip}
-      </Tooltip>
-    )
-  }
-  return chip
 }
 
 export { CatalogSection }

@@ -152,6 +152,47 @@ ipcMain.handle('topology:load', async () => {
 let catalogCache: CatalogCache | null = null
 let repoFetcher: CatalogRepoFetcher | null = null
 
+type FetchResult =
+  | { status: 'ready'; catalog: string; repos: RepoFetchRecord[] }
+  | { status: 'partial'; catalog: string; repos: RepoFetchRecord[]; message: string }
+  | { status: 'error'; message: string; repos: RepoFetchRecord[] }
+
+async function fetchAndStore(repos: RepoConfig[], token: string | null): Promise<FetchResult> {
+  const results = await Promise.all(repos.map((repo) => repoFetcher!.fetch(repo, token)))
+
+  const successes = results.filter((r): r is Extract<RepoFetchResult, { status: 'ok' }> => r.status === 'ok')
+  const failures = results.filter((r): r is Extract<RepoFetchResult, { status: 'failed' }> => r.status === 'failed')
+
+  const records: RepoFetchRecord[] = results.map((r) =>
+    r.status === 'ok'
+      ? { url: r.url, state: { status: 'ok' } }
+      : { url: r.url, state: { status: 'failed', reason: r.reason } }
+  )
+  await catalogCache!.writeRepos(records)
+
+  if (successes.length === 0) {
+    const noun = failures.length === 1 ? 'repository' : 'repositories'
+    return {
+      status: 'error',
+      message: `${failures.length} ${noun} failed to fetch.`,
+      repos: records
+    }
+  }
+
+  const merged = mergeCatalogs(successes.map((s) => s.catalog))
+  await catalogCache!.writeMerged(merged)
+
+  if (failures.length === 0) {
+    return { status: 'ready', catalog: JSON.stringify(merged), repos: records }
+  }
+  return {
+    status: 'partial',
+    catalog: JSON.stringify(merged),
+    repos: records,
+    message: `${failures.length} of ${results.length} ${results.length === 1 ? 'repository' : 'repositories'} failed. Showing partial catalog.`
+  }
+}
+
 async function handleCatalogLoad() {
   const env = parseEnv(process.env)
   if (env.status === 'unconfigured') {
@@ -160,38 +201,23 @@ async function handleCatalogLoad() {
   if (env.status === 'invalid') {
     return { status: 'error', message: env.message, repos: [] }
   }
-  if (!catalogCache) return { status: 'error', message: 'Catalog cache not initialized', repos: [] }
+  if (!catalogCache || !repoFetcher) {
+    return { status: 'error', message: 'Catalog services not initialized', repos: [] }
+  }
+
+  const fetched = await fetchAndStore(env.repos, env.token)
+  if (fetched.status !== 'error') return fetched
 
   const snapshot = await catalogCache.read()
-  const repoSummaries = env.repos.map((r) => {
-    const record = snapshot.repos.find((rec) => rec.slug === r.slug)
-    return (
-      record ?? {
-        url: r.url,
-        slug: r.slug,
-        state: { status: 'failed' as const, reason: 'never-fetched' }
-      }
-    )
-  })
-
   if (snapshot.merged) {
-    const anyFailed = repoSummaries.some((r) => r.state.status === 'failed')
-    if (anyFailed) {
-      return {
-        status: 'partial',
-        catalog: JSON.stringify(snapshot.merged),
-        repos: repoSummaries,
-        message: 'Some repositories were never fetched. Using cached catalog.'
-      }
+    return {
+      status: 'partial',
+      catalog: JSON.stringify(snapshot.merged),
+      repos: fetched.repos,
+      message: 'All repositories failed to fetch. Showing previously cached catalog.'
     }
-    return { status: 'ready', catalog: JSON.stringify(snapshot.merged), repos: repoSummaries }
   }
-
-  return {
-    status: 'error',
-    message: 'No cached catalog yet. Click Refresh to fetch from configured repositories.',
-    repos: repoSummaries
-  }
+  return fetched
 }
 
 async function handleCatalogRefresh() {
@@ -206,38 +232,7 @@ async function handleCatalogRefresh() {
     return { status: 'error', message: 'Catalog services not initialized', repos: [] }
   }
 
-  const results = await Promise.all(env.repos.map((repo: RepoConfig) => repoFetcher!.fetch(repo, env.token)))
-
-  const successes = results.filter((r): r is Extract<RepoFetchResult, { status: 'ok' }> => r.status === 'ok')
-  const failures = results.filter((r): r is Extract<RepoFetchResult, { status: 'failed' }> => r.status === 'failed')
-
-  const records: RepoFetchRecord[] = results.map((r) =>
-    r.status === 'ok'
-      ? { slug: r.slug, url: r.url, state: { status: 'ok' } }
-      : { slug: r.slug, url: r.url, state: { status: 'failed', reason: r.reason } }
-  )
-  await catalogCache.writeRepos(records)
-
-  if (successes.length === 0) {
-    return {
-      status: 'error',
-      message: `All ${failures.length} repositories failed to refresh. See repo details.`,
-      repos: records
-    }
-  }
-
-  const merged = mergeCatalogs(successes.map((s) => s.catalog))
-  await catalogCache.writeMerged(merged)
-
-  if (failures.length === 0) {
-    return { status: 'ready', catalog: JSON.stringify(merged), repos: records }
-  }
-  return {
-    status: 'partial',
-    catalog: JSON.stringify(merged),
-    repos: records,
-    message: `${failures.length} of ${results.length} repositories failed. Showing partial catalog.`
-  }
+  return await fetchAndStore(env.repos, env.token)
 }
 
 ipcMain.handle('catalog:load', handleCatalogLoad)

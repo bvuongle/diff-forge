@@ -184,6 +184,40 @@ describe('topologyToGraph', () => {
     expect(processable.sourceSlot).toBe('IProcessable')
   })
 
+  it('skips edges when target catalog is missing', () => {
+    const topology: Topology = [
+      { type: 'LinkEth', id: 'linkEth0', version: '1.0.0', source: 'diff_broker', dependencies: [], config: {} },
+      {
+        type: 'Unknown',
+        id: 'unknown0',
+        version: '1.0.0',
+        source: 'diff_broker',
+        dependencies: ['linkEth0'],
+        config: {}
+      }
+    ]
+    const { graph, unresolved } = topologyToGraph(topology, [linkEthCatalog])
+    expect(unresolved).toEqual(['unknown0'])
+    expect(graph.edges).toEqual([])
+  })
+
+  it('skips edges when source catalog is missing', () => {
+    const topology: Topology = [
+      { type: 'Unknown', id: 'unknown0', version: '1.0.0', source: 'diff_broker', dependencies: [], config: {} },
+      {
+        type: 'MessageSource',
+        id: 'msg0',
+        version: '1.0.0',
+        source: 'diff_broker',
+        dependencies: ['unknown0'],
+        config: {}
+      }
+    ]
+    const { graph, unresolved } = topologyToGraph(topology, [msgCatalog])
+    expect(unresolved).toEqual(['unknown0'])
+    expect(graph.edges).toEqual([])
+  })
+
   it('maps multiple dependencies to requires in order', () => {
     const linkGsmCatalog = makeCatalog({ type: 'LinkGsm', implements: ['ILink'], requires: [] })
     const multiMsg = makeCatalog({

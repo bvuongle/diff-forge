@@ -39,9 +39,9 @@ function CatalogHealthIndicator() {
           </Typography>
           <Stack spacing={1}>
             {failed.map((repo) => (
-              <Box key={repo.slug}>
-                <Typography variant="body2" fontWeight={600}>
-                  {repo.slug}
+              <Box key={repo.url}>
+                <Typography variant="body2" fontWeight={600} sx={{ wordBreak: 'break-all' }}>
+                  {repo.url}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word' }}>
                   {repo.state.status === 'failed' ? repo.state.reason : ''}

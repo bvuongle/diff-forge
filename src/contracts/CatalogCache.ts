@@ -1,7 +1,6 @@
 import type { CatalogDocument } from '@domain/catalog/CatalogSchema'
 
 type RepoFetchRecord = {
-  slug: string
   url: string
   state: { status: 'ok' } | { status: 'failed'; reason: string }
 }

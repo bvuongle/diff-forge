@@ -3,7 +3,6 @@ const TOKEN_VAR = 'DF_ARTIFACTORY_TOKEN'
 
 type RepoConfig = {
   url: string
-  slug: string
 }
 
 type EnvConfig =
@@ -11,14 +10,8 @@ type EnvConfig =
   | { status: 'configured'; repos: RepoConfig[]; token: string | null }
   | { status: 'invalid'; message: string }
 
-function slugify(url: string): string {
-  return url
-    .replace(/\/+$/, '')
-    .replace(/^https?:\/\//, '')
-    .replace(/[^a-zA-Z0-9._-]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 80)
+function normalizeUrl(url: string): string {
+  return url.replace(/\/+$/, '').toLowerCase()
 }
 
 function parseEnv(env: Record<string, string | undefined>): EnvConfig {
@@ -32,25 +25,24 @@ function parseEnv(env: Record<string, string | undefined>): EnvConfig {
 
   if (urls.length === 0) return { status: 'unconfigured', missing: [REPOS_VAR] }
 
-  const repos: RepoConfig[] = urls.map((url) => ({ url, slug: slugify(url) }))
-
-  const duplicates = findDuplicateSlugs(repos)
+  const duplicates = findDuplicateUrls(urls)
   if (duplicates.length > 0) {
     return {
       status: 'invalid',
-      message: `Repository URLs collide to the same slug: ${duplicates.join(', ')}. Make URLs distinct.`
+      message: `Duplicate repository URLs: ${duplicates.join(', ')}. Each URL must be distinct.`
     }
   }
 
+  const repos: RepoConfig[] = urls.map((url) => ({ url }))
   const token = env[TOKEN_VAR]?.trim() || null
   return { status: 'configured', repos, token }
 }
 
-function findDuplicateSlugs(repos: RepoConfig[]): string[] {
+function findDuplicateUrls(urls: string[]): string[] {
   const seen = new Map<string, number>()
-  for (const r of repos) seen.set(r.slug, (seen.get(r.slug) ?? 0) + 1)
-  return [...seen.entries()].filter(([, n]) => n > 1).map(([slug]) => slug)
+  for (const u of urls) seen.set(normalizeUrl(u), (seen.get(normalizeUrl(u)) ?? 0) + 1)
+  return [...seen.entries()].filter(([, n]) => n > 1).map(([u]) => u)
 }
 
-export { parseEnv, slugify, REPOS_VAR, TOKEN_VAR }
+export { parseEnv, REPOS_VAR, TOKEN_VAR }
 export type { EnvConfig, RepoConfig }

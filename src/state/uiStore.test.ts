@@ -6,6 +6,8 @@ describe('uiStore', () => {
   beforeEach(() => {
     useUIStore.setState({
       searchQuery: '',
+      searchMode: 'name',
+      sourceFilters: new Set(),
       expandedNodeIds: new Set(),
       canvasMode: 'select',
       snapToGrid: false,
@@ -21,6 +23,47 @@ describe('uiStore', () => {
     it('setSearchQuery updates the query', () => {
       useUIStore.getState().setSearchQuery('Link')
       expect(useUIStore.getState().searchQuery).toBe('Link')
+    })
+  })
+
+  describe('searchMode', () => {
+    it('defaults to name', () => {
+      expect(useUIStore.getState().searchMode).toBe('name')
+    })
+
+    it('setSearchMode switches to interface', () => {
+      useUIStore.getState().setSearchMode('interface')
+      expect(useUIStore.getState().searchMode).toBe('interface')
+    })
+  })
+
+  describe('sourceFilters', () => {
+    it('defaults to an empty set (no filtering)', () => {
+      expect(useUIStore.getState().sourceFilters.size).toBe(0)
+    })
+
+    it('toggleSourceFilter adds a source', () => {
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      expect(useUIStore.getState().sourceFilters.has('link_eth')).toBe(true)
+    })
+
+    it('toggleSourceFilter removes an already-selected source', () => {
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      expect(useUIStore.getState().sourceFilters.has('link_eth')).toBe(false)
+    })
+
+    it('toggleSourceFilter accumulates multiple sources', () => {
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      useUIStore.getState().toggleSourceFilter('link_gsm')
+      expect(useUIStore.getState().sourceFilters.size).toBe(2)
+    })
+
+    it('clearSourceFilters removes all selections', () => {
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      useUIStore.getState().toggleSourceFilter('link_gsm')
+      useUIStore.getState().clearSourceFilters()
+      expect(useUIStore.getState().sourceFilters.size).toBe(0)
     })
   })
 
@@ -104,6 +147,31 @@ describe('uiStore', () => {
       useUIStore.getState().toggleAnimateEdges()
       useUIStore.getState().toggleAnimateEdges()
       expect(useUIStore.getState().animateEdges).toBe(false)
+    })
+  })
+
+  describe('catalogPanelCollapsed', () => {
+    beforeEach(() => {
+      localStorage.clear()
+      useUIStore.setState({ catalogPanelCollapsed: false })
+    })
+
+    it('defaults to false', () => {
+      expect(useUIStore.getState().catalogPanelCollapsed).toBe(false)
+    })
+
+    it('toggleCatalogPanelCollapsed flips the value', () => {
+      useUIStore.getState().toggleCatalogPanelCollapsed()
+      expect(useUIStore.getState().catalogPanelCollapsed).toBe(true)
+      useUIStore.getState().toggleCatalogPanelCollapsed()
+      expect(useUIStore.getState().catalogPanelCollapsed).toBe(false)
+    })
+
+    it('persists collapsed state to localStorage', () => {
+      useUIStore.getState().toggleCatalogPanelCollapsed()
+      expect(localStorage.getItem('diff-forge.catalogPanelCollapsed')).toBe('1')
+      useUIStore.getState().toggleCatalogPanelCollapsed()
+      expect(localStorage.getItem('diff-forge.catalogPanelCollapsed')).toBe('0')
     })
   })
 })

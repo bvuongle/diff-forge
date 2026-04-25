@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
-import { CssBaseline } from '@mui/material'
+import { Backdrop, CircularProgress, CssBaseline, Stack, Typography } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 
 import { topologyToGraph } from '@domain/topology/topologyToGraph'
@@ -54,11 +54,14 @@ function App() {
     getWorkspaceStatus().then(setWorkspaceStatus)
   }, [setWorkspaceStatus])
 
+  const lastLoadedCwd = useRef<string | null>(null)
   useEffect(() => {
     if (!catalog || !workspace?.valid) return
+    if (lastLoadedCwd.current === workspace.cwd) return
     let cancelled = false
     loadTopologyFromWorkspace().then((result) => {
       if (cancelled) return
+      lastLoadedCwd.current = workspace.cwd
       if (result.status === 'loaded') {
         const { graph } = topologyToGraph(result.topology, catalog.components)
         setGraph(graph)
@@ -81,6 +84,15 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       {showWelcome ? <InitialLayout /> : <MainLayout />}
+      <Backdrop
+        open={catalogStatus.status === 'loading'}
+        sx={{ zIndex: (theme) => theme.zIndex.modal + 1, color: 'common.white' }}
+      >
+        <Stack spacing={2} alignItems="center">
+          <CircularProgress color="inherit" />
+          <Typography variant="body2">Fetching catalog from configured repositories...</Typography>
+        </Stack>
+      </Backdrop>
       <NotificationHost />
     </ThemeProvider>
   )

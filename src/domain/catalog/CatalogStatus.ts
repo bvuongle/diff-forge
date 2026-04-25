@@ -4,7 +4,6 @@ type RepoFetchState = { status: 'ok' } | { status: 'failed'; reason: string }
 
 type RepoSummary = {
   url: string
-  slug: string
   state: RepoFetchState
 }
 
