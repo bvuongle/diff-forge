@@ -101,20 +101,32 @@ describe('searchCatalog', () => {
   })
 
   describe('source filter', () => {
-    it('restricts results to the chosen source', () => {
-      const result = searchCatalog(all, '', 'name', 'link_eth')
+    it('returns all components when filter set is empty', () => {
+      const result = searchCatalog(all, '', 'name', new Set())
+      if (result.kind !== 'flat') throw new Error('expected flat')
+      expect(result.matches).toEqual(all)
+    })
+
+    it('restricts results to a single chosen source', () => {
+      const result = searchCatalog(all, '', 'name', new Set(['link_eth']))
       if (result.kind !== 'flat') throw new Error('expected flat')
       expect(result.matches).toEqual([linkEth])
     })
 
+    it('returns the union when multiple sources are selected', () => {
+      const result = searchCatalog(all, '', 'name', new Set(['link_eth', 'link_gsm']))
+      if (result.kind !== 'flat') throw new Error('expected flat')
+      expect(result.matches).toEqual([linkEth, linkGsm])
+    })
+
     it('combines source filter with name query', () => {
-      const result = searchCatalog(all, 'Link', 'name', 'link_gsm')
+      const result = searchCatalog(all, 'Link', 'name', new Set(['link_gsm']))
       if (result.kind !== 'flat') throw new Error('expected flat')
       expect(result.matches).toEqual([linkGsm])
     })
 
     it('combines source filter with interface query', () => {
-      const result = searchCatalog(all, 'ILink', 'interface', 'link_eth')
+      const result = searchCatalog(all, 'ILink', 'interface', new Set(['link_eth']))
       if (result.kind !== 'grouped') throw new Error('expected grouped')
       expect(result.provides).toEqual([linkEth])
       expect(result.accepts).toEqual([])

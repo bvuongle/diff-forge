@@ -26,8 +26,8 @@ function SearchInput({ placeholder = 'Search components...' }: SearchInputProps)
       onChange={(e) => setSearchQuery(e.target.value)}
       placeholder={placeholder}
       size="small"
-      fullWidth
       variant="outlined"
+      inputProps={{ size: placeholder.length }}
       sx={{
         '& .MuiOutlinedInput-root': {
           bgcolor: 'var(--input-background)'

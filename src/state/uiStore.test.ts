@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { ALL_SOURCES } from '@domain/catalog/searchCatalog'
 import { useUIStore } from '@state/uiStore'
 
 describe('uiStore', () => {
@@ -8,7 +7,7 @@ describe('uiStore', () => {
     useUIStore.setState({
       searchQuery: '',
       searchMode: 'name',
-      sourceFilter: ALL_SOURCES,
+      sourceFilters: new Set(),
       expandedNodeIds: new Set(),
       canvasMode: 'select',
       snapToGrid: false,
@@ -38,14 +37,33 @@ describe('uiStore', () => {
     })
   })
 
-  describe('sourceFilter', () => {
-    it('defaults to all sources', () => {
-      expect(useUIStore.getState().sourceFilter).toBe(ALL_SOURCES)
+  describe('sourceFilters', () => {
+    it('defaults to an empty set (no filtering)', () => {
+      expect(useUIStore.getState().sourceFilters.size).toBe(0)
     })
 
-    it('setSourceFilter scopes to a specific source', () => {
-      useUIStore.getState().setSourceFilter('link_eth')
-      expect(useUIStore.getState().sourceFilter).toBe('link_eth')
+    it('toggleSourceFilter adds a source', () => {
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      expect(useUIStore.getState().sourceFilters.has('link_eth')).toBe(true)
+    })
+
+    it('toggleSourceFilter removes an already-selected source', () => {
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      expect(useUIStore.getState().sourceFilters.has('link_eth')).toBe(false)
+    })
+
+    it('toggleSourceFilter accumulates multiple sources', () => {
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      useUIStore.getState().toggleSourceFilter('link_gsm')
+      expect(useUIStore.getState().sourceFilters.size).toBe(2)
+    })
+
+    it('clearSourceFilters removes all selections', () => {
+      useUIStore.getState().toggleSourceFilter('link_eth')
+      useUIStore.getState().toggleSourceFilter('link_gsm')
+      useUIStore.getState().clearSourceFilters()
+      expect(useUIStore.getState().sourceFilters.size).toBe(0)
     })
   })
 
@@ -129,6 +147,31 @@ describe('uiStore', () => {
       useUIStore.getState().toggleAnimateEdges()
       useUIStore.getState().toggleAnimateEdges()
       expect(useUIStore.getState().animateEdges).toBe(false)
+    })
+  })
+
+  describe('catalogPanelCollapsed', () => {
+    beforeEach(() => {
+      localStorage.clear()
+      useUIStore.setState({ catalogPanelCollapsed: false })
+    })
+
+    it('defaults to false', () => {
+      expect(useUIStore.getState().catalogPanelCollapsed).toBe(false)
+    })
+
+    it('toggleCatalogPanelCollapsed flips the value', () => {
+      useUIStore.getState().toggleCatalogPanelCollapsed()
+      expect(useUIStore.getState().catalogPanelCollapsed).toBe(true)
+      useUIStore.getState().toggleCatalogPanelCollapsed()
+      expect(useUIStore.getState().catalogPanelCollapsed).toBe(false)
+    })
+
+    it('persists collapsed state to localStorage', () => {
+      useUIStore.getState().toggleCatalogPanelCollapsed()
+      expect(localStorage.getItem('diff-forge.catalogPanelCollapsed')).toBe('1')
+      useUIStore.getState().toggleCatalogPanelCollapsed()
+      expect(localStorage.getItem('diff-forge.catalogPanelCollapsed')).toBe('0')
     })
   })
 })

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
-import { Alert, Box, Divider, List, Stack, Typography } from '@mui/material'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import { Alert, Box, Divider, IconButton, List, Stack, Tooltip, Typography } from '@mui/material'
 
 import type { CatalogComponent } from '@domain/catalog/CatalogSchema'
 import { listSources, searchCatalog, type SearchResult } from '@domain/catalog/searchCatalog'
@@ -19,7 +20,8 @@ function CatalogPanel() {
   const catalog = useCatalogStore((s) => s.catalog)
   const searchQuery = useUIStore((s) => s.searchQuery)
   const searchMode = useUIStore((s) => s.searchMode)
-  const sourceFilter = useUIStore((s) => s.sourceFilter)
+  const sourceFilters = useUIStore((s) => s.sourceFilters)
+  const toggleCollapsed = useUIStore((s) => s.toggleCatalogPanelCollapsed)
 
   const loading = status.status === 'loading'
   const errorMessage = status.status === 'error' ? status.message : null
@@ -27,7 +29,7 @@ function CatalogPanel() {
 
   const components = catalog?.components ?? []
   const sources = listSources(components)
-  const result = searchCatalog(components, searchQuery, searchMode, sourceFilter)
+  const result = searchCatalog(components, searchQuery, searchMode, sourceFilters)
   const totalCount = result.kind === 'flat' ? result.matches.length : result.provides.length + result.accepts.length
   const placeholder = searchMode === 'name' ? 'Search by name...' : 'Search by interface...'
 
@@ -43,12 +45,17 @@ function CatalogPanel() {
       <Box px={2} pt={2} pb={1}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
           <SectionHeader title="Component Catalog" />
-          <RefreshCatalogButton />
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <SourceFilter sources={sources} />
+            <RefreshCatalogButton />
+            <Tooltip title="Hide catalog">
+              <IconButton size="small" onClick={toggleCollapsed} aria-label="Hide catalog">
+                <ChevronLeftIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
         </Stack>
-        <Stack spacing={1}>
-          <SearchInput placeholder={placeholder} />
-          <SourceFilter sources={sources} />
-        </Stack>
+        <SearchInput placeholder={placeholder} />
       </Box>
       <Divider />
       <Box flex={1} overflow="auto" px={1} py={1} minHeight={0}>

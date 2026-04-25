@@ -6,15 +6,13 @@ type SearchResult =
   | { kind: 'flat'; matches: CatalogComponent[] }
   | { kind: 'grouped'; provides: CatalogComponent[]; accepts: CatalogComponent[] }
 
-const ALL_SOURCES = '__all__'
-
 function searchCatalog(
   components: CatalogComponent[],
   query: string,
   mode: SearchMode,
-  sourceFilter: string = ALL_SOURCES
+  sourceFilters: ReadonlySet<string> = new Set()
 ): SearchResult {
-  const sourceScoped = sourceFilter === ALL_SOURCES ? components : components.filter((c) => c.source === sourceFilter)
+  const sourceScoped = sourceFilters.size === 0 ? components : components.filter((c) => sourceFilters.has(c.source))
   const trimmed = query.trim().toLowerCase()
 
   if (!trimmed) return { kind: 'flat', matches: sourceScoped }
@@ -37,5 +35,5 @@ function listSources(components: CatalogComponent[]): string[] {
   return [...set].sort()
 }
 
-export { searchCatalog, listSources, ALL_SOURCES }
+export { searchCatalog, listSources }
 export type { SearchMode, SearchResult }

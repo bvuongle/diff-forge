@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useUIStore } from '@state/uiStore'
 import { renderWithTheme } from '@testing/test-utils'
 
 import { MainLayout } from './MainLayout'
@@ -13,23 +14,31 @@ vi.mock('@catalog/CatalogPanel', () => ({
   CatalogPanel: () => <div data-testid="catalog-panel">Catalog</div>
 }))
 
+vi.mock('@catalog/CollapsedCatalogBar', () => ({
+  CollapsedCatalogBar: () => <div data-testid="catalog-collapsed-bar">Collapsed</div>
+}))
+
 vi.mock('@canvas/CanvasPanel', () => ({
   CanvasPanel: () => <div data-testid="canvas-panel">Canvas</div>
 }))
 
 describe('MainLayout', () => {
-  it('renders all three regions', () => {
+  beforeEach(() => {
+    useUIStore.setState({ catalogPanelCollapsed: false })
+  })
+
+  it('renders the catalog panel and canvas when expanded', () => {
     renderWithTheme(<MainLayout />)
     expect(screen.getByTestId('topbar')).toBeInTheDocument()
     expect(screen.getByTestId('catalog-panel')).toBeInTheDocument()
+    expect(screen.queryByTestId('catalog-collapsed-bar')).not.toBeInTheDocument()
     expect(screen.getByTestId('canvas-panel')).toBeInTheDocument()
   })
 
-  it('uses CATALOG_PANEL_WIDTH_PX in grid template', () => {
-    const { container } = renderWithTheme(<MainLayout />)
-    const gridBox = container.querySelector('.MuiBox-root .MuiBox-root')
-    expect(gridBox).toBeInTheDocument()
-    const style = window.getComputedStyle(gridBox!)
-    expect(style.display).toBe('grid')
+  it('swaps in the collapsed bar when collapsed', () => {
+    useUIStore.setState({ catalogPanelCollapsed: true })
+    renderWithTheme(<MainLayout />)
+    expect(screen.getByTestId('catalog-collapsed-bar')).toBeInTheDocument()
+    expect(screen.queryByTestId('catalog-panel')).not.toBeInTheDocument()
   })
 })
