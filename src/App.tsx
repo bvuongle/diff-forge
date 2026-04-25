@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { CssBaseline } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
@@ -54,8 +54,11 @@ function App() {
     getWorkspaceStatus().then(setWorkspaceStatus)
   }, [setWorkspaceStatus])
 
+  const loadedTopologyForCwd = useRef<string | null>(null)
   useEffect(() => {
     if (!catalog || !workspace?.valid) return
+    if (loadedTopologyForCwd.current === workspace.cwd) return
+    loadedTopologyForCwd.current = workspace.cwd
     let cancelled = false
     loadTopologyFromWorkspace().then((result) => {
       if (cancelled) return

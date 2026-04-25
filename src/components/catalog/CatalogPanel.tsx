@@ -1,4 +1,4 @@
-import { Box, Divider, List, Stack, Typography } from '@mui/material'
+import { Alert, Box, Divider, List, Stack, Typography } from '@mui/material'
 
 import type { CatalogComponent } from '@domain/catalog/CatalogSchema'
 import { searchCatalog, type SearchResult } from '@domain/catalog/searchCatalog'
@@ -19,7 +19,8 @@ function CatalogPanel() {
   const searchMode = useUIStore((s) => s.searchMode)
 
   const loading = status.status === 'loading'
-  const errorMessage = status.status === 'error' ? status.message : status.status === 'partial' ? status.message : null
+  const errorMessage = status.status === 'error' ? status.message : null
+  const warningMessage = status.status === 'partial' ? status.message : null
 
   const components = catalog?.components ?? []
   const result = searchCatalog(components, searchQuery, searchMode)
@@ -57,7 +58,16 @@ function CatalogPanel() {
             {errorMessage}
           </Typography>
         )}
-        {!loading && !errorMessage && <ResultsView result={result} />}
+        {!loading && !errorMessage && (
+          <Stack spacing={1}>
+            {warningMessage && (
+              <Alert severity="warning" variant="outlined" sx={{ mx: 1 }}>
+                {warningMessage}
+              </Alert>
+            )}
+            <ResultsView result={result} />
+          </Stack>
+        )}
       </Box>
       <Divider />
       <Box px={2} py={1.5}>
