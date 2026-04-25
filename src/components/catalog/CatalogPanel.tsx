@@ -31,7 +31,7 @@ function CatalogPanel() {
   const sources = listSources(components)
   const result = searchCatalog(components, searchQuery, searchMode, sourceFilters)
   const totalCount = result.kind === 'flat' ? result.matches.length : result.provides.length + result.accepts.length
-  const placeholder = searchMode === 'name' ? 'Search by name...' : 'Search by interface...'
+  const placeholder = searchMode === 'name' ? 'Search by name' : 'Search by interface'
 
   return (
     <Box

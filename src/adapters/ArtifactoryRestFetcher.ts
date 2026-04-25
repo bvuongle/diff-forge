@@ -98,7 +98,7 @@ async function fetchComponent(
 
 function pickLatestRevision(revisions: ReadonlyArray<{ revision: string; time?: string }>): string {
   const timed = revisions.filter((r): r is { revision: string; time: string } => typeof r.time === 'string')
-  if (timed.length === revisions.length && timed.length > 0) {
+  if (timed.length > 0) {
     return [...timed].sort((a, b) => b.time.localeCompare(a.time))[0].revision
   }
   return revisions[revisions.length - 1].revision

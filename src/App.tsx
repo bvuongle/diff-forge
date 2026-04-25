@@ -54,14 +54,14 @@ function App() {
     getWorkspaceStatus().then(setWorkspaceStatus)
   }, [setWorkspaceStatus])
 
-  const loadedTopologyCwds = useRef<Set<string>>(new Set())
+  const lastLoadedCwd = useRef<string | null>(null)
   useEffect(() => {
     if (!catalog || !workspace?.valid) return
-    if (loadedTopologyCwds.current.has(workspace.cwd)) return
+    if (lastLoadedCwd.current === workspace.cwd) return
     let cancelled = false
     loadTopologyFromWorkspace().then((result) => {
       if (cancelled) return
-      loadedTopologyCwds.current.add(workspace.cwd)
+      lastLoadedCwd.current = workspace.cwd
       if (result.status === 'loaded') {
         const { graph } = topologyToGraph(result.topology, catalog.components)
         setGraph(graph)
