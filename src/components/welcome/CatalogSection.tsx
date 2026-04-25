@@ -10,6 +10,8 @@ import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
 import { refreshCatalog } from '@adapters/catalogLoader'
 
+type FailedRepo = { url: string; reason: string }
+
 function CatalogSection() {
   const status = useCatalogStore((s) => s.status)
   const setStatus = useCatalogStore((s) => s.setStatus)
@@ -57,7 +59,7 @@ function CatalogSection() {
           <Typography variant="body2">
             {status.catalog.components.length} components loaded. {status.message}
           </Typography>
-          <RepoStatusList repos={status.repos} />
+          <FailedReposList repos={collectFailures(status.repos)} />
           <Box>
             <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} />
           </Box>
@@ -107,12 +109,38 @@ diff_forge .`}
     <Alert severity="error" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
       <Stack spacing={1}>
         <Typography variant="body2">{status.message}</Typography>
-        {status.repos.length > 0 && <RepoStatusList repos={status.repos} />}
+        <FailedReposList repos={collectFailures(status.repos)} />
         <Box>
           <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} ariaLabel="Refresh catalog" />
         </Box>
       </Stack>
     </Alert>
+  )
+}
+
+function collectFailures(repos: RepoSummary[]): FailedRepo[] {
+  return repos
+    .filter((r) => r.state.status === 'failed')
+    .map((r) => ({ url: r.url, reason: r.state.status === 'failed' ? r.state.reason : '' }))
+}
+
+function FailedReposList({ repos }: { repos: FailedRepo[] }) {
+  if (repos.length === 0) return null
+  return (
+    <Box component="ul" sx={{ m: 0, pl: 3 }}>
+      {repos.map((repo) => (
+        <Box component="li" key={repo.url} sx={{ mb: 0.5 }}>
+          <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
+            {repo.url}
+          </Typography>
+          {repo.reason && (
+            <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word', display: 'block' }}>
+              {repo.reason}
+            </Typography>
+          )}
+        </Box>
+      ))}
+    </Box>
   )
 }
 

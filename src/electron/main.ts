@@ -171,9 +171,10 @@ async function fetchAndStore(repos: RepoConfig[], token: string | null): Promise
   await catalogCache!.writeRepos(records)
 
   if (successes.length === 0) {
+    const noun = failures.length === 1 ? 'repository' : 'repositories'
     return {
       status: 'error',
-      message: `All ${failures.length} repositories failed to fetch. See repo details.`,
+      message: `${failures.length} ${noun} failed to fetch.`,
       repos: records
     }
   }
@@ -188,7 +189,7 @@ async function fetchAndStore(repos: RepoConfig[], token: string | null): Promise
     status: 'partial',
     catalog: JSON.stringify(merged),
     repos: records,
-    message: `${failures.length} of ${results.length} repositories failed. Showing partial catalog.`
+    message: `${failures.length} of ${results.length} ${results.length === 1 ? 'repository' : 'repositories'} failed. Showing partial catalog.`
   }
 }
 
