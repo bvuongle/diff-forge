@@ -27,7 +27,7 @@ function createArtifactoryRestFetcher(deps: Deps): CatalogRepoFetcher {
         const components = await Promise.all(targets.map((target) => fetchFragment(deps.fetch, target, token)))
 
         const catalog: CatalogDocument = { schema: 'diff.catalog.v1', components }
-        return { status: 'ok', slug: repo.slug, url: repo.url, catalog }
+        return { status: 'ok', url: repo.url, catalog }
       } catch (err) {
         return failed(repo, err instanceof Error ? err.message : String(err))
       }
@@ -66,8 +66,8 @@ function trimSlash(s: string): string {
   return s.replace(/\/+$/, '')
 }
 
-function failed(repo: { slug: string; url: string }, reason: string): Extract<RepoFetchResult, { status: 'failed' }> {
-  return { status: 'failed', slug: repo.slug, url: repo.url, reason }
+function failed(repo: { url: string }, reason: string): Extract<RepoFetchResult, { status: 'failed' }> {
+  return { status: 'failed', url: repo.url, reason }
 }
 
 export { createArtifactoryRestFetcher }

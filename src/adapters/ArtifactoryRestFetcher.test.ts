@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { createArtifactoryRestFetcher } from './ArtifactoryRestFetcher'
 
-const repo = { slug: 'core', url: 'https://art.example/artifactory/diff/diff-forge-catalog/core' }
+const repo = { url: 'https://art.example/artifactory/diff/diff-forge-catalog/core' }
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(body), {
@@ -183,7 +183,7 @@ describe('createArtifactoryRestFetcher', () => {
       jsonResponse({ schema: 'diff.catalog.index.v2', components: [] })
     )
     const fetcher = createArtifactoryRestFetcher({ fetch: fetchFn })
-    await fetcher.fetch({ slug: 'core', url: 'https://art.example/core/' }, null)
+    await fetcher.fetch({ url: 'https://art.example/core/' }, null)
 
     expect(fetchFn.mock.calls[0][0]).toBe('https://art.example/core/_index.json')
   })

@@ -165,8 +165,8 @@ async function fetchAndStore(repos: RepoConfig[], token: string | null): Promise
 
   const records: RepoFetchRecord[] = results.map((r) =>
     r.status === 'ok'
-      ? { slug: r.slug, url: r.url, state: { status: 'ok' } }
-      : { slug: r.slug, url: r.url, state: { status: 'failed', reason: r.reason } }
+      ? { url: r.url, state: { status: 'ok' } }
+      : { url: r.url, state: { status: 'failed', reason: r.reason } }
   )
   await catalogCache!.writeRepos(records)
 

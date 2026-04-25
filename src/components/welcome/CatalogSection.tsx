@@ -150,31 +150,33 @@ function RepoStatusList({ repos }: { repos: RepoSummary[] }) {
   return (
     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
       {repos.map((repo) => (
-        <RepoChip key={repo.slug} repo={repo} />
+        <RepoChip key={repo.url} repo={repo} />
       ))}
     </Stack>
   )
 }
 
+function repoLabel(url: string): string {
+  const trimmed = url.replace(/\/+$/, '')
+  const last = trimmed.split('/').pop()
+  return last && last.length > 0 ? last : trimmed
+}
+
 function RepoChip({ repo }: { repo: RepoSummary }) {
   const isOk = repo.state.status === 'ok'
-  const chip = (
-    <Chip
-      size="small"
-      icon={isOk ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
-      color={isOk ? 'success' : 'error'}
-      variant="outlined"
-      label={repo.slug}
-    />
+  const label = repoLabel(repo.url)
+  const tooltipTitle = repo.state.status === 'failed' ? `${repo.url}\n${repo.state.reason}` : repo.url
+  return (
+    <Tooltip title={tooltipTitle} placement="top">
+      <Chip
+        size="small"
+        icon={isOk ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
+        color={isOk ? 'success' : 'error'}
+        variant="outlined"
+        label={label}
+      />
+    </Tooltip>
   )
-  if (repo.state.status === 'failed') {
-    return (
-      <Tooltip title={repo.state.reason} placement="top">
-        {chip}
-      </Tooltip>
-    )
-  }
-  return chip
 }
 
 export { CatalogSection }

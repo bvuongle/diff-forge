@@ -21,7 +21,6 @@ type RepoFetchStateDto = { status: 'ok' } | { status: 'failed'; reason: string }
 
 type RepoSummaryDto = {
   url: string
-  slug: string
   state: RepoFetchStateDto
 }
 

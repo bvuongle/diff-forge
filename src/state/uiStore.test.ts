@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { ALL_SOURCES } from '@domain/catalog/searchCatalog'
 import { useUIStore } from '@state/uiStore'
 
 describe('uiStore', () => {
@@ -7,6 +8,7 @@ describe('uiStore', () => {
     useUIStore.setState({
       searchQuery: '',
       searchMode: 'name',
+      sourceFilter: ALL_SOURCES,
       expandedNodeIds: new Set(),
       canvasMode: 'select',
       snapToGrid: false,
@@ -33,6 +35,17 @@ describe('uiStore', () => {
     it('setSearchMode switches to interface', () => {
       useUIStore.getState().setSearchMode('interface')
       expect(useUIStore.getState().searchMode).toBe('interface')
+    })
+  })
+
+  describe('sourceFilter', () => {
+    it('defaults to all sources', () => {
+      expect(useUIStore.getState().sourceFilter).toBe(ALL_SOURCES)
+    })
+
+    it('setSourceFilter scopes to a specific source', () => {
+      useUIStore.getState().setSourceFilter('link_eth')
+      expect(useUIStore.getState().sourceFilter).toBe('link_eth')
     })
   })
 

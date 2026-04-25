@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { CatalogComponent } from './CatalogSchema'
-import { searchCatalog } from './searchCatalog'
+import { listSources, searchCatalog } from './searchCatalog'
 
 const linkEth: CatalogComponent = {
   type: 'LinkEth',
@@ -57,12 +57,6 @@ describe('searchCatalog', () => {
       expect(result.matches).toEqual([linkEth, linkGsm])
     })
 
-    it('matches source (module) field as well as type', () => {
-      const result = searchCatalog(all, 'message_source', 'name')
-      if (result.kind !== 'flat') throw new Error('expected flat')
-      expect(result.matches).toEqual([messageSource])
-    })
-
     it('returns empty matches when nothing matches', () => {
       const result = searchCatalog(all, 'nope', 'name')
       if (result.kind !== 'flat') throw new Error('expected flat')
@@ -103,6 +97,37 @@ describe('searchCatalog', () => {
       if (result.kind !== 'grouped') throw new Error('expected grouped')
       expect(result.provides).toEqual([messageSource])
       expect(result.accepts).toEqual([])
+    })
+  })
+
+  describe('source filter', () => {
+    it('restricts results to the chosen source', () => {
+      const result = searchCatalog(all, '', 'name', 'link_eth')
+      if (result.kind !== 'flat') throw new Error('expected flat')
+      expect(result.matches).toEqual([linkEth])
+    })
+
+    it('combines source filter with name query', () => {
+      const result = searchCatalog(all, 'Link', 'name', 'link_gsm')
+      if (result.kind !== 'flat') throw new Error('expected flat')
+      expect(result.matches).toEqual([linkGsm])
+    })
+
+    it('combines source filter with interface query', () => {
+      const result = searchCatalog(all, 'ILink', 'interface', 'link_eth')
+      if (result.kind !== 'grouped') throw new Error('expected grouped')
+      expect(result.provides).toEqual([linkEth])
+      expect(result.accepts).toEqual([])
+    })
+  })
+
+  describe('listSources', () => {
+    it('returns unique sources sorted alphabetically', () => {
+      expect(listSources(all)).toEqual(['link_eth', 'link_gsm', 'message_source'])
+    })
+
+    it('returns empty for empty catalog', () => {
+      expect(listSources([])).toEqual([])
     })
   })
 })

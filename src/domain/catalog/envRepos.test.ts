@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseEnv, slugify } from './envRepos'
+import { parseEnv } from './envRepos'
 
 describe('parseEnv', () => {
   it('returns unconfigured when DF_ARTIFACTORY_REPOS is missing', () => {
@@ -16,7 +16,7 @@ describe('parseEnv', () => {
     const result = parseEnv({ DF_ARTIFACTORY_REPOS: 'https://a.example/conan' })
     expect(result.status).toBe('configured')
     if (result.status !== 'configured') return
-    expect(result.repos).toEqual([{ url: 'https://a.example/conan', slug: 'a.example-conan' }])
+    expect(result.repos).toEqual([{ url: 'https://a.example/conan' }])
     expect(result.token).toBeNull()
   })
 
@@ -37,16 +37,10 @@ describe('parseEnv', () => {
     expect(result.token).toBe('secret-123')
   })
 
-  it('flags colliding slugs as invalid', () => {
+  it('flags duplicate URLs as invalid (ignoring trailing slash and case)', () => {
     const result = parseEnv({
-      DF_ARTIFACTORY_REPOS: 'https://a.example/conan/,https://a.example/conan'
+      DF_ARTIFACTORY_REPOS: 'https://a.example/conan/,https://A.example/conan'
     })
     expect(result.status).toBe('invalid')
-  })
-
-  it('slugify is deterministic and URL-safe', () => {
-    expect(slugify('https://a.example/conan')).toBe('a.example-conan')
-    expect(slugify('https://a.example/conan/')).toBe('a.example-conan')
-    expect(slugify('https://host.x/path/to/repo')).toBe('host.x-path-to-repo')
   })
 })

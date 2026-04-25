@@ -1,7 +1,9 @@
+import { useState } from 'react'
+
 import { Alert, Box, Divider, List, Stack, Typography } from '@mui/material'
 
 import type { CatalogComponent } from '@domain/catalog/CatalogSchema'
-import { searchCatalog, type SearchResult } from '@domain/catalog/searchCatalog'
+import { listSources, searchCatalog, type SearchResult } from '@domain/catalog/searchCatalog'
 import { useCatalogStore } from '@state/catalogStore'
 import { useUIStore } from '@state/uiStore'
 
@@ -9,21 +11,23 @@ import { CatalogListItem } from './CatalogListItem'
 import { CollapsibleSection } from './CollapsibleSection'
 import { RefreshCatalogButton } from './RefreshCatalogButton'
 import { SearchInput } from './SearchInput'
-import { SearchModeToggle } from './SearchModeToggle'
 import { SectionHeader } from './SectionHeader'
+import { SourceFilter } from './SourceFilter'
 
 function CatalogPanel() {
   const status = useCatalogStore((s) => s.status)
   const catalog = useCatalogStore((s) => s.catalog)
   const searchQuery = useUIStore((s) => s.searchQuery)
   const searchMode = useUIStore((s) => s.searchMode)
+  const sourceFilter = useUIStore((s) => s.sourceFilter)
 
   const loading = status.status === 'loading'
   const errorMessage = status.status === 'error' ? status.message : null
   const warningMessage = status.status === 'partial' ? status.message : null
 
   const components = catalog?.components ?? []
-  const result = searchCatalog(components, searchQuery, searchMode)
+  const sources = listSources(components)
+  const result = searchCatalog(components, searchQuery, searchMode, sourceFilter)
   const totalCount = result.kind === 'flat' ? result.matches.length : result.provides.length + result.accepts.length
   const placeholder = searchMode === 'name' ? 'Search by name...' : 'Search by interface...'
 
@@ -42,8 +46,8 @@ function CatalogPanel() {
           <RefreshCatalogButton />
         </Stack>
         <Stack spacing={1}>
-          <SearchModeToggle />
           <SearchInput placeholder={placeholder} />
+          <SourceFilter sources={sources} />
         </Stack>
       </Box>
       <Divider />
@@ -60,11 +64,7 @@ function CatalogPanel() {
         )}
         {!loading && !errorMessage && (
           <Stack spacing={1}>
-            {warningMessage && (
-              <Alert severity="warning" variant="outlined" sx={{ mx: 1 }}>
-                {warningMessage}
-              </Alert>
-            )}
+            {warningMessage && <DismissibleWarning key={warningMessage} message={warningMessage} />}
             <ResultsView result={result} />
           </Stack>
         )}
@@ -81,6 +81,16 @@ function CatalogPanel() {
         </Stack>
       </Box>
     </Box>
+  )
+}
+
+function DismissibleWarning({ message }: { message: string }) {
+  const [dismissed, setDismissed] = useState(false)
+  if (dismissed) return null
+  return (
+    <Alert severity="warning" variant="outlined" onClose={() => setDismissed(true)} sx={{ mx: 1 }}>
+      {message}
+    </Alert>
   )
 }
 

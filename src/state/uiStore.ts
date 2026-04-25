@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import type { SearchMode } from '@domain/catalog/searchCatalog'
+import { ALL_SOURCES, type SearchMode } from '@domain/catalog/searchCatalog'
 
 type CanvasMode = 'select' | 'pan'
 
@@ -9,6 +9,8 @@ type UIStore = {
   setSearchQuery: (query: string) => void
   searchMode: SearchMode
   setSearchMode: (mode: SearchMode) => void
+  sourceFilter: string
+  setSourceFilter: (source: string) => void
   expandedNodeIds: Set<string>
   toggleNodeExpanded: (nodeId: string) => void
   expandAll: (nodeIds: string[]) => void
@@ -28,6 +30,8 @@ const useUIStore = create<UIStore>((set) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   searchMode: 'name',
   setSearchMode: (mode) => set({ searchMode: mode }),
+  sourceFilter: ALL_SOURCES,
+  setSourceFilter: (source) => set({ sourceFilter: source }),
   expandedNodeIds: new Set(),
   toggleNodeExpanded: (nodeId) =>
     set((s) => {
