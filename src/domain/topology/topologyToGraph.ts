@@ -36,8 +36,10 @@ function assignEdgesForEntry(
   nodeMap: Map<string, GraphNode>,
   edgeId: { next: number }
 ): GraphEdge[] {
+  if (!targetCatalog) return []
+
   const edges: GraphEdge[] = []
-  const requires = targetCatalog ? [...targetCatalog.requires].sort((a, b) => a.order - b.order) : []
+  const requires = [...targetCatalog.requires].sort((a, b) => a.order - b.order)
   const used: number[] = requires.map(() => 0)
 
   let reqIdx = 0
@@ -46,6 +48,7 @@ function assignEdgesForEntry(
     const sourceCatalog = sourceNode
       ? catalogIndex.get(keyOf(sourceNode.componentType, sourceNode.version, sourceNode.source))
       : undefined
+    if (!sourceCatalog) continue
 
     while (reqIdx < requires.length) {
       const req = requires[reqIdx]
@@ -53,26 +56,26 @@ function assignEdgesForEntry(
         reqIdx++
         continue
       }
-      const matches = sourceCatalog?.implements.includes(req.interface) ?? false
+      const matches = sourceCatalog.implements.includes(req.interface)
       if (matches) break
       if (used[reqIdx] < req.min) break
       reqIdx++
     }
 
     const req = requires[reqIdx]
-    const sourceSlot = req
-      ? (sourceCatalog?.implements.find((i) => i === req.interface) ?? sourceCatalog?.implements[0] ?? '')
-      : (sourceCatalog?.implements[0] ?? '')
+    if (!req) continue
+    const sourceSlot = sourceCatalog.implements.find((i) => i === req.interface) ?? sourceCatalog.implements[0]
+    if (!sourceSlot) continue
 
     edges.push({
       id: `edge-${edgeId.next++}`,
       sourceNodeId: depId,
       sourceSlot,
       targetNodeId: entry.id,
-      targetSlot: req?.slot ?? ''
+      targetSlot: req.slot
     })
 
-    if (req) used[reqIdx]++
+    used[reqIdx]++
   }
 
   return edges
