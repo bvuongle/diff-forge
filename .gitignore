@@ -5,6 +5,7 @@ pnpm-lock.yaml
 # Build outputs
 dist/
 dist-electron/
+release/
 .vite/
 
 # Environment
@@ -46,3 +47,4 @@ coverage/
 
 # Dev-only catalog publish tooling
 tools/catalog-publish/
+/docs

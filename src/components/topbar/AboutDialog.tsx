@@ -46,7 +46,7 @@ function AboutDialog({ open, onClose }: Props) {
           <ListItem disableGutters className="diff-about__list-item">
             <ListItemText
               primary="Launch from a project folder"
-              secondary="Run `diff_forge .` from the project directory, or use Open Folder to pick one."
+              secondary="Run `diff-forge .` from the project directory, or use Open Folder to pick one."
             />
           </ListItem>
           <ListItem disableGutters className="diff-about__list-item">
