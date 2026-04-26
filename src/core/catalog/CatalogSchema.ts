@@ -44,7 +44,6 @@ const CatalogComponentZ = z.object({
 })
 
 const CatalogDocumentZ = z.object({
-  schema: z.literal('diff.catalog.v1'),
   components: z.array(CatalogComponentZ)
 })
 

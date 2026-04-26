@@ -25,7 +25,7 @@ import { useGraphStore } from '@state/graphStore'
 import { exportTopology, performWorkspaceSwitch, requestWorkspaceSwitch } from '@state/topologyCommands'
 import { useUIStore } from '@state/uiStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
-import { getWorkspaceStatus } from '@adapters/electronWorkspace'
+import { ipcWorkspaceStore } from '@adapters/IpcWorkspaceStore'
 
 import { AboutDialog } from './AboutDialog'
 import { CatalogHealthIndicator } from './CatalogHealthIndicator'
@@ -42,14 +42,14 @@ function Topbar() {
   const [aboutOpen, setAboutOpen] = useState(false)
 
   useEffect(() => {
-    if (workspace === null) getWorkspaceStatus().then(setWorkspaceStatus)
+    if (workspace === null) ipcWorkspaceStore.getStatus().then(setWorkspaceStatus)
   }, [workspace, setWorkspaceStatus])
 
   const exportDisabled = !workspace?.valid
   const tooltipTitle = (() => {
     if (workspace === null) return 'Checking workspace...'
     if (!workspace.valid) return reasonMessage(workspace.reason)
-    return `Write ${workspace.projectName}.forge.json to ${workspace.cwd}`
+    return `Write ${workspace.name}.forge.json to ${workspace.cwd}`
   })()
 
   const onConfirmDiscard = () => {
@@ -75,7 +75,7 @@ function Topbar() {
           <Tooltip title={`${workspace.cwd} - click to switch workspace`}>
             <Chip
               icon={<FolderIcon fontSize="small" />}
-              label={workspace.projectName + (dirty ? ' *' : '')}
+              label={workspace.name + (dirty ? ' *' : '')}
               onClick={(event) => {
                 event.currentTarget.blur()
                 requestWorkspaceSwitch()

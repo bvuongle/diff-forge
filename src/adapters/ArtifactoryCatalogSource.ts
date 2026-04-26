@@ -2,8 +2,7 @@ import { gunzipSync } from 'node:zlib'
 
 import { z } from 'zod'
 
-import type { CatalogComponent, CatalogDocument } from '@core/catalog/CatalogSchema'
-import { ComponentFragmentZ, fragmentToComponent } from '@core/catalog/CatalogWireSchema'
+import { CatalogComponentZ, type CatalogComponent, type CatalogDocument } from '@core/catalog/CatalogSchema'
 import { mergeCatalogs } from '@core/catalog/mergeCatalogs'
 import type { CatalogCache } from '@contracts/CatalogCache'
 import type { CatalogLoadOutcome, CatalogSource, RepoLoadOutcome } from '@contracts/CatalogSource'
@@ -164,7 +163,7 @@ async function fetchOneRepo(
   try {
     const refs = await listRefs(fetchFn, apiBase, token)
     const components = await Promise.all(refs.map((ref) => fetchComponent(fetchFn, apiBase, ref, sourceUrl, token)))
-    const catalog: CatalogDocument = { schema: 'diff.catalog.v1', components }
+    const catalog: CatalogDocument = { components }
     return { status: 'ok', url: repoUrl, catalog }
   } catch (err) {
     return { status: 'failed', url: repoUrl, reason: err instanceof Error ? err.message : String(err) }
@@ -216,8 +215,7 @@ async function fetchComponent(
   if (!fileBytes) {
     throw new Error(`${ref.raw}: ${METADATA_FILENAME} not found inside ${EXPORT_TARBALL} at ${tgzUrl}`)
   }
-  const fragment = ComponentFragmentZ.parse(JSON.parse(fileBytes.toString('utf8')))
-  return fragmentToComponent(fragment, sourceUrl)
+  return CatalogComponentZ.parse({ ...JSON.parse(fileBytes.toString('utf8')), source: sourceUrl })
 }
 
 function pickLatestRevision(revisions: ReadonlyArray<{ revision: string; time?: string }>): string {

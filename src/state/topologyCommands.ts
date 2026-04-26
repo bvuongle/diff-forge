@@ -1,10 +1,10 @@
+import { graphToTopology } from '@core/topology/graphToTopology'
 import { reasonMessage } from '@core/workspace/workspaceContext'
 import { useGraphStore } from '@state/graphStore'
 import { notify } from '@state/notificationsStore'
 import { useUIStore } from '@state/uiStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
-import { openWorkspacePicker } from '@adapters/electronWorkspace'
-import { saveTopology } from '@adapters/topologyExporter'
+import { ipcWorkspaceStore } from '@adapters/IpcWorkspaceStore'
 
 async function exportTopology(): Promise<void> {
   const workspace = useWorkspaceStore.getState().status
@@ -13,7 +13,8 @@ async function exportTopology(): Promise<void> {
     return
   }
   const graph = useGraphStore.getState().graph
-  const outcome = await saveTopology(graph)
+  const topology = JSON.stringify(graphToTopology(graph), null, 2)
+  const outcome = await ipcWorkspaceStore.saveTopology(topology)
   if (outcome.status === 'saved') {
     notify.success(`Wrote ${outcome.topologyPath.split('/').pop() ?? outcome.topologyPath}`)
     useGraphStore.getState().markClean()
@@ -25,7 +26,7 @@ async function exportTopology(): Promise<void> {
 }
 
 async function performWorkspaceSwitch(): Promise<void> {
-  const result = await openWorkspacePicker()
+  const result = await ipcWorkspaceStore.openPicker()
   if (result.status === 'opened') {
     useWorkspaceStore.getState().setStatus(result.workspace)
   } else if (result.status === 'error') {

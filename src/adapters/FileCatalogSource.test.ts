@@ -3,11 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { CATALOG_FILE, createFileCatalogSource } from './FileCatalogSource'
 
 const validCatalog = JSON.stringify({
-  schema: 'diff.catalog.v1',
   components: [
     {
       type: 'LinkEth',
-      source: 'diff_broker',
       version: '1.0.0',
       implements: ['ILink'],
       requires: [],
@@ -27,6 +25,7 @@ describe('FileCatalogSource', () => {
     if (result.status !== 'ready') return
     expect(result.catalog.components).toHaveLength(1)
     expect(result.catalog.components[0].type).toBe('LinkEth')
+    expect(result.catalog.components[0].source).toBe('/mock/catalog.json')
     expect(result.repos).toEqual([{ url: '/mock/catalog.json', status: 'ok' }])
   })
 
@@ -57,7 +56,7 @@ describe('FileCatalogSource', () => {
   })
 
   it('returns error on missing required fields', async () => {
-    const incomplete = JSON.stringify({ schema: 'diff.catalog.v1' })
+    const incomplete = JSON.stringify({})
     const source = createFileCatalogSource({
       env: { [CATALOG_FILE]: '/mock/catalog.json' },
       readFile: vi.fn().mockResolvedValue(incomplete)

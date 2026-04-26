@@ -27,7 +27,7 @@ beforeEach(() => {
     selectedEdgeIds: new Set()
   })
   useWorkspaceStore.setState({
-    status: { valid: true, projectName: 'demo', cwd: '/Users/dev/demo' }
+    status: { valid: true, name: 'demo', cwd: '/Users/dev/demo' }
   })
   useNotificationsStore.setState({ notifications: [] })
   useUIStore.setState({ switchConfirmOpen: false })
@@ -43,7 +43,7 @@ describe('exportTopology', () => {
     exportMock.mockResolvedValue({
       status: 'saved',
       topologyPath: '/Users/dev/demo/demo.forge.json',
-      projectName: 'demo'
+      name: 'demo'
     })
     await exportTopology()
     expect(exportMock).toHaveBeenCalledTimes(1)
@@ -75,12 +75,12 @@ describe('performWorkspaceSwitch', () => {
   it('updates workspace store on opened', async () => {
     openWorkspaceMock.mockResolvedValue({
       status: 'opened',
-      workspace: { valid: true, projectName: 'next', cwd: '/next' }
+      workspace: { valid: true, name: 'next', cwd: '/next' }
     })
     await performWorkspaceSwitch()
     expect(useWorkspaceStore.getState().status).toEqual({
       valid: true,
-      projectName: 'next',
+      name: 'next',
       cwd: '/next'
     })
   })

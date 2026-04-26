@@ -329,7 +329,6 @@ describe('createArtifactoryCatalogSource - failures (no cache)', () => {
 
 describe('createArtifactoryCatalogSource - per-repo cache', () => {
   const cachedDoc: CatalogDocument = {
-    schema: 'diff.catalog.v1',
     components: [
       {
         type: 'LinkEth',
@@ -434,7 +433,6 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
 
   it('returns partial with stale + ok when one repo fails but has cache, other succeeds', async () => {
     const cachedDocB: CatalogDocument = {
-      schema: 'diff.catalog.v1',
       components: [
         {
           type: 'LinkGsm',
@@ -479,7 +477,6 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
 
   it('returns partial when all repos fail but all have cache', async () => {
     const docA: CatalogDocument = {
-      schema: 'diff.catalog.v1',
       components: [
         {
           type: 'LinkEth',
@@ -492,7 +489,6 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
       ]
     }
     const docB: CatalogDocument = {
-      schema: 'diff.catalog.v1',
       components: [
         {
           type: 'LinkGsm',

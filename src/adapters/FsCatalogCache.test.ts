@@ -13,7 +13,6 @@ const URL_B = 'https://art.example/artifactory/repoB'
 
 function makeDoc(type: string, source: string): CatalogDocument {
   return {
-    schema: 'diff.catalog.v1',
     components: [
       {
         type,

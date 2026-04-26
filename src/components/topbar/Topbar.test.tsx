@@ -23,7 +23,7 @@ beforeEach(() => {
   loadMock.mockResolvedValue({ status: 'notFound' })
   workspaceStatusMock.mockResolvedValue({
     valid: true,
-    projectName: 'diff-forge',
+    name: 'diff-forge',
     cwd: '/Users/dev/diff-forge'
   })
   Object.defineProperty(window, 'electronAPI', {
@@ -41,7 +41,7 @@ beforeEach(() => {
     selectedEdgeIds: new Set()
   })
   useWorkspaceStore.setState({
-    status: { valid: true, projectName: 'diff-forge', cwd: '/Users/dev/diff-forge' }
+    status: { valid: true, name: 'diff-forge', cwd: '/Users/dev/diff-forge' }
   })
   useCatalogStore.setState({ status: { status: 'loading' }, catalog: null })
   useNotificationsStore.setState({ notifications: [] })

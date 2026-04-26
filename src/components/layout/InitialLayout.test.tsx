@@ -43,14 +43,14 @@ describe('InitialLayout', () => {
   it('updates workspace status on successful pick', async () => {
     openWorkspaceMock.mockResolvedValue({
       status: 'opened',
-      workspace: { valid: true, projectName: 'foo', cwd: '/tmp/foo' }
+      workspace: { valid: true, name: 'foo', cwd: '/tmp/foo' }
     })
     renderWithTheme(<InitialLayout />)
     fireEvent.click(screen.getByRole('button', { name: /open folder/i }))
     await waitFor(() => {
       expect(useWorkspaceStore.getState().status).toEqual({
         valid: true,
-        projectName: 'foo',
+        name: 'foo',
         cwd: '/tmp/foo'
       })
     })
@@ -74,7 +74,7 @@ describe('InitialLayout', () => {
   it('submits pasted path through openAtPath IPC', async () => {
     openAtPathMock.mockResolvedValue({
       status: 'opened',
-      workspace: { valid: true, projectName: 'bar', cwd: '/tmp/bar' }
+      workspace: { valid: true, name: 'bar', cwd: '/tmp/bar' }
     })
     renderWithTheme(<InitialLayout />)
     fireEvent.change(screen.getByLabelText(/workspace path/i), {
@@ -85,7 +85,7 @@ describe('InitialLayout', () => {
     await waitFor(() => {
       expect(useWorkspaceStore.getState().status).toEqual({
         valid: true,
-        projectName: 'bar',
+        name: 'bar',
         cwd: '/tmp/bar'
       })
     })

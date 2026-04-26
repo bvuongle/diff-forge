@@ -8,7 +8,7 @@ function mergeCatalogs(docs: CatalogDocument[]): CatalogDocument {
       if (!byKey.has(key)) byKey.set(key, component)
     }
   }
-  return { schema: 'diff.catalog.v1', components: [...byKey.values()] }
+  return { components: [...byKey.values()] }
 }
 
 export { mergeCatalogs }

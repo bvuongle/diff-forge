@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest'
 
-import { checkWorkspace, getProjectName } from './workspaceContext'
+import { checkWorkspace, getWorkspaceName } from './workspaceContext'
 
-describe('getProjectName', () => {
+describe('getWorkspaceName', () => {
   it('returns last path segment', () => {
-    expect(getProjectName('/Users/alice/Developer/diff-forge')).toBe('diff-forge')
+    expect(getWorkspaceName('/Users/alice/Developer/diff-forge')).toBe('diff-forge')
   })
 
   it('strips trailing slash', () => {
-    expect(getProjectName('/Users/alice/Developer/diff-forge/')).toBe('diff-forge')
+    expect(getWorkspaceName('/Users/alice/Developer/diff-forge/')).toBe('diff-forge')
   })
 
   it('returns empty for root', () => {
-    expect(getProjectName('/')).toBe('')
+    expect(getWorkspaceName('/')).toBe('')
   })
 })
 
@@ -23,7 +23,7 @@ describe('checkWorkspace', () => {
     const status = checkWorkspace('/Users/alice/Developer/diff-forge', home)
     expect(status).toEqual({
       valid: true,
-      projectName: 'diff-forge',
+      name: 'diff-forge',
       cwd: '/Users/alice/Developer/diff-forge'
     })
   })
@@ -55,6 +55,6 @@ describe('checkWorkspace', () => {
   it('accepts a subdirectory of home', () => {
     const status = checkWorkspace('/Users/alice/projects/app', home)
     expect(status.valid).toBe(true)
-    if (status.valid) expect(status.projectName).toBe('app')
+    if (status.valid) expect(status.name).toBe('app')
   })
 })

@@ -6,6 +6,35 @@ import { Topology, TopologyEntry } from '@core/topology/TopologyTypes'
 const AUTO_LAYOUT_COLUMN_WIDTH = 320
 const AUTO_LAYOUT_ROW_HEIGHT = 180
 
+type TopologyParseOutcome = { status: 'parsed'; topology: Topology } | { status: 'error'; message: string }
+
+function isTopology(data: unknown): data is Topology {
+  if (!Array.isArray(data)) return false
+  return data.every(
+    (entry) =>
+      entry !== null &&
+      typeof entry === 'object' &&
+      typeof (entry as { type?: unknown }).type === 'string' &&
+      typeof (entry as { id?: unknown }).id === 'string' &&
+      typeof (entry as { version?: unknown }).version === 'string' &&
+      typeof (entry as { source?: unknown }).source === 'string' &&
+      Array.isArray((entry as { dependencies?: unknown }).dependencies)
+  )
+}
+
+function parseTopology(json: string): TopologyParseOutcome {
+  let data: unknown
+  try {
+    data = JSON.parse(json)
+  } catch (err) {
+    return { status: 'error', message: err instanceof Error ? err.message : String(err) }
+  }
+  if (!isTopology(data)) {
+    return { status: 'error', message: 'Topology file has an unexpected shape' }
+  }
+  return { status: 'parsed', topology: data }
+}
+
 function layoutByLevels(topology: Topology): Record<string, Position> {
   if (topology.length === 0) return {}
 
@@ -173,5 +202,5 @@ function topologyToGraph(topology: Topology, catalog: CatalogComponent[]): Recon
   return { graph: { nodes, edges }, unresolved }
 }
 
-export { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT, layoutByLevels, topologyToGraph }
-export type { ReconstitutionResult }
+export { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT, isTopology, layoutByLevels, parseTopology, topologyToGraph }
+export type { ReconstitutionResult, TopologyParseOutcome }

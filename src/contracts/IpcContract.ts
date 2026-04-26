@@ -1,22 +1,7 @@
-import type { WorkspaceInvalidReason, WorkspaceStatus } from '../core/workspace/WorkspaceTypes'
+import type { WorkspaceStatus } from '@core/workspace/WorkspaceTypes'
+
 import type { CatalogLoadOutcome } from './CatalogSource'
-
-type TopologyExportOutcome =
-  | { status: 'saved'; topologyPath: string; projectName: string }
-  | { status: 'invalidWorkspace'; reason: WorkspaceInvalidReason }
-  | { status: 'error'; message: string }
-
-type TopologyLoadOutcome =
-  | { status: 'loaded'; topology: string; topologyPath: string }
-  | { status: 'notFound' }
-  | { status: 'error'; message: string }
-
-type TopologyPayload = { topology: string }
-
-type OpenWorkspaceOutcome =
-  | { status: 'opened'; workspace: WorkspaceStatus }
-  | { status: 'canceled' }
-  | { status: 'error'; message: string }
+import type { OpenWorkspaceOutcome, TopologyExportOutcome, TopologyLoadOutcome } from './WorkspaceStore'
 
 type HostApi = {
   workspace: {
@@ -27,7 +12,7 @@ type HostApi = {
     openWorkspace: () => Promise<OpenWorkspaceOutcome>
   }
   topology: {
-    export: (payload: TopologyPayload) => Promise<TopologyExportOutcome>
+    export: (payload: { topology: string }) => Promise<TopologyExportOutcome>
     load: () => Promise<TopologyLoadOutcome>
   }
   catalog: {
@@ -41,4 +26,4 @@ declare global {
   }
 }
 
-export type { HostApi, TopologyExportOutcome, TopologyLoadOutcome, TopologyPayload, OpenWorkspaceOutcome }
+export type { HostApi }

@@ -4,13 +4,13 @@ import type { CatalogDocument } from './CatalogSchema'
 import { mergeCatalogs } from './mergeCatalogs'
 
 function make(components: CatalogDocument['components']): CatalogDocument {
-  return { schema: 'diff.catalog.v1', components }
+  return { components }
 }
 
 describe('mergeCatalogs', () => {
   it('returns an empty catalog when given no docs', () => {
     const merged = mergeCatalogs([])
-    expect(merged).toEqual({ schema: 'diff.catalog.v1', components: [] })
+    expect(merged).toEqual({ components: [] })
   })
 
   it('concatenates components from distinct repos', () => {

@@ -17,8 +17,11 @@ function createFileCatalogSource(deps: FileCatalogSourceDeps): CatalogSource {
       if (!filePath) return { status: 'unconfigured', missing: [CATALOG_FILE] }
 
       try {
-        const fileContent = await deps.readFile(filePath)
-        const catalog = CatalogDocumentZ.parse(JSON.parse(fileContent))
+        const raw = JSON.parse(await deps.readFile(filePath))
+        const catalog = CatalogDocumentZ.parse({
+          ...raw,
+          components: raw?.components?.map((c: unknown) => ({ ...(c as object), source: filePath }))
+        })
         return {
           status: 'ready',
           catalog,

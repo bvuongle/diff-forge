@@ -5,7 +5,7 @@ function normalize(p: string): string {
   return p
 }
 
-function getProjectName(cwd: string): string {
+function getWorkspaceName(cwd: string): string {
   const trimmed = normalize(cwd)
   const last = trimmed.split('/').pop() ?? ''
   return last
@@ -19,10 +19,10 @@ function checkWorkspace(cwd: string, homedir: string): WorkspaceStatus {
   if (normalizedCwd === '/') return { valid: false, reason: 'root', cwd }
   if (normalizedCwd === normalizedHome) return { valid: false, reason: 'home', cwd }
 
-  const projectName = getProjectName(normalizedCwd)
-  if (!projectName) return { valid: false, reason: 'empty', cwd }
+  const name = getWorkspaceName(normalizedCwd)
+  if (!name) return { valid: false, reason: 'empty', cwd }
 
-  return { valid: true, projectName, cwd: normalizedCwd }
+  return { valid: true, name, cwd: normalizedCwd }
 }
 
 function reasonMessage(reason: WorkspaceInvalidReason): string {
@@ -36,4 +36,4 @@ function reasonMessage(reason: WorkspaceInvalidReason): string {
   }
 }
 
-export { checkWorkspace, getProjectName, reasonMessage }
+export { checkWorkspace, getWorkspaceName, reasonMessage }

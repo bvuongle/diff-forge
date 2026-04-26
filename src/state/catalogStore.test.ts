@@ -4,7 +4,6 @@ import type { CatalogDocument } from '@core/catalog/CatalogSchema'
 import { useCatalogStore } from '@state/catalogStore'
 
 const mockCatalog: CatalogDocument = {
-  schema: 'diff.catalog.v1',
   components: [
     {
       type: 'LinkEth',
