@@ -87,7 +87,7 @@
   },
   "build": {
     "appId": "dev.bvuongle.diff-forge",
-    "productName": "Diff Forge",
+    "productName": "diff-forge",
     "executableName": "diff-forge",
     "asar": true,
     "npmRebuild": false,
@@ -103,6 +103,10 @@
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
+      "extendInfo": {
+        "CFBundleDisplayName": "Diff Forge",
+        "CFBundleName": "Diff Forge"
+      },
       "target": [
         {
           "target": "dmg",
@@ -116,6 +120,11 @@
     },
     "linux": {
       "category": "Development",
+      "desktop": {
+        "entry": {
+          "Name": "Diff Forge"
+        }
+      },
       "target": [
         {
           "target": "AppImage",
@@ -150,7 +159,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "perMachine": false
+      "perMachine": false,
+      "shortcutName": "Diff Forge"
     }
   }
 }
