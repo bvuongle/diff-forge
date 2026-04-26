@@ -27,6 +27,7 @@ import { useUIStore } from '@state/uiStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
 import { ipcWorkspaceStore } from '@adapters/IpcWorkspaceStore'
 
+import logoUrl from '@/assets/logo.svg'
 import { AboutDialog } from './AboutDialog'
 import { CatalogHealthIndicator } from './CatalogHealthIndicator'
 import { HotkeyReferenceDialog } from './HotkeyReferenceDialog'
@@ -67,7 +68,7 @@ function Topbar() {
   return (
     <AppBar position="static" elevation={0} color="transparent">
       <Toolbar className="diff-topbar__toolbar">
-        <Box component="img" src="/logo.svg" className="diff-topbar__logo" alt="Logo" />
+        <Box component="img" src={logoUrl} className="diff-topbar__logo" alt="Logo" />
         <Typography variant="h6" color="text.primary">
           Diff Forge
         </Typography>

@@ -18,6 +18,7 @@ import '@xyflow/react/dist/style.css'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
 
+import logoUrl from '@/assets/logo.svg'
 import { CanvasToolkit } from './CanvasToolkit'
 import { type CanvasEdge as CanvasEdgeType, type CanvasNode } from './canvasTypes'
 import { CanvasEdge } from './edges/CanvasEdge'
@@ -178,7 +179,7 @@ function CanvasPanelInner() {
           <Box textAlign="center">
             <Box
               component="img"
-              src="/logo.svg"
+              src={logoUrl}
               sx={{ height: 96, width: 96, mb: 2, opacity: 0.1, filter: 'grayscale(1)' }}
             />
             <Typography variant="h6" color="text.secondary" gutterBottom>
