@@ -2,8 +2,8 @@ import { useState } from 'react'
 
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 
-import { CatalogComponent } from '@domain/catalog/CatalogTypes'
-import { GraphNode } from '@domain/graph/GraphTypes'
+import { CatalogComponent } from '@core/catalog/CatalogTypes'
+import { GraphNode } from '@core/graph/GraphTypes'
 
 import { ConfigFieldRenderer } from '../config/ConfigFieldRenderer'
 import { JsonConfigEditor } from '../config/JsonConfigEditor'

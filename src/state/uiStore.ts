@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import { type SearchMode } from '@domain/catalog/searchCatalog'
+import { type SearchMode } from '@core/catalog/searchCatalog'
 
 type CanvasMode = 'select' | 'pan'
 

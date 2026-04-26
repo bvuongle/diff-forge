@@ -3,7 +3,7 @@ import { useState } from 'react'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { Badge, Box, IconButton, Popover, Stack, Tooltip, Typography } from '@mui/material'
 
-import type { CatalogStatus, RepoSummary } from '@domain/catalog/CatalogStatus'
+import type { CatalogStatus, RepoSummary } from '@core/catalog/CatalogStatus'
 import { useCatalogStore } from '@state/catalogStore'
 
 function CatalogHealthIndicator() {

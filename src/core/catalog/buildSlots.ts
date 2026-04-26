@@ -1,4 +1,4 @@
-import { Slot } from '@domain/graph/GraphTypes'
+import { Slot } from '@core/graph/GraphTypes'
 
 import { CatalogComponent } from './CatalogTypes'
 

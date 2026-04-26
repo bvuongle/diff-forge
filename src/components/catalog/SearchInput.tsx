@@ -3,7 +3,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import TextFieldsIcon from '@mui/icons-material/TextFields'
 import { IconButton, InputAdornment, TextField, Tooltip } from '@mui/material'
 
-import type { SearchMode } from '@domain/catalog/searchCatalog'
+import type { SearchMode } from '@core/catalog/searchCatalog'
 import { useUIStore } from '@state/uiStore'
 
 type SearchInputProps = {

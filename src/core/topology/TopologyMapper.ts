@@ -1,4 +1,4 @@
-import { Graph, GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
+import { Graph, GraphEdge, GraphNode } from '@core/graph/GraphTypes'
 
 import { Topology, TopologyEntry } from './TopologyTypes'
 

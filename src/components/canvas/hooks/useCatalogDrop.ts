@@ -2,7 +2,7 @@ import { useCallback } from 'react'
 
 import { useReactFlow } from '@xyflow/react'
 
-import { CatalogComponentZ } from '@domain/catalog/CatalogSchema'
+import { CatalogComponentZ } from '@core/catalog/CatalogSchema'
 import { useGraphStore } from '@state/graphStore'
 import { NODE_DROP_OFFSET_Y, NODE_MIN_WIDTH_COMPACT } from '@canvas/canvasConstants'
 import { createNodeFromCatalog } from '@canvas/nodes/createNodeFromCatalog'

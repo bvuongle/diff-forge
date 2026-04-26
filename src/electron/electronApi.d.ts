@@ -1,4 +1,4 @@
-import type { WorkspaceInvalidReason, WorkspaceStatus } from '../domain/workspace/WorkspaceTypes'
+import type { WorkspaceInvalidReason, WorkspaceStatus } from '../core/workspace/WorkspaceTypes'
 
 type TopologyExportOutcome =
   | { status: 'saved'; topologyPath: string; projectName: string }

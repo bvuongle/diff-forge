@@ -9,9 +9,9 @@ import { createArtifactoryRestFetcher } from '../adapters/ArtifactoryRestFetcher
 import { createFsCatalogCache } from '../adapters/FsCatalogCache'
 import type { CatalogCache, RepoFetchRecord } from '../contracts/CatalogCache'
 import type { CatalogRepoFetcher, RepoFetchResult } from '../contracts/CatalogRepoFetcher'
-import { parseEnv, REPOS_VAR, TOKEN_VAR, type RepoConfig } from '../domain/catalog/envRepos'
-import { mergeCatalogs } from '../domain/catalog/mergeCatalogs'
-import { checkWorkspace } from '../domain/workspace/workspaceContext'
+import { parseEnv, REPOS_VAR, TOKEN_VAR, type RepoConfig } from '../core/catalog/envRepos'
+import { mergeCatalogs } from '../core/catalog/mergeCatalogs'
+import { checkWorkspace } from '../core/workspace/workspaceContext'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 

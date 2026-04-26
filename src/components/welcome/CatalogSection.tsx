@@ -5,7 +5,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { Alert, Box, Button, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material'
 
-import type { RepoSummary } from '@domain/catalog/CatalogStatus'
+import type { RepoSummary } from '@core/catalog/CatalogStatus'
 import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
 import { refreshCatalog } from '@adapters/catalogLoader'

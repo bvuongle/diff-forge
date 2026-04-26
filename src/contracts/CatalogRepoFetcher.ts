@@ -1,5 +1,5 @@
-import type { CatalogDocument } from '@domain/catalog/CatalogSchema'
-import type { RepoConfig } from '@domain/catalog/envRepos'
+import type { CatalogDocument } from '@core/catalog/CatalogSchema'
+import type { RepoConfig } from '@core/catalog/envRepos'
 
 type RepoFetchResult =
   | { status: 'ok'; url: string; catalog: CatalogDocument }

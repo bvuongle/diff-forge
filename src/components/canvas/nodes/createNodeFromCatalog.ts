@@ -1,6 +1,6 @@
-import { buildSlots } from '@domain/catalog/buildSlots'
-import { CatalogComponent } from '@domain/catalog/CatalogTypes'
-import { GraphNode, Position } from '@domain/graph/GraphTypes'
+import { buildSlots } from '@core/catalog/buildSlots'
+import { CatalogComponent } from '@core/catalog/CatalogTypes'
+import { GraphNode, Position } from '@core/graph/GraphTypes'
 
 function toCamelCase(typeName: string): string {
   return typeName.charAt(0).toLowerCase() + typeName.slice(1)

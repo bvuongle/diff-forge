@@ -18,7 +18,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
-      '@domain': '/src/domain',
+      '@core': '/src/core',
       '@contracts': '/src/contracts',
       '@adapters': '/src/adapters',
       '@state': '/src/state',

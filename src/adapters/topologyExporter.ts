@@ -1,5 +1,5 @@
-import { Graph } from '@domain/graph/GraphTypes'
-import { graphToTopology } from '@domain/topology/TopologyMapper'
+import { Graph } from '@core/graph/GraphTypes'
+import { graphToTopology } from '@core/topology/TopologyMapper'
 
 import type { TopologyExportOutcome } from '@/electron/electronApi'
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { Topology } from '@domain/topology/TopologyTypes'
+import { Topology } from '@core/topology/TopologyTypes'
 import { makeCatalog } from '@testing/fixtures'
 
 import { topologyToGraph } from './topologyToGraph'

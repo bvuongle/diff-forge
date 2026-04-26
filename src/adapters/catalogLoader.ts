@@ -1,4 +1,4 @@
-import { CatalogDocumentZ, type CatalogDocument } from '@domain/catalog/CatalogSchema'
+import { CatalogDocumentZ, type CatalogDocument } from '@core/catalog/CatalogSchema'
 
 import type { CatalogLoadOutcome, RepoSummaryDto } from '@/electron/electronApi'
 

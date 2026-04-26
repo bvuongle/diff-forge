@@ -20,7 +20,7 @@ import {
   Typography
 } from '@mui/material'
 
-import { reasonMessage } from '@domain/workspace/workspaceContext'
+import { reasonMessage } from '@core/workspace/workspaceContext'
 import { useGraphStore } from '@state/graphStore'
 import { exportTopology, performWorkspaceSwitch, requestWorkspaceSwitch } from '@state/topologyCommands'
 import { useUIStore } from '@state/uiStore'

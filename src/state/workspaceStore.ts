@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import { WorkspaceStatus } from '@domain/workspace/WorkspaceTypes'
+import { WorkspaceStatus } from '@core/workspace/WorkspaceTypes'
 
 type WorkspaceStore = {
   status: WorkspaceStatus | null

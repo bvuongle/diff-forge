@@ -1,4 +1,4 @@
-import { WorkspaceStatus } from '@domain/workspace/WorkspaceTypes'
+import { WorkspaceStatus } from '@core/workspace/WorkspaceTypes'
 
 type OpenWorkspaceResult =
   | { status: 'opened'; workspace: WorkspaceStatus }

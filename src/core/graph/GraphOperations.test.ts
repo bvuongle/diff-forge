@@ -10,8 +10,8 @@ import {
   renameNode,
   updateNodeConfig,
   validateEdge
-} from '@domain/graph/GraphOperations'
-import type { Graph, GraphEdge, Slot } from '@domain/graph/GraphTypes'
+} from '@core/graph/GraphOperations'
+import type { Graph, GraphEdge, Slot } from '@core/graph/GraphTypes'
 import { makeEdge, makeNode } from '@testing/fixtures'
 
 function emptyGraph(): Graph {

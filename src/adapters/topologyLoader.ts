@@ -1,4 +1,4 @@
-import { Topology } from '@domain/topology/TopologyTypes'
+import { Topology } from '@core/topology/TopologyTypes'
 
 type TopologyLoadResult =
   | { status: 'loaded'; topology: Topology; topologyPath: string }

@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import path from 'path'
 
-import { CatalogDocumentZ, type CatalogDocument } from '@domain/catalog/CatalogSchema'
+import { CatalogDocumentZ, type CatalogDocument } from '@core/catalog/CatalogSchema'
 import type { CacheSnapshot, CatalogCache, RepoFetchRecord } from '@contracts/CatalogCache'
 
 type FsCatalogCacheDeps = {

@@ -1,4 +1,4 @@
-import { CatalogDocument, CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
+import { CatalogDocument, CatalogDocumentZ } from '@core/catalog/CatalogSchema'
 import { CatalogSource } from '@contracts/CatalogSource'
 
 type FileCatalogSourceDeps = {

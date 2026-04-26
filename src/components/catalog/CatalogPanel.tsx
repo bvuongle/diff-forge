@@ -3,8 +3,8 @@ import { useState } from 'react'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import { Alert, Box, Divider, IconButton, List, Stack, Tooltip, Typography } from '@mui/material'
 
-import type { CatalogComponent } from '@domain/catalog/CatalogSchema'
-import { listSources, searchCatalog, type SearchResult } from '@domain/catalog/searchCatalog'
+import type { CatalogComponent } from '@core/catalog/CatalogSchema'
+import { listSources, searchCatalog, type SearchResult } from '@core/catalog/searchCatalog'
 import { useCatalogStore } from '@state/catalogStore'
 import { useUIStore } from '@state/uiStore'
 

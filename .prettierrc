@@ -10,7 +10,7 @@
     "",
     "<THIRD_PARTY_MODULES>",
     "",
-    "^@domain/(.*)$",
+    "^@core/(.*)$",
     "^@contracts/(.*)$",
     "^@state/(.*)$",
     "^@adapters/(.*)$",

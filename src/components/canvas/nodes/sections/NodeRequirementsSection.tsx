@@ -1,6 +1,6 @@
 import { Box, Chip, Typography } from '@mui/material'
 
-import type { Slot } from '@domain/graph/GraphTypes'
+import type { Slot } from '@core/graph/GraphTypes'
 import { OUT_HANDLE_ID } from '@canvas/canvasConstants'
 import { type DragInfo, type EdgeSourceMap } from '@canvas/canvasTypes'
 

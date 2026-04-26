@@ -1,4 +1,4 @@
-import { reasonMessage } from '@domain/workspace/workspaceContext'
+import { reasonMessage } from '@core/workspace/workspaceContext'
 import { useGraphStore } from '@state/graphStore'
 import { notify } from '@state/notificationsStore'
 import { useUIStore } from '@state/uiStore'

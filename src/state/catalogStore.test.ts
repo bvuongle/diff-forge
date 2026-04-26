@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import type { CatalogDocument } from '@domain/catalog/CatalogTypes'
+import type { CatalogDocument } from '@core/catalog/CatalogTypes'
 import { useCatalogStore } from '@state/catalogStore'
 
 const mockCatalog: CatalogDocument = {

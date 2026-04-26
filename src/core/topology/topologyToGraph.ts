@@ -1,8 +1,8 @@
-import { buildSlots } from '@domain/catalog/buildSlots'
-import { CatalogComponent } from '@domain/catalog/CatalogTypes'
-import { Graph, GraphEdge, GraphNode, Position } from '@domain/graph/GraphTypes'
-import { layoutByLevels } from '@domain/layout/layoutByLevels'
-import { Topology, TopologyEntry } from '@domain/topology/TopologyTypes'
+import { buildSlots } from '@core/catalog/buildSlots'
+import { CatalogComponent } from '@core/catalog/CatalogTypes'
+import { Graph, GraphEdge, GraphNode, Position } from '@core/graph/GraphTypes'
+import { layoutByLevels } from '@core/layout/layoutByLevels'
+import { Topology, TopologyEntry } from '@core/topology/TopologyTypes'
 
 type CatalogKey = string
 

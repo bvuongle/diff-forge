@@ -4,7 +4,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import { Box, Button, Chip, Divider, Stack, TextField, Typography } from '@mui/material'
 
-import { reasonMessage } from '@domain/workspace/workspaceContext'
+import { reasonMessage } from '@core/workspace/workspaceContext'
 import { notify } from '@state/notificationsStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
 import { openWorkspaceAtPath, openWorkspacePicker, type OpenWorkspaceResult } from '@adapters/electronWorkspace'

@@ -1,6 +1,6 @@
 import { MarkerType, type Edge, type Node } from '@xyflow/react'
 
-import type { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
+import type { GraphEdge, GraphNode } from '@core/graph/GraphTypes'
 
 import { OUT_HANDLE_ID } from './canvasConstants'
 

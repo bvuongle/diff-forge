@@ -1,4 +1,4 @@
-import type { CatalogDocument } from '@domain/catalog/CatalogSchema'
+import type { CatalogDocument } from '@core/catalog/CatalogSchema'
 
 type RepoFetchRecord = {
   url: string

@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react'
 import { Position, ReactFlowProvider, type EdgeProps } from '@xyflow/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { GraphEdge, GraphNode } from '@domain/graph/GraphTypes'
+import type { GraphEdge, GraphNode } from '@core/graph/GraphTypes'
 import { useGraphStore } from '@state/graphStore'
 import type { CanvasEdge as CanvasEdgeType } from '@canvas/canvasTypes'
 import { makeNode } from '@testing/fixtures'

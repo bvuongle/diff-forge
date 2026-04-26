@@ -2,8 +2,8 @@ import { gunzipSync } from 'node:zlib'
 
 import { z } from 'zod'
 
-import type { CatalogComponent, CatalogDocument } from '@domain/catalog/CatalogSchema'
-import { ComponentFragmentZ, fragmentToComponent } from '@domain/catalog/CatalogWireSchema'
+import type { CatalogComponent, CatalogDocument } from '@core/catalog/CatalogSchema'
+import { ComponentFragmentZ, fragmentToComponent } from '@core/catalog/CatalogWireSchema'
 import type { CatalogRepoFetcher, RepoFetchResult } from '@contracts/CatalogRepoFetcher'
 
 type FetchFn = typeof fetch

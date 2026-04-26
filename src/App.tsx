@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { Backdrop, CircularProgress, CssBaseline, Stack, Typography } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 
-import { topologyToGraph } from '@domain/topology/topologyToGraph'
+import { topologyToGraph } from '@core/topology/topologyToGraph'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { notify } from '@state/notificationsStore'

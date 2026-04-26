@@ -3,7 +3,7 @@ import { type MouseEvent } from 'react'
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
 import { Box, Chip, ListItemButton, Stack, Tooltip, Typography } from '@mui/material'
 
-import type { CatalogComponent } from '@domain/catalog/CatalogSchema'
+import type { CatalogComponent } from '@core/catalog/CatalogSchema'
 import { notify } from '@state/notificationsStore'
 
 import { setRoundedDragImage } from './setRoundedDragImage'
