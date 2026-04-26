@@ -1,6 +1,9 @@
 {
   "name": "diff-forge",
-  "author": "bvuongle",
+  "author": {
+    "name": "bvuongle",
+    "email": "bvuongleduc@gmail.com"
+  },
   "version": "0.0.1",
   "type": "module",
   "description": "Visual C++ dependency graph composer for the diff framework",
