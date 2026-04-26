@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import type { CatalogDocument } from '@domain/catalog/CatalogTypes'
+import type { CatalogDocument } from '@core/catalog/CatalogSchema'
 import { useCatalogStore } from '@state/catalogStore'
 
 const mockCatalog: CatalogDocument = {
-  schema: 'diff.catalog.v1',
   components: [
     {
       type: 'LinkEth',
@@ -34,7 +33,7 @@ describe('catalogStore', () => {
 
   it('setStatus(unconfigured) clears the catalog', () => {
     useCatalogStore.getState().setStatus({ status: 'ready', catalog: mockCatalog, repos: [] })
-    useCatalogStore.getState().setStatus({ status: 'unconfigured' })
+    useCatalogStore.getState().setStatus({ status: 'unconfigured', missing: ['DF_ARTIFACTORY_REPOS'] })
     expect(useCatalogStore.getState().catalog).toBeNull()
   })
 })

@@ -1,13 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createFileCatalogSource } from './FileCatalogSource'
+import { CATALOG_FILE, createFileCatalogSource } from './FileCatalogSource'
 
 const validCatalog = JSON.stringify({
-  schema: 'diff.catalog.v1',
   components: [
     {
       type: 'LinkEth',
-      source: 'diff_broker',
       version: '1.0.0',
       implements: ['ILink'],
       requires: [],
@@ -17,38 +15,53 @@ const validCatalog = JSON.stringify({
 })
 
 describe('FileCatalogSource', () => {
-  it('parses valid catalog JSON', async () => {
+  it('returns ready with the parsed catalog when the file is valid', async () => {
     const source = createFileCatalogSource({
-      filePath: '/mock/catalog.json',
-      loadFile: vi.fn().mockResolvedValue(validCatalog)
+      env: { [CATALOG_FILE]: '/mock/catalog.json' },
+      readFile: vi.fn().mockResolvedValue(validCatalog)
     })
     const result = await source.loadCatalog()
-    expect(result.schema).toBe('diff.catalog.v1')
-    expect(result.components).toHaveLength(1)
-    expect(result.components[0].type).toBe('LinkEth')
+    expect(result.status).toBe('ready')
+    if (result.status !== 'ready') return
+    expect(result.catalog.components).toHaveLength(1)
+    expect(result.catalog.components[0].type).toBe('LinkEth')
+    expect(result.catalog.components[0].source).toBe('/mock/catalog.json')
+    expect(result.repos).toEqual([{ url: '/mock/catalog.json', status: 'ok' }])
   })
 
-  it('calls loadFile with the configured path', async () => {
-    const loadFile = vi.fn().mockResolvedValue(validCatalog)
-    const source = createFileCatalogSource({ filePath: '/my/path.json', loadFile })
+  it('calls readFile with the configured path', async () => {
+    const readFile = vi.fn().mockResolvedValue(validCatalog)
+    const source = createFileCatalogSource({ env: { [CATALOG_FILE]: '/my/path.json' }, readFile })
     await source.loadCatalog()
-    expect(loadFile).toHaveBeenCalledWith('/my/path.json')
+    expect(readFile).toHaveBeenCalledWith('/my/path.json')
   })
 
-  it('throws on invalid JSON', async () => {
-    const source = createFileCatalogSource({
-      filePath: '/mock/bad.json',
-      loadFile: vi.fn().mockResolvedValue('not json')
-    })
-    await expect(source.loadCatalog()).rejects.toThrow()
+  it('returns unconfigured when DF_CATALOG_FILE is missing', async () => {
+    const source = createFileCatalogSource({ env: {}, readFile: vi.fn() })
+    const result = await source.loadCatalog()
+    expect(result.status).toBe('unconfigured')
+    if (result.status !== 'unconfigured') return
+    expect(result.missing).toEqual([CATALOG_FILE])
   })
 
-  it('throws on missing required fields', async () => {
-    const incomplete = JSON.stringify({ schema: 'diff.catalog.v1' })
+  it('returns error on invalid JSON', async () => {
     const source = createFileCatalogSource({
-      filePath: '/mock/catalog.json',
-      loadFile: vi.fn().mockResolvedValue(incomplete)
+      env: { [CATALOG_FILE]: '/mock/bad.json' },
+      readFile: vi.fn().mockResolvedValue('not json')
     })
-    await expect(source.loadCatalog()).rejects.toThrow()
+    const result = await source.loadCatalog()
+    expect(result.status).toBe('error')
+    if (result.status !== 'error') return
+    expect(result.repos[0].status).toBe('failed')
+  })
+
+  it('returns error on missing required fields', async () => {
+    const incomplete = JSON.stringify({})
+    const source = createFileCatalogSource({
+      env: { [CATALOG_FILE]: '/mock/catalog.json' },
+      readFile: vi.fn().mockResolvedValue(incomplete)
+    })
+    const result = await source.loadCatalog()
+    expect(result.status).toBe('error')
   })
 })

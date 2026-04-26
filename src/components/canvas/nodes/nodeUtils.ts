@@ -1,4 +1,4 @@
-import type { Graph, GraphEdge, Slot } from '@domain/graph/GraphTypes'
+import type { Graph, GraphEdge, Slot } from '@core/graph/GraphTypes'
 import type { DragInfo, EdgeSourceMap } from '@canvas/canvasTypes'
 
 function getConnectionCounts(nodeId: string, edges: GraphEdge[]): Map<string, number> {

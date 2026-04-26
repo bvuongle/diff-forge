@@ -1,33 +1,17 @@
-import { readFile, stat, writeFile } from 'fs/promises'
-import { homedir } from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 
-import { createArtifactoryRestFetcher } from '../adapters/ArtifactoryRestFetcher'
+import { createArtifactoryCatalogSource } from '../adapters/ArtifactoryCatalogSource'
 import { createFsCatalogCache } from '../adapters/FsCatalogCache'
-import type { CatalogCache, RepoFetchRecord } from '../contracts/CatalogCache'
-import type { CatalogRepoFetcher, RepoFetchResult } from '../contracts/CatalogRepoFetcher'
-import { parseEnv, REPOS_VAR, TOKEN_VAR, type RepoConfig } from '../domain/catalog/envRepos'
-import { mergeCatalogs } from '../domain/catalog/mergeCatalogs'
-import { checkWorkspace } from '../domain/workspace/workspaceContext'
+import { createFsWorkspaceStore } from '../adapters/FsWorkspaceStore'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const isDev = process.env.VITE_DEV_SERVER_URL !== undefined
 
 let mainWindow: BrowserWindow | null = null
-
-type ProjectPaths = { topologyPath: string; projectName: string }
-
-function projectPaths(projectName: string): ProjectPaths {
-  const cwd = process.cwd()
-  return {
-    projectName,
-    topologyPath: path.join(cwd, `${projectName}.forge.json`)
-  }
-}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -52,211 +36,22 @@ function createWindow() {
   })
 }
 
-ipcMain.handle('workspace:status', async () => {
-  return checkWorkspace(process.cwd(), homedir())
-})
-
-ipcMain.handle('dialog:openWorkspace', async () => {
-  if (!mainWindow) {
-    return { status: 'error', message: 'Window not ready' }
-  }
-  try {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory'],
-      title: 'Select workspace folder'
-    })
-    if (result.canceled || result.filePaths.length === 0) {
-      return { status: 'canceled' }
-    }
-    const picked = result.filePaths[0]
-    process.chdir(picked)
-    return { status: 'opened', workspace: checkWorkspace(process.cwd(), homedir()) }
-  } catch (err) {
-    return { status: 'error', message: err instanceof Error ? err.message : String(err) }
-  }
-})
-
-function expandTilde(target: string): string {
-  if (target === '~') return homedir()
-  if (target.startsWith('~/')) return path.join(homedir(), target.slice(2))
-  return target
-}
-
-ipcMain.handle('workspace:openAtPath', async (_event, payload: { path: string }) => {
-  const raw = payload?.path?.trim()
-  if (!raw) return { status: 'error', message: 'Path is empty' }
-  const target = expandTilde(raw)
-  if (!path.isAbsolute(target)) {
-    return { status: 'error', message: 'Path must be absolute (start with / or ~)' }
-  }
-  try {
-    const info = await stat(target)
-    if (!info.isDirectory()) {
-      return { status: 'error', message: 'Path is not a directory' }
-    }
-    process.chdir(target)
-    return { status: 'opened', workspace: checkWorkspace(process.cwd(), homedir()) }
-  } catch (err) {
-    const code = err instanceof Error && 'code' in err ? (err as NodeJS.ErrnoException).code : ''
-    if (code === 'ENOENT') return { status: 'error', message: 'Directory does not exist' }
-    return { status: 'error', message: err instanceof Error ? err.message : String(err) }
-  }
-})
-
-ipcMain.handle('topology:export', async (_event, payload: { topology: string }) => {
-  const status = checkWorkspace(process.cwd(), homedir())
-  if (!status.valid) return { status: 'invalidWorkspace', reason: status.reason }
-
-  const paths = projectPaths(status.projectName)
-  try {
-    await writeFile(paths.topologyPath, payload.topology, 'utf8')
-    return {
-      status: 'saved',
-      topologyPath: paths.topologyPath,
-      projectName: paths.projectName
-    }
-  } catch (err) {
-    return { status: 'error', message: err instanceof Error ? err.message : String(err) }
-  }
-})
-
-async function tryRead(target: string): Promise<string | null> {
-  try {
-    return await readFile(target, 'utf8')
-  } catch (err) {
-    if (err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT') {
-      return null
-    }
-    throw err
-  }
-}
-
-ipcMain.handle('topology:load', async () => {
-  const status = checkWorkspace(process.cwd(), homedir())
-  if (!status.valid) return { status: 'notFound' }
-
-  const paths = projectPaths(status.projectName)
-  try {
-    const topology = await tryRead(paths.topologyPath)
-    if (topology === null) return { status: 'notFound' }
-    return {
-      status: 'loaded',
-      topology,
-      topologyPath: paths.topologyPath
-    }
-  } catch (err) {
-    return { status: 'error', message: err instanceof Error ? err.message : String(err) }
-  }
-})
-
-let catalogCache: CatalogCache | null = null
-let repoFetcher: CatalogRepoFetcher | null = null
-
-type FetchResult =
-  | { status: 'ready'; catalog: string; repos: RepoFetchRecord[] }
-  | { status: 'partial'; catalog: string; repos: RepoFetchRecord[]; message: string }
-  | { status: 'error'; message: string; repos: RepoFetchRecord[] }
-
-async function fetchAndStore(repos: RepoConfig[], token: string | null): Promise<FetchResult> {
-  const results = await Promise.all(repos.map((repo) => repoFetcher!.fetch(repo, token)))
-
-  const successes = results.filter((r): r is Extract<RepoFetchResult, { status: 'ok' }> => r.status === 'ok')
-  const failures = results.filter((r): r is Extract<RepoFetchResult, { status: 'failed' }> => r.status === 'failed')
-
-  const records: RepoFetchRecord[] = results.map((r) =>
-    r.status === 'ok'
-      ? { url: r.url, state: { status: 'ok' } }
-      : { url: r.url, state: { status: 'failed', reason: r.reason } }
-  )
-  await catalogCache!.writeRepos(records)
-
-  if (successes.length === 0) {
-    const noun = failures.length === 1 ? 'repository' : 'repositories'
-    return {
-      status: 'error',
-      message: `${failures.length} ${noun} failed to fetch.`,
-      repos: records
-    }
-  }
-
-  const merged = mergeCatalogs(successes.map((s) => s.catalog))
-  await catalogCache!.writeMerged(merged)
-
-  if (failures.length === 0) {
-    return { status: 'ready', catalog: JSON.stringify(merged), repos: records }
-  }
-  return {
-    status: 'partial',
-    catalog: JSON.stringify(merged),
-    repos: records,
-    message: `${failures.length} of ${results.length} ${results.length === 1 ? 'repository' : 'repositories'} failed. Showing partial catalog.`
-  }
-}
-
-async function handleCatalogLoad() {
-  const env = parseEnv(process.env)
-  if (env.status === 'unconfigured') {
-    return { status: 'unconfigured', missing: env.missing }
-  }
-  if (env.status === 'invalid') {
-    return { status: 'error', message: env.message, repos: [] }
-  }
-  if (!catalogCache || !repoFetcher) {
-    return { status: 'error', message: 'Catalog services not initialized', repos: [] }
-  }
-
-  const fetched = await fetchAndStore(env.repos, env.token)
-  if (fetched.status !== 'error') return fetched
-
-  const snapshot = await catalogCache.read()
-  if (snapshot.merged) {
-    return {
-      status: 'partial',
-      catalog: JSON.stringify(snapshot.merged),
-      repos: fetched.repos,
-      message: 'All repositories failed to fetch. Showing previously cached catalog.'
-    }
-  }
-  return fetched
-}
-
-async function handleCatalogRefresh() {
-  const env = parseEnv(process.env)
-  if (env.status === 'unconfigured') {
-    return { status: 'unconfigured', missing: env.missing }
-  }
-  if (env.status === 'invalid') {
-    return { status: 'error', message: env.message, repos: [] }
-  }
-  if (!catalogCache || !repoFetcher) {
-    return { status: 'error', message: 'Catalog services not initialized', repos: [] }
-  }
-
-  return await fetchAndStore(env.repos, env.token)
-}
-
-ipcMain.handle('catalog:load', handleCatalogLoad)
-ipcMain.handle('catalog:refresh', handleCatalogRefresh)
-
-function reportStartupEnv(): void {
-  const config = parseEnv(process.env)
-  if (config.status === 'unconfigured') {
-    // Intentional CLI stderr: user launched from terminal; no UI yet to show this.
-    // eslint-disable-next-line no-console
-    console.error(
-      `[diff-forge] ${REPOS_VAR} is not set. Catalog will be empty until configured.\n` +
-        `Example:\n` +
-        `  export ${REPOS_VAR}="https://repo.example/artifactory/conan-repo"\n` +
-        `  export ${TOKEN_VAR}="<optional-bearer-token>"\n` +
-        `Then relaunch: diff_forge .`
-    )
-  }
-}
-
 app.on('ready', () => {
-  catalogCache = createFsCatalogCache({ baseDir: app.getPath('userData') })
-  repoFetcher = createArtifactoryRestFetcher({ fetch })
-  reportStartupEnv()
+  const cache = createFsCatalogCache({ baseDir: app.getPath('userData') })
+  const catalogSource = createArtifactoryCatalogSource({ env: process.env, fetch, cache })
+  const workspaceStore = createFsWorkspaceStore({ getMainWindow: () => mainWindow })
+
+  ipcMain.handle('workspace:status', () => workspaceStore.getStatus())
+  ipcMain.handle('dialog:openWorkspace', () => workspaceStore.openPicker())
+  ipcMain.handle('workspace:openAtPath', (_e, payload: { path: string }) =>
+    workspaceStore.openAtPath(payload?.path ?? '')
+  )
+  ipcMain.handle('topology:export', (_e, payload: { topology: string }) =>
+    workspaceStore.saveTopology(payload.topology)
+  )
+  ipcMain.handle('topology:load', () => workspaceStore.loadTopology())
+  ipcMain.handle('catalog:load', () => catalogSource.loadCatalog())
+
   createWindow()
 })
 

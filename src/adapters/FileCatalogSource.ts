@@ -1,20 +1,42 @@
-import { CatalogDocument, CatalogDocumentZ } from '@domain/catalog/CatalogSchema'
-import { CatalogSource } from '@contracts/CatalogSource'
+import { CatalogDocumentZ } from '@core/catalog/CatalogSchema'
+import type { CatalogLoadOutcome, CatalogSource } from '@contracts/CatalogSource'
+
+const CATALOG_FILE = 'DF_CATALOG_FILE'
+
+type ReadFileFn = (path: string) => Promise<string>
 
 type FileCatalogSourceDeps = {
-  filePath: string
-  loadFile(path: string): Promise<string>
+  env: Record<string, string | undefined>
+  readFile: ReadFileFn
 }
 
 function createFileCatalogSource(deps: FileCatalogSourceDeps): CatalogSource {
   return {
-    async loadCatalog(): Promise<CatalogDocument> {
-      const fileContent = await deps.loadFile(deps.filePath)
-      const parsed = JSON.parse(fileContent)
-      const validated = CatalogDocumentZ.parse(parsed)
-      return validated
+    async loadCatalog(): Promise<CatalogLoadOutcome> {
+      const filePath = deps.env[CATALOG_FILE]?.trim()
+      if (!filePath) return { status: 'unconfigured', missing: [CATALOG_FILE] }
+
+      try {
+        const raw = JSON.parse(await deps.readFile(filePath))
+        const catalog = CatalogDocumentZ.parse({
+          ...raw,
+          components: raw?.components?.map((c: unknown) => ({ ...(c as object), source: filePath }))
+        })
+        return {
+          status: 'ready',
+          catalog,
+          repos: [{ url: filePath, status: 'ok' }]
+        }
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err)
+        return {
+          status: 'error',
+          message: reason,
+          repos: [{ url: filePath, status: 'failed', reason }]
+        }
+      }
     }
   }
 }
 
-export { createFileCatalogSource }
+export { createFileCatalogSource, CATALOG_FILE }

@@ -1,4 +1,4 @@
-import type { GraphEdge } from '@domain/graph/GraphTypes'
+import type { GraphEdge } from '@core/graph/GraphTypes'
 
 function isEdgeDimmed(
   edge: GraphEdge | undefined,

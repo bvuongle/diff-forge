@@ -4,10 +4,11 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import { Box, Button, Chip, Divider, Stack, TextField, Typography } from '@mui/material'
 
-import { reasonMessage } from '@domain/workspace/workspaceContext'
+import { reasonMessage } from '@core/workspace/workspaceContext'
+import type { OpenWorkspaceOutcome } from '@contracts/WorkspaceStore'
 import { notify } from '@state/notificationsStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
-import { openWorkspaceAtPath, openWorkspacePicker, type OpenWorkspaceResult } from '@adapters/electronWorkspace'
+import { ipcWorkspaceStore } from '@adapters/IpcWorkspaceStore'
 
 function WorkspaceSection() {
   const status = useWorkspaceStore((s) => s.status)
@@ -35,25 +36,23 @@ function WorkspaceSection() {
         <Typography variant="body2" component="span">
           Workspace:
         </Typography>
-        <Chip size="small" label={status.projectName} />
+        <Chip size="small" label={status.name} />
       </Stack>
     )
   }
 
-  const applyResult = (result: OpenWorkspaceResult) => {
+  const applyResult = (result: OpenWorkspaceOutcome) => {
     if (result.status === 'opened') {
       setStatus(result.workspace)
     } else if (result.status === 'error') {
       notify.error(result.message)
-    } else if (result.status === 'unavailable') {
-      notify.error('Electron bridge unavailable - run `pnpm dev` from the diff-forge folder.')
     }
   }
 
   const onOpen = async () => {
     setBusy(true)
     try {
-      applyResult(await openWorkspacePicker())
+      applyResult(await ipcWorkspaceStore.openPicker())
     } finally {
       setBusy(false)
     }
@@ -65,7 +64,7 @@ function WorkspaceSection() {
     if (!trimmed) return
     setBusy(true)
     try {
-      applyResult(await openWorkspaceAtPath(trimmed))
+      applyResult(await ipcWorkspaceStore.openAtPath(trimmed))
     } finally {
       setBusy(false)
     }

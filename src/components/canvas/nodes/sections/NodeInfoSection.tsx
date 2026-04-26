@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { Box, TextField, Typography } from '@mui/material'
 
-import { GraphNode } from '@domain/graph/GraphTypes'
+import { GraphNode } from '@core/graph/GraphTypes'
 
 type NodeInfoSectionProps = {
   node: GraphNode

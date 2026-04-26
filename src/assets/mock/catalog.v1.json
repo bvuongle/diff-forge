@@ -3,7 +3,6 @@
   "components": [
     {
       "type": "LinkEth",
-      "source": "diff_broker",
       "version": "1.0.0",
       "implements": ["ILink"],
       "requires": [],
@@ -11,7 +10,6 @@
     },
     {
       "type": "LinkGsm",
-      "source": "diff_broker",
       "version": "1.0.0",
       "implements": ["ILink"],
       "requires": [],
@@ -21,7 +19,6 @@
     },
     {
       "type": "LinkSat",
-      "source": "diff_broker",
       "version": "1.0.0",
       "implements": ["ILink"],
       "requires": [],
@@ -32,7 +29,6 @@
     },
     {
       "type": "Sensor",
-      "source": "diff_io",
       "version": "1.0.0",
       "implements": ["IDataSource"],
       "requires": [],
@@ -42,7 +38,6 @@
     },
     {
       "type": "Sensor",
-      "source": "diff_io",
       "version": "2.0.0",
       "implements": ["IDataSource", "IMonitorable"],
       "requires": [],
@@ -54,7 +49,6 @@
     },
     {
       "type": "Timer",
-      "source": "diff_core",
       "version": "1.0.0",
       "implements": ["IDataSource"],
       "requires": [],
@@ -64,7 +58,6 @@
     },
     {
       "type": "MessageSource",
-      "source": "diff_broker",
       "version": "1.0.0",
       "implements": ["IProcessable"],
       "requires": [
@@ -78,7 +71,6 @@
     },
     {
       "type": "DataCollector",
-      "source": "diff_io",
       "version": "1.0.0",
       "implements": ["IProcessable"],
       "requires": [
@@ -91,7 +83,6 @@
     },
     {
       "type": "Router",
-      "source": "diff_net",
       "version": "1.0.0",
       "implements": ["IRoutable"],
       "requires": [
@@ -103,7 +94,6 @@
     },
     {
       "type": "Router",
-      "source": "diff_net",
       "version": "2.0.0",
       "implements": ["IRoutable", "IMonitorable"],
       "requires": [
@@ -117,7 +107,6 @@
     },
     {
       "type": "Dispatcher",
-      "source": "diff_net",
       "version": "1.0.0",
       "implements": ["IProcessable"],
       "requires": [
@@ -130,7 +119,6 @@
     },
     {
       "type": "Aggregator",
-      "source": "diff_net",
       "version": "1.0.0",
       "implements": ["IProcessable", "IDataSource"],
       "requires": [
@@ -143,7 +131,6 @@
     },
     {
       "type": "SystemController",
-      "source": "diff_core",
       "version": "1.0.0",
       "implements": ["IMonitorable"],
       "requires": [

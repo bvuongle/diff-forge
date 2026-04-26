@@ -3,14 +3,13 @@ import { useEffect, useRef } from 'react'
 import { Backdrop, CircularProgress, CssBaseline, Stack, Typography } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 
-import { topologyToGraph } from '@domain/topology/topologyToGraph'
+import { parseTopology, topologyToGraph } from '@core/topology/topologyToGraph'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { notify } from '@state/notificationsStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
-import { loadCatalog } from '@adapters/catalogLoader'
-import { getWorkspaceStatus } from '@adapters/electronWorkspace'
-import { loadTopologyFromWorkspace } from '@adapters/topologyLoader'
+import { ipcCatalogSource } from '@adapters/IpcCatalogSource'
+import { ipcWorkspaceStore } from '@adapters/IpcWorkspaceStore'
 import { InitialLayout } from '@layout/InitialLayout'
 import { MainLayout } from '@layout/MainLayout'
 import { NotificationHost } from '@layout/NotificationHost'
@@ -29,29 +28,11 @@ function App() {
   useAppHotkeys()
 
   useEffect(() => {
-    loadCatalog().then((result) => {
-      if (result.status === 'unavailable') {
-        setCatalogStatus({
-          status: 'error',
-          message: 'Catalog IPC unavailable (non-Electron runtime)',
-          repos: []
-        })
-        return
-      }
-      if (result.status === 'unconfigured') {
-        setCatalogStatus({ status: 'unconfigured' })
-        return
-      }
-      if (result.status === 'error') {
-        setCatalogStatus({ status: 'error', message: result.message, repos: result.repos })
-        return
-      }
-      setCatalogStatus(result)
-    })
+    ipcCatalogSource.loadCatalog().then(setCatalogStatus)
   }, [setCatalogStatus])
 
   useEffect(() => {
-    getWorkspaceStatus().then(setWorkspaceStatus)
+    ipcWorkspaceStore.getStatus().then(setWorkspaceStatus)
   }, [setWorkspaceStatus])
 
   const lastLoadedCwd = useRef<string | null>(null)
@@ -59,16 +40,23 @@ function App() {
     if (!catalog || !workspace?.valid) return
     if (lastLoadedCwd.current === workspace.cwd) return
     let cancelled = false
-    loadTopologyFromWorkspace().then((result) => {
+    ipcWorkspaceStore.loadTopology().then((result) => {
       if (cancelled) return
       lastLoadedCwd.current = workspace.cwd
       if (result.status === 'loaded') {
-        const { graph } = topologyToGraph(result.topology, catalog.components)
+        const parsed = parseTopology(result.topology)
+        if (parsed.status === 'error') {
+          notify.error(`Topology load failed: ${parsed.message}`)
+          return
+        }
+        const { graph } = topologyToGraph(parsed.topology, catalog.components)
         setGraph(graph)
-        notify.success(`Loaded ${workspace.projectName}.forge.json`)
+        notify.success(`Loaded ${workspace.name}.forge.json`)
       } else if (result.status === 'notFound') {
         setGraph({ nodes: [], edges: [] })
-        notify.info(`Fresh workspace: ${workspace.projectName} - start drawing`)
+        notify.info(`Fresh workspace: ${workspace.name} - start drawing`)
+      } else if (result.status === 'error') {
+        notify.error(`Topology load failed: ${result.message}`)
       }
     })
     return () => {

@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react'
 import { ReactFlowProvider, type NodeProps } from '@xyflow/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { CatalogDocument } from '@domain/catalog/CatalogTypes'
+import type { CatalogDocument } from '@core/catalog/CatalogSchema'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'

@@ -15,8 +15,7 @@ const electronAPI = {
     load: () => ipcRenderer.invoke('topology:load')
   },
   catalog: {
-    load: () => ipcRenderer.invoke('catalog:load'),
-    refresh: () => ipcRenderer.invoke('catalog:refresh')
+    load: () => ipcRenderer.invoke('catalog:load')
   }
 }
 

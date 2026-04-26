@@ -11,7 +11,7 @@ const PRELOAD_OUT = resolve(PRELOAD_OUT_DIR, 'preload.cjs')
 
 const srcAliases = {
   '@': '/src',
-  '@domain': '/src/domain',
+  '@core': '/src/core',
   '@contracts': '/src/contracts',
   '@adapters': '/src/adapters',
   '@state': '/src/state',

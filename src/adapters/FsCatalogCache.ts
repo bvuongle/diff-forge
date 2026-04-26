@@ -1,75 +1,46 @@
+import { createHash } from 'crypto'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import path from 'path'
 
-import { CatalogDocumentZ, type CatalogDocument } from '@domain/catalog/CatalogSchema'
-import type { CacheSnapshot, CatalogCache, RepoFetchRecord } from '@contracts/CatalogCache'
+import { CatalogDocumentZ, type CatalogDocument } from '@core/catalog/CatalogSchema'
+import type { CatalogCache } from '@contracts/CatalogCache'
 
 type FsCatalogCacheDeps = {
   baseDir: string
 }
 
-// NOTE: subfolder is 'catalog-cache' (not 'cache') because Electron manages a
-// 'Cache/' folder under userData for its HTTP cache, and macOS is case-insensitive
-// so 'cache' and 'Cache' collide. Electron wipes unknown files in that dir on boot.
 function createFsCatalogCache(deps: FsCatalogCacheDeps): CatalogCache {
-  const mergedPath = path.join(deps.baseDir, 'catalog-cache', 'merged.json')
-  const metaPath = path.join(deps.baseDir, 'catalog-cache', 'meta.json')
+  const reposDir = path.join(deps.baseDir, 'catalog-cache', 'repos')
 
   async function ensureDir(): Promise<void> {
-    await mkdir(path.dirname(mergedPath), { recursive: true })
+    await mkdir(reposDir, { recursive: true })
+  }
+
+  function repoPath(url: string): string {
+    const key = createHash('sha1').update(normalizeUrl(url)).digest('hex')
+    return path.join(reposDir, `${key}.json`)
   }
 
   return {
-    async read(): Promise<CacheSnapshot> {
+    async readRepo(url: string): Promise<CatalogDocument | null> {
       await ensureDir()
-      const [merged, repos] = await Promise.all([readMerged(mergedPath), readRepos(metaPath)])
-      return { merged, repos }
+      const body = await readOptional(repoPath(url))
+      if (body === null) return null
+      try {
+        return CatalogDocumentZ.parse(JSON.parse(body))
+      } catch {
+        return null
+      }
     },
-    async writeMerged(catalog: CatalogDocument): Promise<void> {
+    async writeRepo(url: string, catalog: CatalogDocument): Promise<void> {
       await ensureDir()
-      await writeFile(mergedPath, JSON.stringify(catalog, null, 2), 'utf8')
-    },
-    async writeRepos(records: RepoFetchRecord[]): Promise<void> {
-      await ensureDir()
-      await writeFile(metaPath, JSON.stringify({ version: 1, repos: records }, null, 2), 'utf8')
+      await writeFile(repoPath(url), JSON.stringify(catalog, null, 2), 'utf8')
     }
   }
 }
 
-async function readMerged(target: string): Promise<CatalogDocument | null> {
-  const body = await readOptional(target)
-  if (body === null) return null
-  try {
-    return CatalogDocumentZ.parse(JSON.parse(body))
-  } catch {
-    return null
-  }
-}
-
-type LegacyRepoRecord = {
-  url: string
-  state: { status: string; reason?: string }
-}
-
-async function readRepos(target: string): Promise<RepoFetchRecord[]> {
-  const body = await readOptional(target)
-  if (body === null) return []
-  try {
-    const parsed = JSON.parse(body) as { version?: number; repos?: LegacyRepoRecord[] }
-    if (parsed?.version === 1 && Array.isArray(parsed.repos)) {
-      return parsed.repos.map(normalizeRecord)
-    }
-  } catch {
-    return []
-  }
-  return []
-}
-
-function normalizeRecord(record: LegacyRepoRecord): RepoFetchRecord {
-  if (record.state.status === 'failed') {
-    return { url: record.url, state: { status: 'failed', reason: record.state.reason ?? '' } }
-  }
-  return { url: record.url, state: { status: 'ok' } }
+function normalizeUrl(url: string): string {
+  return url.replace(/\/+$/, '').toLowerCase()
 }
 
 async function readOptional(target: string): Promise<string | null> {
