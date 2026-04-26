@@ -1,19 +1,8 @@
 import type { CatalogDocument } from '@core/catalog/CatalogSchema'
 
-type RepoFetchRecord = {
-  url: string
-  state: { status: 'ok' } | { status: 'failed'; reason: string }
-}
-
-type CacheSnapshot = {
-  merged: CatalogDocument | null
-  repos: RepoFetchRecord[]
-}
-
 type CatalogCache = {
-  read(): Promise<CacheSnapshot>
-  writeMerged(catalog: CatalogDocument): Promise<void>
-  writeRepos(records: RepoFetchRecord[]): Promise<void>
+  readRepo(url: string): Promise<CatalogDocument | null>
+  writeRepo(url: string, catalog: CatalogDocument): Promise<void>
 }
 
-export type { CatalogCache, CacheSnapshot, RepoFetchRecord }
+export type { CatalogCache }

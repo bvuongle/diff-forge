@@ -1,7 +1,6 @@
 import { Graph } from '@core/graph/GraphTypes'
 import { graphToTopology } from '@core/topology/graphToTopology'
-
-import type { TopologyExportOutcome } from '@/electron/electronApi'
+import type { TopologyExportOutcome } from '@contracts/IpcContract'
 
 async function saveTopology(graph: Graph): Promise<TopologyExportOutcome> {
   if (typeof window === 'undefined' || !window.electronAPI) {

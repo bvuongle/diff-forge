@@ -3,14 +3,15 @@ import { useState } from 'react'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import RefreshIcon from '@mui/icons-material/Refresh'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { Alert, Box, Button, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material'
 
-import type { RepoSummary } from '@core/catalog/CatalogStatus'
+import type { RepoLoadOutcome } from '@contracts/CatalogSource'
 import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
-import { refreshCatalog } from '@adapters/catalogLoader'
+import { ipcCatalogSource } from '@adapters/IpcCatalogSource'
 
-type FailedRepo = { url: string; reason: string }
+type ProblemRepo = { url: string; reason: string; kind: 'stale' | 'failed' }
 
 function CatalogSection() {
   const status = useCatalogStore((s) => s.status)
@@ -20,17 +21,11 @@ function CatalogSection() {
   const onRefresh = async () => {
     setBusy(true)
     try {
-      const result = await refreshCatalog()
-      if (result.status === 'unavailable') {
-        notify.error('Electron bridge unavailable - run `pnpm dev` from the diff-forge folder.')
-        return
-      }
-      if (result.status === 'unconfigured') {
-        setStatus({ status: 'unconfigured' })
-        notify.warning('DF_ARTIFACTORY_REPOS is not set. Export it and relaunch diff-forge.')
-        return
-      }
+      const result = await ipcCatalogSource.loadCatalog()
       setStatus(result)
+      if (result.status === 'unconfigured') {
+        notify.warning(`Catalog source is unconfigured. Set: ${result.missing.join(', ')}`)
+      }
     } finally {
       setBusy(false)
     }
@@ -59,7 +54,8 @@ function CatalogSection() {
           <Typography variant="body2">
             {status.catalog.components.length} components loaded. {status.message}
           </Typography>
-          <FailedReposList repos={collectFailures(status.repos)} />
+          <RepoStatusList repos={status.repos} />
+          <ProblemReposList repos={collectProblems(status.repos)} />
           <Box>
             <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} />
           </Box>
@@ -72,26 +68,18 @@ function CatalogSection() {
     return (
       <Alert severity="warning" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
         <Typography variant="subtitle2" gutterBottom>
-          Configure catalog repositories
+          Catalog source is unconfigured
         </Typography>
         <Typography variant="body2" gutterBottom>
-          Set <code>DF_ARTIFACTORY_REPOS</code> in your shell (comma-separated URLs) and relaunch diff-forge.
+          The following environment {status.missing.length === 1 ? 'variable is' : 'variables are'} missing. Set{' '}
+          {status.missing.length === 1 ? 'it' : 'them'} in your shell and relaunch diff-forge.
         </Typography>
-        <Box
-          component="pre"
-          sx={{
-            m: 0,
-            p: 1,
-            bgcolor: 'action.hover',
-            borderRadius: 1,
-            fontSize: '0.75rem',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-all'
-          }}
-        >
-          {`export DF_ARTIFACTORY_REPOS="https://repo.example/artifactory/conan-repo"
-export DF_ARTIFACTORY_TOKEN="<optional-bearer-token>"
-diff_forge .`}
+        <Box component="ul" sx={{ m: 0, pl: 3 }}>
+          {status.missing.map((name) => (
+            <Box component="li" key={name}>
+              <code>{name}</code>
+            </Box>
+          ))}
         </Box>
       </Alert>
     )
@@ -109,7 +97,7 @@ diff_forge .`}
     <Alert severity="error" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
       <Stack spacing={1}>
         <Typography variant="body2">{status.message}</Typography>
-        <FailedReposList repos={collectFailures(status.repos)} />
+        <ProblemReposList repos={collectProblems(status.repos)} />
         <Box>
           <RefreshButton busy={busy} repoCount={status.repos.length} onClick={onRefresh} ariaLabel="Refresh catalog" />
         </Box>
@@ -118,20 +106,20 @@ diff_forge .`}
   )
 }
 
-function collectFailures(repos: RepoSummary[]): FailedRepo[] {
+function collectProblems(repos: RepoLoadOutcome[]): ProblemRepo[] {
   return repos
-    .filter((r) => r.state.status === 'failed')
-    .map((r) => ({ url: r.url, reason: r.state.status === 'failed' ? r.state.reason : '' }))
+    .filter((r): r is RepoLoadOutcome & { status: 'stale' | 'failed' } => r.status !== 'ok')
+    .map((r) => ({ url: r.url, reason: r.reason, kind: r.status }))
 }
 
-function FailedReposList({ repos }: { repos: FailedRepo[] }) {
+function ProblemReposList({ repos }: { repos: ProblemRepo[] }) {
   if (repos.length === 0) return null
   return (
     <Box component="ul" sx={{ m: 0, pl: 3 }}>
       {repos.map((repo) => (
         <Box component="li" key={repo.url} sx={{ mb: 0.5 }}>
           <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
-            {repo.url}
+            {repo.url} {repo.kind === 'stale' ? '(cached)' : ''}
           </Typography>
           {repo.reason && (
             <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word', display: 'block' }}>
@@ -173,7 +161,7 @@ function RefreshButton({
   )
 }
 
-function RepoStatusList({ repos }: { repos: RepoSummary[] }) {
+function RepoStatusList({ repos }: { repos: RepoLoadOutcome[] }) {
   if (repos.length === 0) return null
   return (
     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
@@ -190,21 +178,24 @@ function repoLabel(url: string): string {
   return last && last.length > 0 ? last : trimmed
 }
 
-function RepoChip({ repo }: { repo: RepoSummary }) {
-  const isOk = repo.state.status === 'ok'
+function RepoChip({ repo }: { repo: RepoLoadOutcome }) {
   const label = repoLabel(repo.url)
-  const tooltipTitle = repo.state.status === 'failed' ? `${repo.url}\n${repo.state.reason}` : repo.url
+  const tooltipTitle = repo.status === 'ok' ? repo.url : `${repo.url}\n${repo.reason}`
+  const { color, icon } = chipPresentation(repo.status)
   return (
     <Tooltip title={tooltipTitle} placement="top">
-      <Chip
-        size="small"
-        icon={isOk ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
-        color={isOk ? 'success' : 'error'}
-        variant="outlined"
-        label={label}
-      />
+      <Chip size="small" icon={icon} color={color} variant="outlined" label={label} />
     </Tooltip>
   )
+}
+
+function chipPresentation(repoStatus: RepoLoadOutcome['status']): {
+  color: 'success' | 'warning' | 'error'
+  icon: React.ReactElement
+} {
+  if (repoStatus === 'ok') return { color: 'success', icon: <CheckCircleOutlineIcon fontSize="small" /> }
+  if (repoStatus === 'stale') return { color: 'warning', icon: <WarningAmberIcon fontSize="small" /> }
+  return { color: 'error', icon: <ErrorOutlineIcon fontSize="small" /> }
 }
 
 export { CatalogSection }

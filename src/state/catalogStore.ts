@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 
 import type { CatalogDocument } from '@core/catalog/CatalogSchema'
-import type { CatalogStatus } from '@core/catalog/CatalogStatus'
+import type { CatalogLoadOutcome } from '@contracts/CatalogSource'
+
+type CatalogStatus = CatalogLoadOutcome | { status: 'loading' }
 
 type CatalogStore = {
   status: CatalogStatus
@@ -21,3 +23,4 @@ const useCatalogStore = create<CatalogStore>((set) => ({
 }))
 
 export { useCatalogStore }
+export type { CatalogStatus }

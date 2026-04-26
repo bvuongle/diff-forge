@@ -5,7 +5,7 @@ import { CircularProgress, IconButton, Tooltip } from '@mui/material'
 
 import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
-import { refreshCatalog } from '@adapters/catalogLoader'
+import { ipcCatalogSource } from '@adapters/IpcCatalogSource'
 
 function RefreshCatalogButton() {
   const setStatus = useCatalogStore((s) => s.setStatus)
@@ -14,21 +14,14 @@ function RefreshCatalogButton() {
   const onClick = async () => {
     setBusy(true)
     try {
-      const result = await refreshCatalog()
-      if (result.status === 'unavailable') {
-        notify.error('Electron bridge unavailable - run `pnpm dev` from the diff-forge folder.')
-        return
-      }
-      if (result.status === 'unconfigured') {
-        setStatus({ status: 'unconfigured' })
-        notify.warning('DF_ARTIFACTORY_REPOS is not set. Export it and relaunch diff-forge.')
-        return
-      }
+      const result = await ipcCatalogSource.loadCatalog()
       setStatus(result)
       if (result.status === 'ready') {
         notify.success(`Catalog refreshed: ${result.catalog.components.length} components`)
       } else if (result.status === 'partial') {
         notify.warning(result.message)
+      } else if (result.status === 'unconfigured') {
+        notify.warning(`Catalog source is unconfigured. Set: ${result.missing.join(', ')}`)
       } else if (result.status === 'error') {
         notify.error(result.message)
       }

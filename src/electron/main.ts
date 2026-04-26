@@ -5,12 +5,9 @@ import { fileURLToPath } from 'url'
 
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 
-import { createArtifactoryRestFetcher } from '../adapters/ArtifactoryRestFetcher'
+import { createArtifactoryCatalogSource } from '../adapters/ArtifactoryCatalogSource'
 import { createFsCatalogCache } from '../adapters/FsCatalogCache'
-import type { CatalogCache, RepoFetchRecord } from '../contracts/CatalogCache'
-import type { CatalogRepoFetcher, RepoFetchResult } from '../contracts/CatalogRepoFetcher'
-import { parseEnv, REPOS_VAR, TOKEN_VAR, type RepoConfig } from '../core/catalog/envRepos'
-import { mergeCatalogs } from '../core/catalog/mergeCatalogs'
+import type { CatalogLoadOutcome, CatalogSource } from '../contracts/CatalogSource'
 import { checkWorkspace } from '../core/workspace/workspaceContext'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -149,114 +146,18 @@ ipcMain.handle('topology:load', async () => {
   }
 })
 
-let catalogCache: CatalogCache | null = null
-let repoFetcher: CatalogRepoFetcher | null = null
+let catalogSource: CatalogSource | null = null
 
-type FetchResult =
-  | { status: 'ready'; catalog: string; repos: RepoFetchRecord[] }
-  | { status: 'partial'; catalog: string; repos: RepoFetchRecord[]; message: string }
-  | { status: 'error'; message: string; repos: RepoFetchRecord[] }
-
-async function fetchAndStore(repos: RepoConfig[], token: string | null): Promise<FetchResult> {
-  const results = await Promise.all(repos.map((repo) => repoFetcher!.fetch(repo, token)))
-
-  const successes = results.filter((r): r is Extract<RepoFetchResult, { status: 'ok' }> => r.status === 'ok')
-  const failures = results.filter((r): r is Extract<RepoFetchResult, { status: 'failed' }> => r.status === 'failed')
-
-  const records: RepoFetchRecord[] = results.map((r) =>
-    r.status === 'ok'
-      ? { url: r.url, state: { status: 'ok' } }
-      : { url: r.url, state: { status: 'failed', reason: r.reason } }
-  )
-  await catalogCache!.writeRepos(records)
-
-  if (successes.length === 0) {
-    const noun = failures.length === 1 ? 'repository' : 'repositories'
-    return {
-      status: 'error',
-      message: `${failures.length} ${noun} failed to fetch.`,
-      repos: records
-    }
-  }
-
-  const merged = mergeCatalogs(successes.map((s) => s.catalog))
-  await catalogCache!.writeMerged(merged)
-
-  if (failures.length === 0) {
-    return { status: 'ready', catalog: JSON.stringify(merged), repos: records }
-  }
-  return {
-    status: 'partial',
-    catalog: JSON.stringify(merged),
-    repos: records,
-    message: `${failures.length} of ${results.length} ${results.length === 1 ? 'repository' : 'repositories'} failed. Showing partial catalog.`
-  }
-}
-
-async function handleCatalogLoad() {
-  const env = parseEnv(process.env)
-  if (env.status === 'unconfigured') {
-    return { status: 'unconfigured', missing: env.missing }
-  }
-  if (env.status === 'invalid') {
-    return { status: 'error', message: env.message, repos: [] }
-  }
-  if (!catalogCache || !repoFetcher) {
+ipcMain.handle('catalog:load', async (): Promise<CatalogLoadOutcome> => {
+  if (!catalogSource) {
     return { status: 'error', message: 'Catalog services not initialized', repos: [] }
   }
-
-  const fetched = await fetchAndStore(env.repos, env.token)
-  if (fetched.status !== 'error') return fetched
-
-  const snapshot = await catalogCache.read()
-  if (snapshot.merged) {
-    return {
-      status: 'partial',
-      catalog: JSON.stringify(snapshot.merged),
-      repos: fetched.repos,
-      message: 'All repositories failed to fetch. Showing previously cached catalog.'
-    }
-  }
-  return fetched
-}
-
-async function handleCatalogRefresh() {
-  const env = parseEnv(process.env)
-  if (env.status === 'unconfigured') {
-    return { status: 'unconfigured', missing: env.missing }
-  }
-  if (env.status === 'invalid') {
-    return { status: 'error', message: env.message, repos: [] }
-  }
-  if (!catalogCache || !repoFetcher) {
-    return { status: 'error', message: 'Catalog services not initialized', repos: [] }
-  }
-
-  return await fetchAndStore(env.repos, env.token)
-}
-
-ipcMain.handle('catalog:load', handleCatalogLoad)
-ipcMain.handle('catalog:refresh', handleCatalogRefresh)
-
-function reportStartupEnv(): void {
-  const config = parseEnv(process.env)
-  if (config.status === 'unconfigured') {
-    // Intentional CLI stderr: user launched from terminal; no UI yet to show this.
-    // eslint-disable-next-line no-console
-    console.error(
-      `[diff-forge] ${REPOS_VAR} is not set. Catalog will be empty until configured.\n` +
-        `Example:\n` +
-        `  export ${REPOS_VAR}="https://repo.example/artifactory/conan-repo"\n` +
-        `  export ${TOKEN_VAR}="<optional-bearer-token>"\n` +
-        `Then relaunch: diff_forge .`
-    )
-  }
-}
+  return catalogSource.loadCatalog()
+})
 
 app.on('ready', () => {
-  catalogCache = createFsCatalogCache({ baseDir: app.getPath('userData') })
-  repoFetcher = createArtifactoryRestFetcher({ fetch })
-  reportStartupEnv()
+  const cache = createFsCatalogCache({ baseDir: app.getPath('userData') })
+  catalogSource = createArtifactoryCatalogSource({ env: process.env, fetch, cache })
   createWindow()
 })
 

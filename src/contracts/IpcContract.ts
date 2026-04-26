@@ -1,4 +1,5 @@
 import type { WorkspaceInvalidReason, WorkspaceStatus } from '../core/workspace/WorkspaceTypes'
+import type { CatalogLoadOutcome } from './CatalogSource'
 
 type TopologyExportOutcome =
   | { status: 'saved'; topologyPath: string; projectName: string }
@@ -17,20 +18,7 @@ type OpenWorkspaceOutcome =
   | { status: 'canceled' }
   | { status: 'error'; message: string }
 
-type RepoFetchStateDto = { status: 'ok' } | { status: 'failed'; reason: string }
-
-type RepoSummaryDto = {
-  url: string
-  state: RepoFetchStateDto
-}
-
-type CatalogLoadOutcome =
-  | { status: 'unconfigured'; missing: string[] }
-  | { status: 'ready'; catalog: string; repos: RepoSummaryDto[] }
-  | { status: 'partial'; catalog: string; repos: RepoSummaryDto[]; message: string }
-  | { status: 'error'; message: string; repos: RepoSummaryDto[] }
-
-type ElectronAPI = {
+type HostApi = {
   workspace: {
     status: () => Promise<WorkspaceStatus>
     openAtPath: (payload: { path: string }) => Promise<OpenWorkspaceOutcome>
@@ -44,23 +32,13 @@ type ElectronAPI = {
   }
   catalog: {
     load: () => Promise<CatalogLoadOutcome>
-    refresh: () => Promise<CatalogLoadOutcome>
   }
 }
 
 declare global {
   interface Window {
-    electronAPI: ElectronAPI
+    electronAPI: HostApi
   }
 }
 
-export type {
-  ElectronAPI,
-  TopologyExportOutcome,
-  TopologyLoadOutcome,
-  TopologyPayload,
-  OpenWorkspaceOutcome,
-  CatalogLoadOutcome,
-  RepoSummaryDto,
-  RepoFetchStateDto
-}
+export type { HostApi, TopologyExportOutcome, TopologyLoadOutcome, TopologyPayload, OpenWorkspaceOutcome }

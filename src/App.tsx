@@ -8,8 +8,8 @@ import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { notify } from '@state/notificationsStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
-import { loadCatalog } from '@adapters/catalogLoader'
 import { getWorkspaceStatus } from '@adapters/electronWorkspace'
+import { ipcCatalogSource } from '@adapters/IpcCatalogSource'
 import { loadTopologyFromWorkspace } from '@adapters/topologyLoader'
 import { InitialLayout } from '@layout/InitialLayout'
 import { MainLayout } from '@layout/MainLayout'
@@ -29,25 +29,7 @@ function App() {
   useAppHotkeys()
 
   useEffect(() => {
-    loadCatalog().then((result) => {
-      if (result.status === 'unavailable') {
-        setCatalogStatus({
-          status: 'error',
-          message: 'Catalog IPC unavailable (non-Electron runtime)',
-          repos: []
-        })
-        return
-      }
-      if (result.status === 'unconfigured') {
-        setCatalogStatus({ status: 'unconfigured' })
-        return
-      }
-      if (result.status === 'error') {
-        setCatalogStatus({ status: 'error', message: result.message, repos: result.repos })
-        return
-      }
-      setCatalogStatus(result)
-    })
+    ipcCatalogSource.loadCatalog().then(setCatalogStatus)
   }, [setCatalogStatus])
 
   useEffect(() => {
