@@ -1,8 +1,61 @@
 import { buildSlots } from '@core/catalog/buildSlots'
-import { CatalogComponent } from '@core/catalog/CatalogTypes'
+import { CatalogComponent } from '@core/catalog/CatalogSchema'
 import { Graph, GraphEdge, GraphNode, Position } from '@core/graph/GraphTypes'
-import { layoutByLevels } from '@core/layout/layoutByLevels'
 import { Topology, TopologyEntry } from '@core/topology/TopologyTypes'
+
+const AUTO_LAYOUT_COLUMN_WIDTH = 320
+const AUTO_LAYOUT_ROW_HEIGHT = 180
+
+function layoutByLevels(topology: Topology): Record<string, Position> {
+  if (topology.length === 0) return {}
+
+  const entryIds = new Set(topology.map((e) => e.id))
+  const level = new Map<string, number>()
+  const remainingDeps = new Map<string, number>()
+  const dependents = new Map<string, string[]>()
+
+  for (const entry of topology) {
+    const validDeps = entry.dependencies.filter((d) => entryIds.has(d))
+    remainingDeps.set(entry.id, validDeps.length)
+    for (const dep of validDeps) {
+      if (!dependents.has(dep)) dependents.set(dep, [])
+      dependents.get(dep)!.push(entry.id)
+    }
+  }
+
+  let frontier = topology.filter((e) => remainingDeps.get(e.id) === 0).map((e) => e.id)
+  let currentLevel = 0
+  while (frontier.length > 0) {
+    for (const id of frontier) level.set(id, currentLevel)
+    const next: string[] = []
+    for (const id of frontier) {
+      for (const child of dependents.get(id) ?? []) {
+        const deg = (remainingDeps.get(child) ?? 0) - 1
+        remainingDeps.set(child, deg)
+        if (deg === 0) next.push(child)
+      }
+    }
+    frontier = next
+    currentLevel++
+  }
+
+  for (const entry of topology) {
+    if (!level.has(entry.id)) level.set(entry.id, currentLevel)
+  }
+
+  const withinLevel = new Map<number, number>()
+  const positions: Record<string, Position> = {}
+  for (const entry of topology) {
+    const lv = level.get(entry.id) ?? 0
+    const row = withinLevel.get(lv) ?? 0
+    withinLevel.set(lv, row + 1)
+    positions[entry.id] = {
+      x: lv * AUTO_LAYOUT_COLUMN_WIDTH,
+      y: row * AUTO_LAYOUT_ROW_HEIGHT
+    }
+  }
+  return positions
+}
 
 type CatalogKey = string
 
@@ -29,6 +82,27 @@ function nodeFromEntry(entry: TopologyEntry, catalog: CatalogComponent | undefin
   }
 }
 
+type Requirement = CatalogComponent['requires'][number]
+
+function pickRequirement(
+  requires: Requirement[],
+  used: number[],
+  startIdx: number,
+  sourceImplements: string[]
+): number {
+  let i = startIdx
+  while (i < requires.length) {
+    if (used[i] >= requires[i].max) {
+      i++
+      continue
+    }
+    if (sourceImplements.includes(requires[i].interface)) return i
+    if (used[i] < requires[i].min) return i
+    i++
+  }
+  return i
+}
+
 function assignEdgesForEntry(
   entry: TopologyEntry,
   targetCatalog: CatalogComponent | undefined,
@@ -50,18 +124,7 @@ function assignEdgesForEntry(
       : undefined
     if (!sourceCatalog) continue
 
-    while (reqIdx < requires.length) {
-      const req = requires[reqIdx]
-      if (used[reqIdx] >= req.max) {
-        reqIdx++
-        continue
-      }
-      const matches = sourceCatalog.implements.includes(req.interface)
-      if (matches) break
-      if (used[reqIdx] < req.min) break
-      reqIdx++
-    }
-
+    reqIdx = pickRequirement(requires, used, reqIdx, sourceCatalog.implements)
     const req = requires[reqIdx]
     if (!req) continue
     const sourceSlot = sourceCatalog.implements.find((i) => i === req.interface) ?? sourceCatalog.implements[0]
@@ -110,5 +173,5 @@ function topologyToGraph(topology: Topology, catalog: CatalogComponent[]): Recon
   return { graph: { nodes, edges }, unresolved }
 }
 
-export { topologyToGraph }
+export { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT, layoutByLevels, topologyToGraph }
 export type { ReconstitutionResult }

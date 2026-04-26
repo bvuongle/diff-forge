@@ -2,7 +2,7 @@ import { KeyboardEvent, memo, useEffect, useRef, useState } from 'react'
 
 import { FormControlLabel, Switch, TextField } from '@mui/material'
 
-import { ConfigValueSchema } from '@core/catalog/CatalogTypes'
+import { ConfigValueSchema } from '@core/catalog/CatalogSchema'
 
 type ConfigFieldRendererProps = {
   fieldName: string

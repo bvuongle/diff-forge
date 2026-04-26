@@ -40,7 +40,10 @@ function parseEnv(env: Record<string, string | undefined>): EnvConfig {
 
 function findDuplicateUrls(urls: string[]): string[] {
   const seen = new Map<string, number>()
-  for (const u of urls) seen.set(normalizeUrl(u), (seen.get(normalizeUrl(u)) ?? 0) + 1)
+  for (const u of urls) {
+    const key = normalizeUrl(u)
+    seen.set(key, (seen.get(key) ?? 0) + 1)
+  }
   return [...seen.entries()].filter(([, n]) => n > 1).map(([u]) => u)
 }
 

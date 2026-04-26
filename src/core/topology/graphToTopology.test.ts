@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { makeEdge, makeNode } from '@testing/fixtures'
 
-import { graphToTopology } from './TopologyMapper'
+import { graphToTopology } from './graphToTopology'
 
 describe('graphToTopology', () => {
   it('returns empty array for empty graph', () => {

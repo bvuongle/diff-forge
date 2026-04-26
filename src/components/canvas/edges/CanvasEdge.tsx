@@ -2,7 +2,7 @@ import { memo, useMemo, type CSSProperties } from 'react'
 
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, type EdgeProps } from '@xyflow/react'
 
-import { isEdgeInvalid } from '@core/graph/GraphOperations'
+import { isEdgeInvalid } from '@core/graph/graphOperations'
 import { useGraphStore } from '@state/graphStore'
 import type { CanvasEdge } from '@canvas/canvasTypes'
 

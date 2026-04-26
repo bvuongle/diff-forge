@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
+import type { CatalogDocument } from '@core/catalog/CatalogSchema'
 import type { CatalogStatus } from '@core/catalog/CatalogStatus'
-import type { CatalogDocument } from '@core/catalog/CatalogTypes'
 
 type CatalogStore = {
   status: CatalogStatus

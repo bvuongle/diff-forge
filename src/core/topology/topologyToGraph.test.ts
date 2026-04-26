@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { Topology } from '@core/topology/TopologyTypes'
 import { makeCatalog } from '@testing/fixtures'
 
-import { topologyToGraph } from './topologyToGraph'
+import { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT, layoutByLevels, topologyToGraph } from './topologyToGraph'
+
+function layoutEntry(id: string, deps: string[] = []): Topology[number] {
+  return { type: 'X', id, version: '1.0.0', source: 's', dependencies: deps, config: {} }
+}
 
 describe('topologyToGraph', () => {
   const linkEthCatalog = makeCatalog({
@@ -247,5 +251,58 @@ describe('topologyToGraph', () => {
     expect(msgEdges[0].targetSlot).toBe('primary')
     expect(msgEdges[1].sourceNodeId).toBe('gsm0')
     expect(msgEdges[1].targetSlot).toBe('backup')
+  })
+})
+
+describe('layoutByLevels', () => {
+  it('returns empty map for empty topology', () => {
+    expect(layoutByLevels([])).toEqual({})
+  })
+
+  it('places leaves (no deps) in column 0', () => {
+    const positions = layoutByLevels([layoutEntry('a'), layoutEntry('b')])
+    expect(positions.a.x).toBe(0)
+    expect(positions.b.x).toBe(0)
+  })
+
+  it('places consumer to the right of its deps', () => {
+    const positions = layoutByLevels([layoutEntry('a'), layoutEntry('b', ['a'])])
+    expect(positions.a.x).toBe(0)
+    expect(positions.b.x).toBe(AUTO_LAYOUT_COLUMN_WIDTH)
+  })
+
+  it('stacks within-level nodes by topology order on y axis', () => {
+    const positions = layoutByLevels([layoutEntry('a'), layoutEntry('b'), layoutEntry('c')])
+    expect(positions.a).toEqual({ x: 0, y: 0 })
+    expect(positions.b).toEqual({ x: 0, y: AUTO_LAYOUT_ROW_HEIGHT })
+    expect(positions.c).toEqual({ x: 0, y: AUTO_LAYOUT_ROW_HEIGHT * 2 })
+  })
+
+  it('handles deeper chains', () => {
+    const positions = layoutByLevels([layoutEntry('a'), layoutEntry('b', ['a']), layoutEntry('c', ['b'])])
+    expect(positions.a.x).toBe(0)
+    expect(positions.b.x).toBe(AUTO_LAYOUT_COLUMN_WIDTH)
+    expect(positions.c.x).toBe(AUTO_LAYOUT_COLUMN_WIDTH * 2)
+  })
+
+  it('ignores dangling deps when computing levels', () => {
+    const positions = layoutByLevels([layoutEntry('a', ['ghost'])])
+    expect(positions.a.x).toBe(0)
+  })
+
+  it('places cyclic nodes into a fallback level rather than dropping them', () => {
+    const positions = layoutByLevels([layoutEntry('a', ['b']), layoutEntry('b', ['a'])])
+    expect(positions.a).toBeDefined()
+    expect(positions.b).toBeDefined()
+  })
+
+  it('is deterministic: same topology produces same positions', () => {
+    const topology: Topology = [
+      layoutEntry('a'),
+      layoutEntry('b', ['a']),
+      layoutEntry('c', ['a']),
+      layoutEntry('d', ['b', 'c'])
+    ]
+    expect(layoutByLevels(topology)).toEqual(layoutByLevels(topology))
   })
 })

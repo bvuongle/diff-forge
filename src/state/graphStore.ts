@@ -9,7 +9,7 @@ import {
   removeNode,
   renameNode,
   updateNodeConfig
-} from '@core/graph/GraphOperations'
+} from '@core/graph/graphOperations'
 import { Graph, GraphEdge, GraphNode, Position } from '@core/graph/GraphTypes'
 
 type GraphStore = {

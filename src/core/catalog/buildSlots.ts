@@ -1,6 +1,6 @@
 import { Slot } from '@core/graph/GraphTypes'
 
-import { CatalogComponent } from './CatalogTypes'
+import { CatalogComponent } from './CatalogSchema'
 
 function buildSlots(component: CatalogComponent): Slot[] {
   const slots: Slot[] = []

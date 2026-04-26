@@ -1,4 +1,4 @@
-import { CatalogDocument } from '@core/catalog/CatalogTypes'
+import { CatalogDocument } from '@core/catalog/CatalogSchema'
 
 type CatalogSource = {
   loadCatalog(): Promise<CatalogDocument>

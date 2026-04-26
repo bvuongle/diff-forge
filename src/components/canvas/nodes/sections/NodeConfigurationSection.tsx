@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 
-import { CatalogComponent } from '@core/catalog/CatalogTypes'
+import { CatalogComponent } from '@core/catalog/CatalogSchema'
 import { GraphNode } from '@core/graph/GraphTypes'
 
 import { ConfigFieldRenderer } from '../config/ConfigFieldRenderer'

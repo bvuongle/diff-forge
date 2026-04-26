@@ -1,5 +1,5 @@
 import { buildSlots } from '@core/catalog/buildSlots'
-import { CatalogComponent } from '@core/catalog/CatalogTypes'
+import { CatalogComponent } from '@core/catalog/CatalogSchema'
 import { GraphNode, Position } from '@core/graph/GraphTypes'
 
 function toCamelCase(typeName: string): string {

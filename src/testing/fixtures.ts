@@ -1,4 +1,4 @@
-import type { CatalogComponent } from '@core/catalog/CatalogTypes'
+import type { CatalogComponent } from '@core/catalog/CatalogSchema'
 import type { GraphEdge, GraphNode, Slot } from '@core/graph/GraphTypes'
 
 function makeNode(id: string, overrides?: Partial<GraphNode>): GraphNode {

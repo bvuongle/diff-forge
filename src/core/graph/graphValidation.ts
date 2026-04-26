@@ -1,4 +1,4 @@
-import { isEdgeInvalid } from './GraphOperations'
+import { isEdgeInvalid } from './graphOperations'
 import { Graph } from './GraphTypes'
 
 export type GraphValidationResult = {

@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { CatalogComponent } from '@core/catalog/CatalogTypes'
+import type { CatalogComponent } from '@core/catalog/CatalogSchema'
 import type { GraphNode } from '@core/graph/GraphTypes'
 import { renderWithTheme } from '@testing/test-utils'
 

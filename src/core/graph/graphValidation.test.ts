@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { makeEdge, makeNode } from '../../testing/fixtures'
 import { Graph } from './GraphTypes'
-import { detectCycles, detectOrphans, validateGraph } from './GraphValidation'
+import { detectCycles, detectOrphans, validateGraph } from './graphValidation'
 
 describe('GraphValidation', () => {
   describe('detectCycles', () => {

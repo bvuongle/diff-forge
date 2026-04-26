@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 
 import { type Connection } from '@xyflow/react'
 
-import { validateEdge } from '@core/graph/GraphOperations'
+import { validateEdge } from '@core/graph/graphOperations'
 import type { Graph } from '@core/graph/GraphTypes'
 import { useGraphStore } from '@state/graphStore'
 import { OUT_HANDLE_ID } from '@canvas/canvasConstants'

@@ -10,7 +10,7 @@ import {
   renameNode,
   updateNodeConfig,
   validateEdge
-} from '@core/graph/GraphOperations'
+} from '@core/graph/graphOperations'
 import type { Graph, GraphEdge, Slot } from '@core/graph/GraphTypes'
 import { makeEdge, makeNode } from '@testing/fixtures'
 
