@@ -36,7 +36,7 @@ function NodeRequirementsSection({
         const isValid = portState === 'valid'
         const isPortDimmed = portState === 'dimmed'
         const tooltip = getSlotTooltip(edgeSourceMap, slot.name)
-        const isConnectable = count < slot.maxConnections
+        const isConnectable = slot.isArray || count < 1
         return (
           <Box key={slot.name} title={tooltip} className="slot-row">
             <HandlePort
@@ -57,14 +57,10 @@ function NodeRequirementsSection({
             >
               {slot.name}
             </Typography>
-            <Chip
-              label={slot.interface}
-              size="small"
-              className={`slot-chip ${isPortDimmed ? 'slot-chip--dimmed' : ''}`}
-            />
-            {slot.maxConnections > 1 && (
+            <Chip label={slot.type} size="small" className={`slot-chip ${isPortDimmed ? 'slot-chip--dimmed' : ''}`} />
+            {slot.isArray && (
               <Typography variant="caption" color="text.secondary" className="slot-count">
-                {count}/{slot.maxConnections}
+                {count}
               </Typography>
             )}
           </Box>
@@ -74,7 +70,7 @@ function NodeRequirementsSection({
         <Box className="slot-row slot-row--output">
           {outputSlots.length === 1 && (
             <Typography variant="caption" color="text.secondary" noWrap className="slot-label slot-label--output">
-              {outputSlots[0].interface}
+              {outputSlots[0].type}
             </Typography>
           )}
           <HandlePort

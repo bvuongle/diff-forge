@@ -60,7 +60,7 @@ function fragment(type: string, version: string) {
     version,
     implements: ['ILink'],
     requires: [],
-    configSchema: {}
+    config: {}
   }
 }
 
@@ -336,7 +336,7 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
         source: STORAGE_URL,
         implements: ['ILink'],
         requires: [],
-        configSchema: {}
+        config: {}
       }
     ]
   }
@@ -440,7 +440,7 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
           source: REPO_B,
           implements: ['ILink'],
           requires: [],
-          configSchema: {}
+          config: {}
         }
       ]
     }
@@ -484,7 +484,7 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
           source: REPO_A,
           implements: ['ILink'],
           requires: [],
-          configSchema: {}
+          config: {}
         }
       ]
     }
@@ -496,7 +496,7 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
           source: REPO_B,
           implements: ['ILink'],
           requires: [],
-          configSchema: {}
+          config: {}
         }
       ]
     }

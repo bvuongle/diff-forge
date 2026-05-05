@@ -171,33 +171,33 @@ describe('updateNodeConfig', () => {
   it('replaces config on the target node', () => {
     const graph = addNode(emptyGraph(), makeNode('n1'))
     const result = updateNodeConfig(graph, 'n1', { count: 5 })
-    expect(result.nodes[0].config).toEqual({ count: 5 })
+    expect(result.nodes[0].configData).toEqual({ count: 5 })
   })
 
   it('does not affect other nodes', () => {
     let graph = addNode(emptyGraph(), makeNode('n1'))
-    graph = addNode(graph, makeNode('n2', { config: { existing: true } }))
+    graph = addNode(graph, makeNode('n2', { configData: { existing: true } }))
     const result = updateNodeConfig(graph, 'n1', { count: 5 })
-    expect(result.nodes[1].config).toEqual({ existing: true })
+    expect(result.nodes[1].configData).toEqual({ existing: true })
   })
 
   it('does not mutate original graph', () => {
     const graph = addNode(emptyGraph(), makeNode('n1'))
     const result = updateNodeConfig(graph, 'n1', { key: 'value' })
-    expect(graph.nodes[0].config).toEqual({})
-    expect(result.nodes[0].config).toEqual({ key: 'value' })
+    expect(graph.nodes[0].configData).toEqual({})
+    expect(result.nodes[0].configData).toEqual({ key: 'value' })
   })
 
   it('leaves node unchanged if nodeId not found', () => {
     const graph = addNode(emptyGraph(), makeNode('n1'))
     const result = updateNodeConfig(graph, 'nonexistent', { key: 'value' })
-    expect(result.nodes[0].config).toEqual({})
+    expect(result.nodes[0].configData).toEqual({})
   })
 })
 
 describe('validateEdge', () => {
-  const srcSlot: Slot = { name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }
-  const tgtSlot: Slot = { name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }
+  const srcSlot: Slot = { name: 'ILink', type: 'ILink', direction: 'out', isArray: true }
+  const tgtSlot: Slot = { name: 'transport', type: 'ILink', direction: 'in', isArray: false }
 
   const graph: Graph = {
     nodes: [makeNode('a', { slots: [srcSlot] }), makeNode('b', { slots: [tgtSlot] })],
@@ -209,9 +209,9 @@ describe('validateEdge', () => {
     expect(result.valid).toBe(true)
   })
 
-  it('allows connection when target slot below max connections', () => {
+  it('allows additional connection when target slot is array', () => {
     const multiSlotGraph: Graph = {
-      nodes: [makeNode('a', { slots: [srcSlot] }), makeNode('b', { slots: [{ ...tgtSlot, maxConnections: 3 }] })],
+      nodes: [makeNode('a', { slots: [srcSlot] }), makeNode('b', { slots: [{ ...tgtSlot, isArray: true }] })],
       edges: [makeEdge('e1', 'a', 'b')]
     }
     const result = validateEdge(multiSlotGraph, 'a', 'ILink', 'b', 'transport')
@@ -223,8 +223,8 @@ describe('validateEdge', () => {
       emptyGraph(),
       makeNode('n1', {
         slots: [
-          { name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: 99 },
-          { name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }
+          { name: 'ILink', type: 'ILink', direction: 'out', isArray: true },
+          { name: 'transport', type: 'ILink', direction: 'in', isArray: false }
         ]
       })
     )
@@ -260,57 +260,53 @@ describe('validateEdge', () => {
   it('rejects interface mismatch', () => {
     const mismatchGraph: Graph = {
       nodes: [
-        makeNode('a', { slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }] }),
-        makeNode('b', { slots: [{ name: 'data', interface: 'IData', direction: 'in', maxConnections: 1 }] })
+        makeNode('a', { slots: [{ name: 'ILink', type: 'ILink', direction: 'out', isArray: true }] }),
+        makeNode('b', { slots: [{ name: 'data', type: 'IData', direction: 'in', isArray: false }] })
       ],
       edges: []
     }
     const result = validateEdge(mismatchGraph, 'a', 'ILink', 'b', 'data')
     expect(result.valid).toBe(false)
-    expect(result.reason).toBe('Interface mismatch')
+    expect(result.reason).toBe('Type mismatch')
   })
 
-  it('rejects when target slot at max connections', () => {
+  it('rejects when non-array target slot already wired', () => {
     const fullGraph: Graph = {
       ...graph,
       edges: [makeEdge('e1', 'a', 'b')]
     }
     const result = validateEdge(fullGraph, 'a', 'ILink', 'b', 'transport')
     expect(result.valid).toBe(false)
-    expect(result.reason).toBe('Max connections reached')
+    expect(result.reason).toBe('Slot already wired')
   })
 })
 
 describe('isEdgeInvalid', () => {
   it('returns false for valid edge with matching slots', () => {
     const nodes = [
-      makeNode('a', { slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }] }),
-      makeNode('b', { slots: [{ name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }] })
+      makeNode('a', { slots: [{ name: 'ILink', type: 'ILink', direction: 'out', isArray: true }] }),
+      makeNode('b', { slots: [{ name: 'transport', type: 'ILink', direction: 'in', isArray: false }] })
     ]
     const edge = makeEdge('e1', 'a', 'b')
     expect(isEdgeInvalid(edge, nodes)).toBe(false)
   })
 
   it('returns true when source node missing', () => {
-    const nodes = [
-      makeNode('b', { slots: [{ name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }] })
-    ]
+    const nodes = [makeNode('b', { slots: [{ name: 'transport', type: 'ILink', direction: 'in', isArray: false }] })]
     const edge = makeEdge('e1', 'a', 'b')
     expect(isEdgeInvalid(edge, nodes)).toBe(true)
   })
 
   it('returns true when target node missing', () => {
-    const nodes = [
-      makeNode('a', { slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }] })
-    ]
+    const nodes = [makeNode('a', { slots: [{ name: 'ILink', type: 'ILink', direction: 'out', isArray: true }] })]
     const edge = makeEdge('e1', 'a', 'b')
     expect(isEdgeInvalid(edge, nodes)).toBe(true)
   })
 
   it('returns true when source slot not found on source node', () => {
     const nodes = [
-      makeNode('a', { slots: [{ name: 'other', interface: 'ILink', direction: 'out', maxConnections: Infinity }] }),
-      makeNode('b', { slots: [{ name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }] })
+      makeNode('a', { slots: [{ name: 'other', type: 'ILink', direction: 'out', isArray: true }] }),
+      makeNode('b', { slots: [{ name: 'transport', type: 'ILink', direction: 'in', isArray: false }] })
     ]
     const edge = makeEdge('e1', 'a', 'b')
     expect(isEdgeInvalid(edge, nodes)).toBe(true)
@@ -318,8 +314,8 @@ describe('isEdgeInvalid', () => {
 
   it('returns true when target slot not found on target node', () => {
     const nodes = [
-      makeNode('a', { slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: Infinity }] }),
-      makeNode('b', { slots: [{ name: 'other', interface: 'ILink', direction: 'in', maxConnections: 1 }] })
+      makeNode('a', { slots: [{ name: 'ILink', type: 'ILink', direction: 'out', isArray: true }] }),
+      makeNode('b', { slots: [{ name: 'other', type: 'ILink', direction: 'in', isArray: false }] })
     ]
     const edge = makeEdge('e1', 'a', 'b')
     expect(isEdgeInvalid(edge, nodes)).toBe(true)
@@ -327,19 +323,19 @@ describe('isEdgeInvalid', () => {
 
   it('returns true when source slot direction is not out', () => {
     const nodes = [
-      makeNode('a', { slots: [{ name: 'ILink', interface: 'ILink', direction: 'in', maxConnections: 1 }] }),
-      makeNode('b', { slots: [{ name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }] })
+      makeNode('a', { slots: [{ name: 'ILink', type: 'ILink', direction: 'in', isArray: false }] }),
+      makeNode('b', { slots: [{ name: 'transport', type: 'ILink', direction: 'in', isArray: false }] })
     ]
     const edge = makeEdge('e1', 'a', 'b')
     expect(isEdgeInvalid(edge, nodes)).toBe(true)
   })
 
-  it('returns true when source and target slot interfaces do not match', () => {
+  it('returns true when source and target slot types do not match', () => {
     const nodes = [
       makeNode('a', {
-        slots: [{ name: 'IProcessable', interface: 'IProcessable', direction: 'out', maxConnections: Infinity }]
+        slots: [{ name: 'IProcessable', type: 'IProcessable', direction: 'out', isArray: true }]
       }),
-      makeNode('b', { slots: [{ name: 'routable', interface: 'IRoutable', direction: 'in', maxConnections: 1 }] })
+      makeNode('b', { slots: [{ name: 'routable', type: 'IRoutable', direction: 'in', isArray: false }] })
     ]
     const edge: GraphEdge = {
       id: 'e1',

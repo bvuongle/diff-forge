@@ -25,7 +25,7 @@ function searchCatalog(
   }
 
   const provides = sourceScoped.filter((c) => c.implements.some((iface) => iface.toLowerCase().includes(trimmed)))
-  const accepts = sourceScoped.filter((c) => c.requires.some((req) => req.interface.toLowerCase().includes(trimmed)))
+  const accepts = sourceScoped.filter((c) => c.requires.some((req) => req.type.toLowerCase().includes(trimmed)))
   return { kind: 'grouped', provides, accepts }
 }
 

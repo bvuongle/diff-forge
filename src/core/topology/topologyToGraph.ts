@@ -1,12 +1,17 @@
 import { buildSlots } from '@core/catalog/buildSlots'
 import { CatalogComponent } from '@core/catalog/CatalogSchema'
 import { Graph, GraphEdge, GraphNode, Position } from '@core/graph/GraphTypes'
-import { Topology, TopologyEntry } from '@core/topology/TopologyTypes'
+import { Topology, TopologyDependency, TopologyEntry } from '@core/topology/TopologyTypes'
 
 const AUTO_LAYOUT_COLUMN_WIDTH = 320
 const AUTO_LAYOUT_ROW_HEIGHT = 180
 
 type TopologyParseOutcome = { status: 'parsed'; topology: Topology } | { status: 'error'; message: string }
+
+function isDependency(value: unknown): value is TopologyDependency {
+  if (typeof value === 'string') return true
+  return Array.isArray(value) && value.every((v) => typeof v === 'string')
+}
 
 function isTopology(data: unknown): data is Topology {
   if (!Array.isArray(data)) return false
@@ -18,7 +23,8 @@ function isTopology(data: unknown): data is Topology {
       typeof (entry as { id?: unknown }).id === 'string' &&
       typeof (entry as { version?: unknown }).version === 'string' &&
       typeof (entry as { source?: unknown }).source === 'string' &&
-      Array.isArray((entry as { dependencies?: unknown }).dependencies)
+      Array.isArray((entry as { dependencies?: unknown }).dependencies) &&
+      (entry as { dependencies: unknown[] }).dependencies.every(isDependency)
   )
 }
 
@@ -35,6 +41,18 @@ function parseTopology(json: string): TopologyParseOutcome {
   return { status: 'parsed', topology: data }
 }
 
+function flattenDeps(dependencies: TopologyDependency[]): string[] {
+  const flat: string[] = []
+  for (const dep of dependencies) {
+    if (typeof dep === 'string') {
+      if (dep) flat.push(dep)
+    } else {
+      for (const id of dep) flat.push(id)
+    }
+  }
+  return flat
+}
+
 function layoutByLevels(topology: Topology): Record<string, Position> {
   if (topology.length === 0) return {}
 
@@ -44,7 +62,7 @@ function layoutByLevels(topology: Topology): Record<string, Position> {
   const dependents = new Map<string, string[]>()
 
   for (const entry of topology) {
-    const validDeps = entry.dependencies.filter((d) => entryIds.has(d))
+    const validDeps = flattenDeps(entry.dependencies).filter((d) => entryIds.has(d))
     remainingDeps.set(entry.id, validDeps.length)
     for (const dep of validDeps) {
       if (!dependents.has(dep)) dependents.set(dep, [])
@@ -106,30 +124,15 @@ function nodeFromEntry(entry: TopologyEntry, catalog: CatalogComponent | undefin
     source: entry.source,
     version: entry.version,
     position,
-    config: entry.config,
+    configData: entry.config,
     slots: catalog ? buildSlots(catalog) : []
   }
 }
 
-type Requirement = CatalogComponent['requires'][number]
-
-function pickRequirement(
-  requires: Requirement[],
-  used: number[],
-  startIdx: number,
-  sourceImplements: string[]
-): number {
-  let i = startIdx
-  while (i < requires.length) {
-    if (used[i] >= requires[i].max) {
-      i++
-      continue
-    }
-    if (sourceImplements.includes(requires[i].interface)) return i
-    if (used[i] < requires[i].min) return i
-    i++
-  }
-  return i
+function pickSourceSlotName(sourceCatalog: CatalogComponent, expectedType: string): string | null {
+  const direct = sourceCatalog.implements.find((iface) => iface === expectedType)
+  if (direct) return direct
+  return sourceCatalog.implements[0] ?? null
 }
 
 function assignEdgesForEntry(
@@ -142,43 +145,37 @@ function assignEdgesForEntry(
   if (!targetCatalog) return []
 
   const edges: GraphEdge[] = []
-  const requires = [...targetCatalog.requires].sort((a, b) => a.order - b.order)
-  const used: number[] = requires.map(() => 0)
+  const requires = targetCatalog.requires
 
-  let reqIdx = 0
-  for (const depId of entry.dependencies) {
-    const sourceNode = nodeMap.get(depId)
-    const sourceCatalog = sourceNode
-      ? catalogIndex.get(keyOf(sourceNode.componentType, sourceNode.version, sourceNode.source))
-      : undefined
-    if (!sourceCatalog) continue
+  for (let slotIdx = 0; slotIdx < requires.length; slotIdx++) {
+    const req = requires[slotIdx]
+    const slotDeps = entry.dependencies[slotIdx]
+    if (slotDeps === undefined) continue
 
-    reqIdx = pickRequirement(requires, used, reqIdx, sourceCatalog.implements)
-    const req = requires[reqIdx]
-    if (!req) continue
-    const sourceSlot = sourceCatalog.implements.find((i) => i === req.interface) ?? sourceCatalog.implements[0]
-    if (!sourceSlot) continue
+    const ids = typeof slotDeps === 'string' ? (slotDeps ? [slotDeps] : []) : slotDeps
 
-    edges.push({
-      id: `edge-${edgeId.next++}`,
-      sourceNodeId: depId,
-      sourceSlot,
-      targetNodeId: entry.id,
-      targetSlot: req.slot
-    })
+    for (const depId of ids) {
+      const sourceNode = nodeMap.get(depId)
+      if (!sourceNode) continue
+      const sourceCatalog = catalogIndex.get(keyOf(sourceNode.componentType, sourceNode.version, sourceNode.source))
+      if (!sourceCatalog) continue
+      const sourceSlotName = pickSourceSlotName(sourceCatalog, req.type)
+      if (!sourceSlotName) continue
 
-    used[reqIdx]++
+      edges.push({
+        id: `edge-${edgeId.next++}`,
+        sourceNodeId: depId,
+        sourceSlot: sourceSlotName,
+        targetNodeId: entry.id,
+        targetSlot: req.slot
+      })
+    }
   }
 
   return edges
 }
 
-type ReconstitutionResult = {
-  graph: Graph
-  unresolved: string[]
-}
-
-function topologyToGraph(topology: Topology, catalog: CatalogComponent[]): ReconstitutionResult {
+function topologyToGraph(topology: Topology, catalog: CatalogComponent[]): { graph: Graph; unresolved: string[] } {
   const catalogIndex = buildCatalogIndex(catalog)
   const unresolved: string[] = []
   const nodes: GraphNode[] = []
@@ -203,4 +200,4 @@ function topologyToGraph(topology: Topology, catalog: CatalogComponent[]): Recon
 }
 
 export { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT, isTopology, layoutByLevels, parseTopology, topologyToGraph }
-export type { ReconstitutionResult, TopologyParseOutcome }
+export type { TopologyParseOutcome }

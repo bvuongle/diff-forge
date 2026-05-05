@@ -39,7 +39,7 @@ describe('CanvasNode', () => {
         source: 'test.cpp',
         implements: [],
         requires: [],
-        configSchema: {}
+        config: {}
       }
     ]
   }

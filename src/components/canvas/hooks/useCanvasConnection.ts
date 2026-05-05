@@ -19,7 +19,7 @@ function resolveSourceSlot(
   const srcNode = graph.nodes.find((n) => n.id === sourceId)
   const tgtNode = graph.nodes.find((n) => n.id === targetId)
   const tgtSlotObj = tgtNode?.slots.find((s) => s.name === targetSlot && s.direction === 'in')
-  const matchingOut = srcNode?.slots.find((s) => s.direction === 'out' && s.interface === tgtSlotObj?.interface)
+  const matchingOut = srcNode?.slots.find((s) => s.direction === 'out' && s.type === tgtSlotObj?.type)
   return matchingOut?.name ?? sourceHandle
 }
 
@@ -73,7 +73,7 @@ export function useCanvasConnection() {
         const srcNode = graph.nodes.find((n) => n.id === src)
         const tgtNode = graph.nodes.find((n) => n.id === tgt)
         const tgtSlotObj = tgtNode?.slots.find((s) => s.name === targetSlot && s.direction === 'in')
-        return srcNode?.slots.some((s) => s.direction === 'out' && s.interface === tgtSlotObj?.interface) ?? false
+        return srcNode?.slots.some((s) => s.direction === 'out' && s.type === tgtSlotObj?.type) ?? false
       }
 
       return validateEdge(graph, src, sourceHandle, tgt, targetSlot).valid

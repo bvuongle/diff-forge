@@ -11,7 +11,7 @@ describe('graphToTopology', () => {
   })
 
   it('returns entry with empty dependencies for isolated node', () => {
-    const node = makeNode('n1', { componentType: 'LinkEth', instanceId: 'linkEth0', config: { port: 8080 } })
+    const node = makeNode('n1', { componentType: 'LinkEth', instanceId: 'linkEth0', configData: { port: 8080 } })
     const result = graphToTopology({ nodes: [node], edges: [] })
     expect(result).toEqual([
       {
@@ -34,7 +34,11 @@ describe('graphToTopology', () => {
 
   it('maps edges to dependencies using source instanceId', () => {
     const src = makeNode('src', { instanceId: 'linkEth0' })
-    const tgt = makeNode('tgt', { instanceId: 'messageSource0', componentType: 'MessageSource' })
+    const tgt = makeNode('tgt', {
+      instanceId: 'messageSource0',
+      componentType: 'MessageSource',
+      slots: [{ name: 'transport', type: 'ILink', direction: 'in', isArray: false }]
+    })
     const edge = makeEdge('e1', 'src', 'tgt')
     const result = graphToTopology({ nodes: [src, tgt], edges: [edge] })
 
@@ -45,15 +49,19 @@ describe('graphToTopology', () => {
   it('collects multiple dependencies for a single node', () => {
     const link1 = makeNode('l1', { instanceId: 'linkEth0' })
     const link2 = makeNode('l2', { instanceId: 'linkGsm0' })
-    const msg = makeNode('msg', { instanceId: 'messageSource0' })
+    const msg = makeNode('msg', {
+      instanceId: 'messageSource0',
+      slots: [
+        { name: 'link', type: 'ILink', direction: 'in', isArray: false },
+        { name: 'backupLink', type: 'ILink', direction: 'in', isArray: false }
+      ]
+    })
     const e1 = makeEdge('e1', 'l1', 'msg', { targetSlot: 'link' })
     const e2 = makeEdge('e2', 'l2', 'msg', { targetSlot: 'backupLink' })
     const result = graphToTopology({ nodes: [link1, link2, msg], edges: [e1, e2] })
 
     const msgEntry = result.find((e) => e.id === 'messageSource0')
-    expect(msgEntry?.dependencies).toContain('linkEth0')
-    expect(msgEntry?.dependencies).toContain('linkGsm0')
-    expect(msgEntry?.dependencies).toHaveLength(2)
+    expect(msgEntry?.dependencies).toEqual(['linkEth0', 'linkGsm0'])
   })
 
   it('ignores edges with missing source node', () => {
@@ -64,7 +72,7 @@ describe('graphToTopology', () => {
   })
 
   it('passes config through', () => {
-    const node = makeNode('n1', { config: { count: 3, content: 'hello' } })
+    const node = makeNode('n1', { configData: { count: 3, content: 'hello' } })
     const result = graphToTopology({ nodes: [node], edges: [] })
     expect(result[0].config).toEqual({ count: 3, content: 'hello' })
   })
@@ -95,9 +103,9 @@ describe('graphToTopology', () => {
 
   it('orders dependencies by target slot position regardless of edge insertion order', () => {
     const routerSlots = [
-      { name: 'IRoutable', interface: 'IRoutable', direction: 'out' as const, maxConnections: Infinity },
-      { name: 'routable', interface: 'IRoutable', direction: 'in' as const, maxConnections: 1 },
-      { name: 'processable', interface: 'IProcessable', direction: 'in' as const, maxConnections: 1 }
+      { name: 'IRoutable', type: 'IRoutable', direction: 'out' as const, isArray: true },
+      { name: 'routable', type: 'IRoutable', direction: 'in' as const, isArray: false },
+      { name: 'processable', type: 'IProcessable', direction: 'in' as const, isArray: false }
     ]
     const router = makeNode('r', { instanceId: 'router0', componentType: 'Router' })
     const msg = makeNode('m', { instanceId: 'messageSource0', componentType: 'MessageSource' })

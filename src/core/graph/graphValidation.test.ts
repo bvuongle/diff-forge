@@ -67,8 +67,8 @@ describe('GraphValidation', () => {
   describe('validateGraph', () => {
     it('returns valid: true for a healthy graph', () => {
       const nodes = [
-        makeNode('A', { slots: [{ name: 'ILink', interface: 'ILink', direction: 'out', maxConnections: 1 }] }),
-        makeNode('B', { slots: [{ name: 'transport', interface: 'ILink', direction: 'in', maxConnections: 1 }] })
+        makeNode('A', { slots: [{ name: 'ILink', type: 'ILink', direction: 'out', isArray: true }] }),
+        makeNode('B', { slots: [{ name: 'transport', type: 'ILink', direction: 'in', isArray: true }] })
       ]
       const edges = [makeEdge('e1', 'A', 'B', { sourceSlot: 'ILink', targetSlot: 'transport' })]
       const graph: Graph = { nodes, edges }

@@ -45,8 +45,8 @@ function moveNode(graph: Graph, nodeId: string, position: Position): Graph {
   return updateNodeById(graph, nodeId, { position })
 }
 
-function updateNodeConfig(graph: Graph, nodeId: string, config: Record<string, unknown>): Graph {
-  return updateNodeById(graph, nodeId, { config })
+function updateNodeConfig(graph: Graph, nodeId: string, configData: Record<string, unknown>): Graph {
+  return updateNodeById(graph, nodeId, { configData })
 }
 
 function renameNode(graph: Graph, oldId: string, newId: string): Graph {
@@ -85,7 +85,7 @@ function findSlotPair(
 function isEdgeInvalid(edge: GraphEdge, nodes: GraphNode[]): boolean {
   const pair = findSlotPair(nodes, edge.sourceNodeId, edge.sourceSlot, edge.targetNodeId, edge.targetSlot)
   if (!pair) return true
-  return pair.srcSlot.interface !== pair.tgtSlot.interface
+  return pair.srcSlot.type !== pair.tgtSlot.type
 }
 
 type EdgeValidation = { valid: boolean; reason?: string }
@@ -106,13 +106,15 @@ function validateEdge(
   const pair = findSlotPair(graph.nodes, sourceNodeId, sourceSlot, targetNodeId, targetSlot)
   if (!pair) return { valid: false, reason: 'Slot not found' }
 
-  if (pair.srcSlot.interface !== pair.tgtSlot.interface) {
-    return { valid: false, reason: 'Interface mismatch' }
+  if (pair.srcSlot.type !== pair.tgtSlot.type) {
+    return { valid: false, reason: 'Type mismatch' }
   }
 
-  const existing = graph.edges.filter((e) => e.targetNodeId === targetNodeId && e.targetSlot === targetSlot)
-  if (existing.length >= pair.tgtSlot.maxConnections) {
-    return { valid: false, reason: 'Max connections reached' }
+  if (!pair.tgtSlot.isArray) {
+    const existing = graph.edges.filter((e) => e.targetNodeId === targetNodeId && e.targetSlot === targetSlot)
+    if (existing.length >= 1) {
+      return { valid: false, reason: 'Slot already wired' }
+    }
   }
 
   return { valid: true }

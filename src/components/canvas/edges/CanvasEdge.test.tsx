@@ -33,8 +33,8 @@ describe('CanvasEdge', () => {
   }
 
   const nodes: GraphNode[] = [
-    makeNode('n1', { slots: [{ name: 'out1', direction: 'out', interface: 'I1', maxConnections: Infinity }] }),
-    makeNode('n2', { slots: [{ name: 'in1', direction: 'in', interface: 'I1', maxConnections: 1 }] })
+    makeNode('n1', { slots: [{ name: 'out1', direction: 'out', type: 'I1', isArray: true }] }),
+    makeNode('n2', { slots: [{ name: 'in1', direction: 'in', type: 'I1', isArray: true }] })
   ]
 
   beforeEach(() => {
@@ -98,8 +98,8 @@ describe('CanvasEdge', () => {
   it('shows source label only when source node has multiple outputs', () => {
     const multiOutNode = makeNode('n1', {
       slots: [
-        { name: 'out1', direction: 'out', interface: 'I1', maxConnections: Infinity },
-        { name: 'out2', direction: 'out', interface: 'I1', maxConnections: Infinity }
+        { name: 'out1', direction: 'out', type: 'I1', isArray: true },
+        { name: 'out2', direction: 'out', type: 'I1', isArray: true }
       ]
     })
     useGraphStore.setState({ graph: { nodes: [multiOutNode, nodes[1]], edges: [edge] } })

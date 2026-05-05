@@ -11,7 +11,7 @@ const mockCatalog: CatalogDocument = {
       version: '1.0.0',
       implements: ['ILink'],
       requires: [],
-      configSchema: {}
+      config: {}
     }
   ]
 }

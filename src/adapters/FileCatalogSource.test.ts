@@ -9,7 +9,7 @@ const validCatalog = JSON.stringify({
       version: '1.0.0',
       implements: ['ILink'],
       requires: [],
-      configSchema: {}
+      config: {}
     }
   ]
 })

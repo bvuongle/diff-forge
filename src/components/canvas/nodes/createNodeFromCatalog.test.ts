@@ -28,7 +28,7 @@ describe('createNodeFromCatalog', () => {
     const catalog = makeCatalog({
       implements: ['ILink', 'IMonitor'],
       requires: [],
-      configSchema: {}
+      config: {}
     })
     const node = createNodeFromCatalog(catalog, { x: 0, y: 0 }, [])
     const outSlots = node.slots.filter((s: Slot) => s.direction === 'out')
@@ -42,8 +42,8 @@ describe('createNodeFromCatalog', () => {
     const inSlots = node.slots.filter((s: Slot) => s.direction === 'in')
     expect(inSlots).toHaveLength(1)
     expect(inSlots[0].name).toBe('transport')
-    expect(inSlots[0].interface).toBe('ITransport')
-    expect(inSlots[0].maxConnections).toBe(1)
+    expect(inSlots[0].type).toBe('ITransport')
+    expect(inSlots[0].isArray).toBe(false)
   })
 
   it('sets position, componentType, module, version correctly', () => {
@@ -56,7 +56,7 @@ describe('createNodeFromCatalog', () => {
 
   it('starts with empty config', () => {
     const node = createNodeFromCatalog(makeCatalog(), { x: 0, y: 0 }, [])
-    expect(node.config).toEqual({})
+    expect(node.configData).toEqual({})
   })
 
   it('uses version from catalog component', () => {

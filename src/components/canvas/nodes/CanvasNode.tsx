@@ -59,9 +59,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
     const srcNode = connection.fromNode
     if (!srcNode) return null
     const nodeData = srcNode.data as CanvasNode['data']
-    const outInterfaces = nodeData.graphNode.slots
-      .filter((s: { direction: string }) => s.direction === 'out')
-      .map((s: { interface: string }) => s.interface)
+    const outInterfaces = nodeData.graphNode.slots.filter((s) => s.direction === 'out').map((s) => s.type)
     return { sourceNodeId: srcNode.id, sourceInterfaces: outInterfaces }
   }, [connection.inProgress, connection.fromNode])
 

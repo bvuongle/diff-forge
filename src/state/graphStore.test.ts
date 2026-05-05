@@ -125,7 +125,7 @@ describe('graphStore', () => {
       useGraphStore.getState().addNode(makeNode('n1'))
       useGraphStore.getState().updateNodeConfig('n1', { count: 3, content: 'hello' })
       const node = useGraphStore.getState().graph.nodes[0]
-      expect(node.config).toEqual({ count: 3, content: 'hello' })
+      expect(node.configData).toEqual({ count: 3, content: 'hello' })
     })
   })
 

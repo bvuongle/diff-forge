@@ -28,10 +28,8 @@ const ConfigValueSchemaZ = z.object({
 
 const CatalogRequirementZ = z.object({
   slot: z.string(),
-  interface: z.string(),
-  min: z.number().int().nonnegative(),
-  max: z.number().int().positive(),
-  order: z.number().int().nonnegative()
+  type: z.string(),
+  isArray: z.boolean().optional().default(false)
 })
 
 const CatalogComponentZ = z.object({
@@ -40,7 +38,7 @@ const CatalogComponentZ = z.object({
   version: z.string(),
   implements: z.array(z.string()),
   requires: z.array(CatalogRequirementZ),
-  configSchema: z.record(z.string(), ConfigValueSchemaZ)
+  config: z.record(z.string(), ConfigValueSchemaZ)
 })
 
 const CatalogDocumentZ = z.object({

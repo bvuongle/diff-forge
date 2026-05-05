@@ -20,7 +20,7 @@ function makeDoc(type: string, source: string): CatalogDocument {
         source,
         implements: ['ILink'],
         requires: [],
-        configSchema: {}
+        config: {}
       }
     ]
   }

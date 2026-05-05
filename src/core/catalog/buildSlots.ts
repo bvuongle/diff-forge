@@ -8,18 +8,18 @@ function buildSlots(component: CatalogComponent): Slot[] {
   for (const iface of component.implements) {
     slots.push({
       name: iface,
-      interface: iface,
+      type: iface,
       direction: 'out',
-      maxConnections: Infinity
+      isArray: true
     })
   }
 
   for (const req of component.requires) {
     slots.push({
       name: req.slot,
-      interface: req.interface,
+      type: req.type,
       direction: 'in',
-      maxConnections: req.max
+      isArray: req.isArray
     })
   }
 
