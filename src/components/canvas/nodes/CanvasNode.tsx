@@ -27,6 +27,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
   const graphNodes = useGraphStore((s) => s.graph.nodes)
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds)
   const selectedEdgeIds = useGraphStore((s) => s.selectedEdgeIds)
+  const isInvalid = useGraphStore((s) => s.flaggedNodeIds.has(id))
   const renameNode = useGraphStore((s) => s.renameNode)
   const updateNodeConfig = useGraphStore((s) => s.updateNodeConfig)
   const catalog = useCatalogStore((s) => s.catalog)
@@ -69,7 +70,8 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
     'canvas-node',
     selected && 'canvas-node--selected',
     isDimmed && 'canvas-node--dimmed',
-    isUnresolved && 'canvas-node--unresolved'
+    isUnresolved && 'canvas-node--unresolved',
+    isInvalid && 'canvas-node--invalid'
   ]
     .filter(Boolean)
     .join(' ')

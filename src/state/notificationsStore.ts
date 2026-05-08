@@ -2,16 +2,18 @@ import { create } from 'zustand'
 
 type Severity = 'success' | 'info' | 'warning' | 'error'
 
+type NotificationMessage = string | { title: string; items: string[] }
+
 type Notification = {
   id: number
-  message: string
+  message: NotificationMessage
   severity: Severity
   duration: number
 }
 
 type NotificationsStore = {
   notifications: Notification[]
-  push: (message: string, severity: Severity, duration?: number) => number
+  push: (message: NotificationMessage, severity: Severity, duration?: number) => number
   dismiss: (id: number) => void
 }
 
@@ -31,11 +33,15 @@ const useNotificationsStore = create<NotificationsStore>((set) => ({
 }))
 
 const notify = {
-  success: (message: string, duration?: number) => useNotificationsStore.getState().push(message, 'success', duration),
-  info: (message: string, duration?: number) => useNotificationsStore.getState().push(message, 'info', duration),
-  warning: (message: string, duration?: number) => useNotificationsStore.getState().push(message, 'warning', duration),
-  error: (message: string, duration?: number) => useNotificationsStore.getState().push(message, 'error', duration)
+  success: (message: NotificationMessage, duration?: number) =>
+    useNotificationsStore.getState().push(message, 'success', duration),
+  info: (message: NotificationMessage, duration?: number) =>
+    useNotificationsStore.getState().push(message, 'info', duration),
+  warning: (message: NotificationMessage, duration?: number) =>
+    useNotificationsStore.getState().push(message, 'warning', duration),
+  error: (message: NotificationMessage, duration?: number) =>
+    useNotificationsStore.getState().push(message, 'error', duration)
 }
 
 export { useNotificationsStore, notify }
-export type { Severity }
+export type { Severity, NotificationMessage }
