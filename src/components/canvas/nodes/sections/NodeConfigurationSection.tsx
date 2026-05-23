@@ -11,16 +11,15 @@ import { JsonConfigEditor } from '../config/JsonConfigEditor'
 type NodeConfigurationSectionProps = {
   node: GraphNode
   catalogComponent: CatalogComponent
-  updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void
+  updateNodeConfig: (nodeId: string, configData: Record<string, unknown>) => void
 }
 
 export function NodeConfigurationSection({ node, catalogComponent, updateNodeConfig }: NodeConfigurationSectionProps) {
   const [configTab, setConfigTab] = useState<'fields' | 'json'>('fields')
-  const configSchema = catalogComponent.configSchema
-  const configEntries = Object.entries(configSchema)
+  const configEntries = Object.entries(catalogComponent.config)
 
   const handleConfigField = (name: string, value: unknown) => {
-    updateNodeConfig(node.id, { ...node.config, [name]: value })
+    updateNodeConfig(node.id, { ...node.configData, [name]: value })
   }
 
   if (configEntries.length === 0) return null
@@ -56,13 +55,13 @@ export function NodeConfigurationSection({ node, catalogComponent, updateNodeCon
                 key={name}
                 fieldName={name}
                 schema={schema}
-                value={node.config[name]}
+                value={node.configData[name]}
                 onChange={handleConfigField}
               />
             ))}
           </Box>
         ) : (
-          <JsonConfigEditor config={node.config} onSave={(cfg) => updateNodeConfig(node.id, cfg)} />
+          <JsonConfigEditor config={node.configData} onSave={(cfg) => updateNodeConfig(node.id, cfg)} />
         )}
       </Box>
     </Box>

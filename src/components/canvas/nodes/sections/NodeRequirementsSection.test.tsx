@@ -20,10 +20,10 @@ describe('NodeRequirementsSection', () => {
   const defaultProps = {
     nodeId: 'n1',
     inputSlots: [
-      { name: 'in1', interface: 'I1', direction: 'in' as const, maxConnections: 1 },
-      { name: 'in2', interface: 'I2', direction: 'in' as const, maxConnections: 8 }
+      { name: 'in1', type: 'I1', direction: 'in' as const, isArray: false },
+      { name: 'in2', type: 'I2', direction: 'in' as const, isArray: true }
     ],
-    outputSlots: [{ name: 'out1', interface: 'O1', direction: 'out' as const, maxConnections: Infinity }],
+    outputSlots: [{ name: 'out1', type: 'O1', direction: 'out' as const, isArray: true }],
     connectionCounts: new Map([
       ['in1', 1],
       ['in2', 3]
@@ -45,15 +45,15 @@ describe('NodeRequirementsSection', () => {
     expect(screen.getByText('I2')).toBeInTheDocument()
   })
 
-  it('shows connection count for multi-connection slots', () => {
+  it('shows connection count only for array slots', () => {
     renderWithTheme(
       <ReactFlowProvider>
         <NodeRequirementsSection {...defaultProps} />
       </ReactFlowProvider>
     )
 
-    expect(screen.getByText('3/8')).toBeInTheDocument()
-    expect(screen.queryByText('1/1')).toBeNull()
+    expect(screen.getByText('3')).toBeInTheDocument()
+    expect(screen.queryByText('1')).toBeNull()
   })
 
   it('renders output interface', () => {

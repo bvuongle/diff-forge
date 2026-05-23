@@ -27,7 +27,7 @@ function createNodeFromCatalog(component: CatalogComponent, position: Position, 
     source: component.source,
     version: component.version,
     position,
-    config: {},
+    configData: {},
     slots: buildSlots(component)
   }
 }

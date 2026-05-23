@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import { Alert, Box, Divider, IconButton, List, Stack, Tooltip, Typography } from '@mui/material'
@@ -27,9 +27,12 @@ function CatalogPanel() {
   const errorMessage = status.status === 'error' ? status.message : null
   const warningMessage = status.status === 'partial' ? status.message : null
 
-  const components = catalog?.components ?? []
-  const sources = listSources(components)
-  const result = searchCatalog(components, searchQuery, searchMode, sourceFilters)
+  const components = useMemo(() => catalog?.components ?? [], [catalog])
+  const sources = useMemo(() => listSources(components), [components])
+  const result = useMemo(
+    () => searchCatalog(components, searchQuery, searchMode, sourceFilters),
+    [components, searchQuery, searchMode, sourceFilters]
+  )
   const totalCount = result.kind === 'flat' ? result.matches.length : result.provides.length + result.accepts.length
   const placeholder = searchMode === 'name' ? 'Search by name' : 'Search by interface'
 

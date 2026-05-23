@@ -1,5 +1,8 @@
+import { computeInvalidNodeIds } from '@core/graph/graphValidation'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
+
+const VALIDATION_DEBOUNCE_MS = 150
 
 function pruneSet(set: Set<string>, validIds: Set<string>): Set<string> | null {
   if (set.size === 0) return null
@@ -13,7 +16,9 @@ function pruneSet(set: Set<string>, validIds: Set<string>): Set<string> | null {
 }
 
 function setupStateSubscriptions(): () => void {
-  return useGraphStore.subscribe(
+  let validationTimer: ReturnType<typeof setTimeout> | null = null
+
+  const unsubGraph = useGraphStore.subscribe(
     (s) => s.graph,
     (graph) => {
       const nodeIds = new Set(graph.nodes.map((n) => n.id))
@@ -34,8 +39,27 @@ function setupStateSubscriptions(): () => void {
       if (nextExpanded) {
         useUIStore.setState({ expandedNodeIds: nextExpanded })
       }
+
+      if (graphState.flaggedNodeIds.size === 0) return
+      if (validationTimer) clearTimeout(validationTimer)
+      validationTimer = setTimeout(() => {
+        validationTimer = null
+        const flagged = useGraphStore.getState().flaggedNodeIds
+        if (flagged.size === 0) return
+        const stillInvalid = computeInvalidNodeIds(useGraphStore.getState().graph)
+        const next = new Set<string>()
+        for (const id of flagged) if (stillInvalid.has(id)) next.add(id)
+        if (next.size !== flagged.size) {
+          useGraphStore.getState().setFlaggedNodeIds(next)
+        }
+      }, VALIDATION_DEBOUNCE_MS)
     }
   )
+
+  return () => {
+    if (validationTimer) clearTimeout(validationTimer)
+    unsubGraph()
+  }
 }
 
-export { setupStateSubscriptions }
+export { setupStateSubscriptions, VALIDATION_DEBOUNCE_MS }

@@ -17,6 +17,7 @@ type GraphStore = {
   dirty: boolean
   selectedNodeIds: Set<string>
   selectedEdgeIds: Set<string>
+  flaggedNodeIds: Set<string>
   setGraph: (graph: Graph) => void
   markClean: () => void
   addNode: (node: GraphNode) => void
@@ -31,6 +32,7 @@ type GraphStore = {
   selectElements: (nodeIds: string[], edgeIds: string[]) => void
   clearSelection: () => void
   removeSelected: () => void
+  setFlaggedNodeIds: (ids: Set<string>) => void
 }
 
 const useGraphStore = create<GraphStore>()(
@@ -39,13 +41,15 @@ const useGraphStore = create<GraphStore>()(
     dirty: false,
     selectedNodeIds: new Set(),
     selectedEdgeIds: new Set(),
+    flaggedNodeIds: new Set(),
 
     setGraph: (graph) =>
       set({
         graph,
         dirty: false,
         selectedNodeIds: new Set(),
-        selectedEdgeIds: new Set()
+        selectedEdgeIds: new Set(),
+        flaggedNodeIds: new Set()
       }),
 
     markClean: () => set({ dirty: false }),
@@ -140,7 +144,9 @@ const useGraphStore = create<GraphStore>()(
           g = removeEdge(g, edgeId)
         }
         return { graph: g, selectedNodeIds: new Set(), selectedEdgeIds: new Set(), dirty: true }
-      })
+      }),
+
+    setFlaggedNodeIds: (ids) => set({ flaggedNodeIds: ids })
   }))
 )
 

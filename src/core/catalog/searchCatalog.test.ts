@@ -9,7 +9,7 @@ const linkEth: CatalogComponent = {
   version: '1.0.0',
   implements: ['ILink'],
   requires: [],
-  configSchema: {}
+  config: {}
 }
 
 const linkGsm: CatalogComponent = {
@@ -18,7 +18,7 @@ const linkGsm: CatalogComponent = {
   version: '1.0.0',
   implements: ['ILink'],
   requires: [],
-  configSchema: {}
+  config: {}
 }
 
 const messageSource: CatalogComponent = {
@@ -26,8 +26,8 @@ const messageSource: CatalogComponent = {
   source: 'message_source',
   version: '1.0.0',
   implements: ['IMessageProducer'],
-  requires: [{ slot: 'links', interface: 'ILink', min: 1, max: 4, order: 0 }],
-  configSchema: {}
+  requires: [{ slot: 'links', type: 'ILink', isArray: false }],
+  config: {}
 }
 
 const all = [linkEth, linkGsm, messageSource]

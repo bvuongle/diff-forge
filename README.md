@@ -22,8 +22,8 @@ This is a single-user, CLI-launched workflow tool. Run it from the project folde
 - Node.js 22 LTS
 - pnpm 10 (via corepack: `corepack enable`)
 - Artifactory access. Set these in your shell before launch:
-  - `DF_ARTIFACTORY_REPOS` - comma-separated Conan API URLs (e.g. `https://artifactory.example.com/artifactory/diff-forge`)
-  - `DF_ARTIFACTORY_TOKEN` - bearer token. Recommended: a scoped Identity Token with read-only access to the catalog repos. Do not embed credentials in the URL itself.
+  - `ARTIFACTORY_REPOS` - comma-separated Conan API URLs (e.g. `https://artifactory.example.com/artifactory/diff-forge`)
+  - `ARTIFACTORY_TOKEN` - bearer token. Recommended: a scoped Identity Token with read-only access to the catalog repos. Do not embed credentials in the URL itself.
 
 ## Running the app
 
@@ -42,8 +42,8 @@ Spawns Electron with the Vite dev server on `localhost:5173`, HMR enabled. The r
 After installing the packaged build (see [Releasing](#releasing) below):
 
 ```bash
-export DF_ARTIFACTORY_REPOS="https://artifactory.example.com/artifactory/diff-forge"
-export DF_ARTIFACTORY_TOKEN="<your token>"
+export ARTIFACTORY_REPOS="https://artifactory.example.com/artifactory/diff-forge"
+export ARTIFACTORY_TOKEN="<your token>"
 cd /path/to/your/project
 diff-forge .
 ```

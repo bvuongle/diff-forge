@@ -18,7 +18,7 @@ describe('topologyToGraph', () => {
   const msgCatalog = makeCatalog({
     type: 'MessageSource',
     implements: [],
-    requires: [{ slot: 'transport', interface: 'ILink', min: 1, max: 1, order: 0 }]
+    requires: [{ slot: 'transport', type: 'ILink', isArray: false }]
   })
 
   it('builds nodes with slots from catalog', () => {
@@ -69,7 +69,7 @@ describe('topologyToGraph', () => {
     ]
     const { graph, unresolved } = topologyToGraph(topology, [v1, v2])
     expect(unresolved).toEqual([])
-    expect(graph.nodes[0].slots[0].interface).toBe('ILinkV2')
+    expect(graph.nodes[0].slots[0].type).toBe('ILinkV2')
   })
 
   it('synthesizes positions via layoutByLevels — leaves in column 0, consumers to the right', () => {
@@ -118,12 +118,12 @@ describe('topologyToGraph', () => {
     expect(graph.edges[0].targetSlot).toBe('transport')
   })
 
-  it('fills a max>1 slot with all matching deps instead of spilling to undefined slots', () => {
+  it('fills an array slot with all listed deps from the nested array', () => {
     const linkSatCatalog = makeCatalog({ type: 'LinkSat', implements: ['ILink'], requires: [] })
     const routerCatalog = makeCatalog({
       type: 'Router',
       implements: ['IRoutable'],
-      requires: [{ slot: 'links', interface: 'ILink', min: 1, max: 8, order: 0 }]
+      requires: [{ slot: 'links', type: 'ILink', isArray: true }]
     })
     const topology: Topology = [
       { type: 'LinkSat', id: 'linkSat0', version: '1.0.0', source: 'diff_broker', dependencies: [], config: {} },
@@ -134,7 +134,7 @@ describe('topologyToGraph', () => {
         id: 'router0',
         version: '1.0.0',
         source: 'diff_broker',
-        dependencies: ['linkSat0', 'linkSat1', 'linkSat2'],
+        dependencies: [['linkSat0', 'linkSat1', 'linkSat2']],
         config: {}
       }
     ]
@@ -154,8 +154,8 @@ describe('topologyToGraph', () => {
       type: 'Dispatcher',
       implements: [],
       requires: [
-        { slot: 'routable', interface: 'IRoutable', min: 1, max: 1, order: 0 },
-        { slot: 'processable', interface: 'IProcessable', min: 1, max: 1, order: 1 }
+        { slot: 'routable', type: 'IRoutable', isArray: false },
+        { slot: 'processable', type: 'IProcessable', isArray: false }
       ]
     })
     const topology: Topology = [
@@ -228,8 +228,8 @@ describe('topologyToGraph', () => {
       type: 'MessageSource',
       implements: [],
       requires: [
-        { slot: 'primary', interface: 'ILink', min: 1, max: 1, order: 0 },
-        { slot: 'backup', interface: 'ILink', min: 1, max: 1, order: 1 }
+        { slot: 'primary', type: 'ILink', isArray: false },
+        { slot: 'backup', type: 'ILink', isArray: false }
       ]
     })
     const topology: Topology = [

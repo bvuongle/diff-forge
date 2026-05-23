@@ -9,7 +9,7 @@ const validCatalog = JSON.stringify({
       version: '1.0.0',
       implements: ['ILink'],
       requires: [],
-      configSchema: {}
+      config: {}
     }
   ]
 })
@@ -36,7 +36,7 @@ describe('FileCatalogSource', () => {
     expect(readFile).toHaveBeenCalledWith('/my/path.json')
   })
 
-  it('returns unconfigured when DF_CATALOG_FILE is missing', async () => {
+  it('returns unconfigured when CATALOG_FILE is missing', async () => {
     const source = createFileCatalogSource({ env: {}, readFile: vi.fn() })
     const result = await source.loadCatalog()
     expect(result.status).toBe('unconfigured')

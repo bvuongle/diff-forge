@@ -5,9 +5,9 @@ type Position = {
 
 type Slot = {
   name: string
-  interface: string
+  type: string
   direction: 'in' | 'out'
-  maxConnections: number
+  isArray: boolean
 }
 
 type GraphNode = {
@@ -17,7 +17,7 @@ type GraphNode = {
   source: string
   version: string
   position: Position
-  config: Record<string, unknown>
+  configData: Record<string, unknown>
   slots: Slot[]
 }
 

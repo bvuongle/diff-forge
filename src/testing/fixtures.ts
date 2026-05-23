@@ -9,7 +9,7 @@ function makeNode(id: string, overrides?: Partial<GraphNode>): GraphNode {
     source: 'diff_broker',
     version: '1.0.0',
     position: { x: 0, y: 0 },
-    config: {},
+    configData: {},
     slots: [],
     ...overrides
   }
@@ -32,8 +32,8 @@ function makeCatalog(overrides?: Partial<CatalogComponent>): CatalogComponent {
     source: 'diff_broker',
     version: '1.0.0',
     implements: ['ILink'],
-    requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
-    configSchema: {},
+    requires: [{ slot: 'transport', type: 'ITransport', isArray: false }],
+    config: {},
     ...overrides
   }
 }
@@ -41,9 +41,9 @@ function makeCatalog(overrides?: Partial<CatalogComponent>): CatalogComponent {
 function makeSlot(overrides?: Partial<Slot>): Slot {
   return {
     name: 'transport',
-    interface: 'ILink',
+    type: 'ILink',
     direction: 'in',
-    maxConnections: 1,
+    isArray: false,
     ...overrides
   }
 }

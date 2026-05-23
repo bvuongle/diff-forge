@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 
-import { Alert, Stack } from '@mui/material'
+import { Alert, AlertTitle, Box, Stack } from '@mui/material'
 
-import { useNotificationsStore, type Severity } from '@state/notificationsStore'
+import { useNotificationsStore, type NotificationMessage, type Severity } from '@state/notificationsStore'
 
 function NotificationHost() {
   const notifications = useNotificationsStore((s) => s.notifications)
@@ -38,7 +38,7 @@ function NotificationHost() {
 
 type AutoDismissAlertProps = {
   id: number
-  message: string
+  message: NotificationMessage
   severity: Severity
   duration: number
   onDismiss: (id: number) => void
@@ -50,6 +50,8 @@ function AutoDismissAlert({ id, message, severity, duration, onDismiss }: AutoDi
     return () => window.clearTimeout(handle)
   }, [id, duration, onDismiss])
 
+  const isList = typeof message !== 'string'
+
   return (
     <Alert
       severity={severity}
@@ -57,7 +59,28 @@ function AutoDismissAlert({ id, message, severity, duration, onDismiss }: AutoDi
       onClose={() => onDismiss(id)}
       sx={{ boxShadow: 3, width: 'fit-content', maxWidth: 480, pointerEvents: 'auto' }}
     >
-      {message}
+      {isList ? (
+        <>
+          <AlertTitle sx={{ mb: 0.5 }}>{message.title}</AlertTitle>
+          <Box
+            component="ul"
+            sx={{
+              m: 0,
+              pl: 2.5,
+              maxHeight: 180,
+              overflowY: 'auto',
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': { width: 0, height: 0 }
+            }}
+          >
+            {message.items.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </Box>
+        </>
+      ) : (
+        message
+      )}
     </Alert>
   )
 }

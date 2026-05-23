@@ -1,14 +1,20 @@
 import { isEdgeInvalid } from './graphOperations'
 import { Graph } from './GraphTypes'
 
-export type GraphValidationResult = {
+type UnfilledSlot = {
+  nodeId: string
+  instanceId: string
+  slotName: string
+}
+
+type GraphValidationResult = {
   valid: boolean
   cycles: string[][]
-  orphans: string[]
+  unfilled: UnfilledSlot[]
   invalidEdges: string[]
 }
 
-export function detectCycles(graph: Graph): string[][] {
+function detectCycles(graph: Graph): string[][] {
   const cycles: string[][] = []
   const visited = new Set<string>()
   const recStack = new Set<string>()
@@ -53,25 +59,55 @@ export function detectCycles(graph: Graph): string[][] {
   return cycles
 }
 
-export function detectOrphans(graph: Graph): string[] {
-  const connectedNodes = new Set<string>()
+function detectUnfilledRequiredSlots(graph: Graph): UnfilledSlot[] {
+  const counts = new Map<string, number>()
   for (const edge of graph.edges) {
-    connectedNodes.add(edge.sourceNodeId)
-    connectedNodes.add(edge.targetNodeId)
+    const key = `${edge.targetNodeId}::${edge.targetSlot}`
+    counts.set(key, (counts.get(key) ?? 0) + 1)
   }
 
-  return graph.nodes.filter((node) => !connectedNodes.has(node.id)).map((node) => node.id)
+  const unfilled: UnfilledSlot[] = []
+  for (const node of graph.nodes) {
+    for (const slot of node.slots) {
+      if (slot.direction !== 'in' || slot.isArray) continue
+      const key = `${node.id}::${slot.name}`
+      if ((counts.get(key) ?? 0) === 0) {
+        unfilled.push({ nodeId: node.id, instanceId: node.instanceId, slotName: slot.name })
+      }
+    }
+  }
+  return unfilled
 }
 
-export function validateGraph(graph: Graph): GraphValidationResult {
+function validateGraph(graph: Graph): GraphValidationResult {
   const cycles = detectCycles(graph)
-  const orphans = detectOrphans(graph)
+  const unfilled = detectUnfilledRequiredSlots(graph)
   const invalidEdges = graph.edges.filter((edge) => isEdgeInvalid(edge, graph.nodes)).map((edge) => edge.id)
 
   return {
-    valid: cycles.length === 0 && invalidEdges.length === 0,
+    valid: cycles.length === 0 && unfilled.length === 0 && invalidEdges.length === 0,
     cycles,
-    orphans,
+    unfilled,
     invalidEdges
   }
 }
+
+function computeInvalidNodeIds(graph: Graph): Set<string> {
+  const result = validateGraph(graph)
+  const ids = new Set<string>()
+  for (const cycle of result.cycles) {
+    for (const id of cycle) ids.add(id)
+  }
+  for (const u of result.unfilled) ids.add(u.nodeId)
+  for (const edgeId of result.invalidEdges) {
+    const edge = graph.edges.find((e) => e.id === edgeId)
+    if (edge) {
+      ids.add(edge.sourceNodeId)
+      ids.add(edge.targetNodeId)
+    }
+  }
+  return ids
+}
+
+export { computeInvalidNodeIds, detectCycles, detectUnfilledRequiredSlots, validateGraph }
+export type { GraphValidationResult, UnfilledSlot }

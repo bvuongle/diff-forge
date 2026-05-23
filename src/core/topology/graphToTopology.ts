@@ -1,31 +1,39 @@
 import { Graph, GraphEdge, GraphNode } from '@core/graph/GraphTypes'
-import { Topology, TopologyEntry } from '@core/topology/TopologyTypes'
+import { Topology, TopologyDependency, TopologyEntry } from '@core/topology/TopologyTypes'
 
-function toEntry(node: GraphNode, dependencies: string[]): TopologyEntry {
+function depsFor(
+  node: GraphNode,
+  incomingEdges: Map<string, GraphEdge[]>,
+  nodeMap: Map<string, GraphNode>
+): TopologyDependency[] {
+  const inSlots = node.slots.filter((s) => s.direction === 'in')
+  const edges = incomingEdges.get(node.id) ?? []
+  const edgesBySlot = new Map<string, GraphEdge[]>()
+  for (const edge of edges) {
+    const list = edgesBySlot.get(edge.targetSlot) ?? []
+    list.push(edge)
+    edgesBySlot.set(edge.targetSlot, list)
+  }
+
+  return inSlots.map((slot) => {
+    const slotEdges = edgesBySlot.get(slot.name) ?? []
+    const ids = slotEdges
+      .map((e) => nodeMap.get(e.sourceNodeId)?.instanceId)
+      .filter((id): id is string => typeof id === 'string')
+    if (slot.isArray) return ids
+    return ids[0] ?? ''
+  })
+}
+
+function toEntry(node: GraphNode, dependencies: TopologyDependency[]): TopologyEntry {
   return {
     type: node.componentType,
     id: node.instanceId,
     version: node.version,
     source: node.source,
     dependencies,
-    config: node.config
+    config: node.configData
   }
-}
-
-function depsFor(nodeId: string, nodeMap: Map<string, GraphNode>, incomingEdges: Map<string, GraphEdge[]>): string[] {
-  const target = nodeMap.get(nodeId)
-  if (!target) return []
-  const edges = incomingEdges.get(nodeId) ?? []
-  const slotOrder = new Map<string, number>()
-  target.slots.filter((s) => s.direction === 'in').forEach((s, i) => slotOrder.set(s.name, i))
-  const indexOf = (e: GraphEdge) => slotOrder.get(e.targetSlot) ?? Number.MAX_SAFE_INTEGER
-  const sorted = edges
-    .map((e, originalIndex) => ({ e, originalIndex }))
-    .sort((a, b) => {
-      const diff = indexOf(a.e) - indexOf(b.e)
-      return diff !== 0 ? diff : a.originalIndex - b.originalIndex
-    })
-  return sorted.map(({ e }) => nodeMap.get(e.sourceNodeId)!.instanceId)
 }
 
 function graphToTopology(graph: Graph): Topology {
@@ -61,7 +69,7 @@ function graphToTopology(graph: Graph): Topology {
 
   while (frontier.length > 0) {
     for (const node of frontier) {
-      result.push(toEntry(node, depsFor(node.id, nodeMap, incomingEdges)))
+      result.push(toEntry(node, depsFor(node, incomingEdges, nodeMap)))
       emitted.add(node.id)
     }
     const nextFrontier: GraphNode[] = []
@@ -81,7 +89,7 @@ function graphToTopology(graph: Graph): Topology {
 
   for (const node of graph.nodes) {
     if (!emitted.has(node.id)) {
-      result.push(toEntry(node, depsFor(node.id, nodeMap, incomingEdges)))
+      result.push(toEntry(node, depsFor(node, incomingEdges, nodeMap)))
     }
   }
 

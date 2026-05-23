@@ -1,19 +1,19 @@
 {
-  "schema": "diff.catalog.v1",
+  "schema": "diff.catalog.v2",
   "components": [
     {
       "type": "LinkEth",
       "version": "1.0.0",
       "implements": ["ILink"],
       "requires": [],
-      "configSchema": {}
+      "config": {}
     },
     {
       "type": "LinkGsm",
       "version": "1.0.0",
       "implements": ["ILink"],
       "requires": [],
-      "configSchema": {
+      "config": {
         "linkReliability": { "type": "uint8", "min": 0, "max": 100, "default": 95 }
       }
     },
@@ -22,7 +22,7 @@
       "version": "1.0.0",
       "implements": ["ILink"],
       "requires": [],
-      "configSchema": {
+      "config": {
         "latencyMs": { "type": "uint16", "min": 100, "max": 10000, "default": 3500 },
         "bandwidthKbps": { "type": "uint16", "min": 1, "max": 1024, "default": 64 }
       }
@@ -32,7 +32,7 @@
       "version": "1.0.0",
       "implements": ["IDataSource"],
       "requires": [],
-      "configSchema": {
+      "config": {
         "sampleRate": { "type": "uint", "min": 1, "max": 10000, "default": 100 }
       }
     },
@@ -41,7 +41,7 @@
       "version": "2.0.0",
       "implements": ["IDataSource", "IMonitorable"],
       "requires": [],
-      "configSchema": {
+      "config": {
         "sampleRate": { "type": "uint16", "min": 1, "max": 10000, "default": 100 },
         "calibrationOffset": { "type": "int16", "min": -1000, "max": 1000, "default": 0 },
         "isCalibrated": { "type": "bool", "default": true }
@@ -52,7 +52,7 @@
       "version": "1.0.0",
       "implements": ["IDataSource"],
       "requires": [],
-      "configSchema": {
+      "config": {
         "intervalMs": { "type": "uint", "min": 1, "max": 60000, "default": 1000 }
       }
     },
@@ -61,10 +61,10 @@
       "version": "1.0.0",
       "implements": ["IProcessable"],
       "requires": [
-        { "slot": "link", "interface": "ILink", "min": 1, "max": 1, "order": 0 },
-        { "slot": "backupLink", "interface": "ILink", "min": 1, "max": 1, "order": 1 }
+        { "slot": "link", "type": "ILink", "isArray": false },
+        { "slot": "backupLink", "type": "ILink", "isArray": false }
       ],
-      "configSchema": {
+      "config": {
         "count": { "type": "uint32", "min": 1, "max": 1000, "default": 10 },
         "content": { "type": "string", "default": "default message" }
       }
@@ -74,10 +74,10 @@
       "version": "1.0.0",
       "implements": ["IProcessable"],
       "requires": [
-        { "slot": "source", "interface": "IDataSource", "min": 1, "max": 1, "order": 0 },
-        { "slot": "link", "interface": "ILink", "min": 1, "max": 1, "order": 1 }
+        { "slot": "source", "type": "IDataSource", "isArray": false },
+        { "slot": "link", "type": "ILink", "isArray": false }
       ],
-      "configSchema": {
+      "config": {
         "bufferSize": { "type": "uint", "min": 64, "max": 8192, "default": 1024 }
       }
     },
@@ -86,9 +86,9 @@
       "version": "1.0.0",
       "implements": ["IRoutable"],
       "requires": [
-        { "slot": "links", "interface": "ILink", "min": 1, "max": 8, "order": 0 }
+        { "slot": "links", "type": "ILink", "isArray": true }
       ],
-      "configSchema": {
+      "config": {
         "maxRoutes": { "type": "uint", "min": 1, "max": 256, "default": 64 }
       }
     },
@@ -97,9 +97,9 @@
       "version": "2.0.0",
       "implements": ["IRoutable", "IMonitorable"],
       "requires": [
-        { "slot": "links", "interface": "ILink", "min": 1, "max": 8, "order": 0 }
+        { "slot": "links", "type": "ILink", "isArray": true }
       ],
-      "configSchema": {
+      "config": {
         "maxRoutes": { "type": "uint", "min": 1, "max": 256, "default": 64 },
         "enableMetrics": { "type": "bool", "default": false },
         "logLevel": { "type": "uint", "min": 0, "max": 3, "default": 1 }
@@ -110,10 +110,10 @@
       "version": "1.0.0",
       "implements": ["IProcessable"],
       "requires": [
-        { "slot": "processable", "interface": "IProcessable", "min": 1, "max": 1, "order": 0 },
-        { "slot": "routable", "interface": "IRoutable", "min": 1, "max": 1, "order": 1 }
+        { "slot": "processable", "type": "IProcessable", "isArray": false },
+        { "slot": "routable", "type": "IRoutable", "isArray": false }
       ],
-      "configSchema": {
+      "config": {
         "maxQueueSize": { "type": "uint", "min": 1, "max": 4096, "default": 256 }
       }
     },
@@ -122,9 +122,9 @@
       "version": "1.0.0",
       "implements": ["IProcessable", "IDataSource"],
       "requires": [
-        { "slot": "inputs", "interface": "IDataSource", "min": 2, "max": 16, "order": 0 }
+        { "slot": "inputs", "type": "IDataSource", "isArray": true }
       ],
-      "configSchema": {
+      "config": {
         "windowMs": { "type": "uint", "min": 10, "max": 60000, "default": 1000 },
         "strategy": { "type": "string", "default": "average" }
       }
@@ -134,10 +134,10 @@
       "version": "1.0.0",
       "implements": ["IMonitorable"],
       "requires": [
-        { "slot": "workers", "interface": "IProcessable", "min": 1, "max": 4, "order": 0 },
-        { "slot": "monitors", "interface": "IMonitorable", "min": 0, "max": 8, "order": 1 }
+        { "slot": "workers", "type": "IProcessable", "isArray": true },
+        { "slot": "monitors", "type": "IMonitorable", "isArray": true }
       ],
-      "configSchema": {
+      "config": {
         "heartbeatMs": { "type": "uint", "min": 100, "max": 30000, "default": 5000 },
         "failoverEnabled": { "type": "bool", "default": true }
       }

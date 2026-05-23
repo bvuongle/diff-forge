@@ -14,7 +14,7 @@ function getPortDragState(slot: Slot, nodeId: string, dragInfo: DragInfo | null)
   if (!dragInfo) return 'idle'
   if (nodeId === dragInfo.sourceNodeId) return 'dimmed'
   if (slot.direction === 'out') return 'dimmed'
-  return dragInfo.sourceInterfaces.includes(slot.interface) ? 'valid' : 'dimmed'
+  return dragInfo.sourceInterfaces.includes(slot.type) ? 'valid' : 'dimmed'
 }
 
 function getSlotTooltip(edgeSourceMap: EdgeSourceMap, slotName: string): string {

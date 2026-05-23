@@ -50,7 +50,7 @@ describe('getPortDragState', () => {
   })
   it('returns valid when slot interface matches source interfaces', () => {
     expect(
-      getPortDragState(makeSlot({ interface: 'ILink' }), 'n1', {
+      getPortDragState(makeSlot({ type: 'ILink' }), 'n1', {
         sourceNodeId: 'other',
         sourceInterfaces: ['ILink', 'IMonitor']
       })
@@ -58,7 +58,7 @@ describe('getPortDragState', () => {
   })
   it('returns dimmed when slot interface does not match', () => {
     expect(
-      getPortDragState(makeSlot({ interface: 'ILink' }), 'n1', {
+      getPortDragState(makeSlot({ type: 'ILink' }), 'n1', {
         sourceNodeId: 'other',
         sourceInterfaces: ['IMonitor']
       })

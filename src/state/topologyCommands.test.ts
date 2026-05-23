@@ -69,6 +69,116 @@ describe('exportTopology', () => {
     expect(last?.severity).toBe('error')
     expect(last?.message).toMatch(/disk full/)
   })
+
+  it('blocks export and reports cycle members when a cycle exists', async () => {
+    useGraphStore.setState({
+      graph: {
+        nodes: [
+          {
+            id: 'a',
+            instanceId: 'a',
+            componentType: 'X',
+            source: 's',
+            version: '1',
+            position: { x: 0, y: 0 },
+            configData: {},
+            slots: []
+          },
+          {
+            id: 'b',
+            instanceId: 'b',
+            componentType: 'X',
+            source: 's',
+            version: '1',
+            position: { x: 0, y: 0 },
+            configData: {},
+            slots: []
+          }
+        ],
+        edges: [
+          { id: 'e1', sourceNodeId: 'a', sourceSlot: 'o', targetNodeId: 'b', targetSlot: 'i' },
+          { id: 'e2', sourceNodeId: 'b', sourceSlot: 'o', targetNodeId: 'a', targetSlot: 'i' }
+        ]
+      }
+    })
+    await exportTopology()
+    expect(exportMock).not.toHaveBeenCalled()
+    const last = useNotificationsStore.getState().notifications.at(-1)
+    expect(last?.severity).toBe('error')
+    expect(typeof last?.message).toBe('object')
+    const msg = last?.message as { title: string; items: string[] }
+    expect(msg.title).toMatch(/cannot export/i)
+    expect(msg.items.some((i) => /cycle/i.test(i))).toBe(true)
+    const flagged = useGraphStore.getState().flaggedNodeIds
+    expect(flagged.has('a')).toBe(true)
+    expect(flagged.has('b')).toBe(true)
+  })
+
+  it('blocks export and lists unfilled required slots', async () => {
+    useGraphStore.setState({
+      graph: {
+        nodes: [
+          {
+            id: 'msg-uuid',
+            instanceId: 'messageSource0',
+            componentType: 'MessageSource',
+            source: 's',
+            version: '1',
+            position: { x: 0, y: 0 },
+            configData: {},
+            slots: [{ name: 'link', type: 'ILink', direction: 'in', isArray: false }]
+          }
+        ],
+        edges: []
+      }
+    })
+    await exportTopology()
+    expect(exportMock).not.toHaveBeenCalled()
+    const last = useNotificationsStore.getState().notifications.at(-1)
+    expect(last?.severity).toBe('error')
+    const msg = last?.message as { title: string; items: string[] }
+    expect(msg.items.some((i) => i.includes('messageSource0.link'))).toBe(true)
+    expect(useGraphStore.getState().flaggedNodeIds.has('msg-uuid')).toBe(true)
+  })
+
+  it('proceeds to write when graph is valid (no cycles, all required slots wired)', async () => {
+    exportMock.mockResolvedValue({
+      status: 'saved',
+      topologyPath: '/Users/dev/demo/demo.forge.json',
+      name: 'demo'
+    })
+    useGraphStore.setState({
+      graph: {
+        nodes: [
+          {
+            id: 'src',
+            instanceId: 'linkEth0',
+            componentType: 'LinkEth',
+            source: 's',
+            version: '1',
+            position: { x: 0, y: 0 },
+            configData: {},
+            slots: [{ name: 'ILink', type: 'ILink', direction: 'out', isArray: true }]
+          },
+          {
+            id: 'tgt',
+            instanceId: 'messageSource0',
+            componentType: 'MessageSource',
+            source: 's',
+            version: '1',
+            position: { x: 0, y: 0 },
+            configData: {},
+            slots: [{ name: 'link', type: 'ILink', direction: 'in', isArray: false }]
+          }
+        ],
+        edges: [{ id: 'e1', sourceNodeId: 'src', sourceSlot: 'ILink', targetNodeId: 'tgt', targetSlot: 'link' }]
+      }
+    })
+    useGraphStore.setState({ flaggedNodeIds: new Set(['stale-id']) })
+    await exportTopology()
+    expect(exportMock).toHaveBeenCalledTimes(1)
+    expect(useGraphStore.getState().flaggedNodeIds.size).toBe(0)
+  })
 })
 
 describe('performWorkspaceSwitch', () => {

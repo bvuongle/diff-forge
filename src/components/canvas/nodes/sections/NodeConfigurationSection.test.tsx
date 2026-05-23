@@ -8,9 +8,9 @@ import { renderWithTheme } from '@testing/test-utils'
 import { NodeConfigurationSection } from './NodeConfigurationSection'
 
 describe('NodeConfigurationSection', () => {
-  const node = { id: 'n1', config: { count: 5 } } as unknown as GraphNode
+  const node = { id: 'n1', configData: { count: 5 } } as unknown as GraphNode
   const catalogComponent = {
-    configSchema: {
+    config: {
       count: { type: 'int32', default: 0 }
     }
   } as unknown as CatalogComponent
@@ -39,7 +39,7 @@ describe('NodeConfigurationSection', () => {
     const { container } = renderWithTheme(
       <NodeConfigurationSection
         node={node}
-        catalogComponent={{ configSchema: {} } as unknown as CatalogComponent}
+        catalogComponent={{ config: {} } as unknown as CatalogComponent}
         updateNodeConfig={vi.fn()}
       />
     )

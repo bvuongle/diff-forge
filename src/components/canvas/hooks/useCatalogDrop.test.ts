@@ -17,8 +17,8 @@ const VALID_CATALOG = {
   source: 'diff_broker',
   version: '1.0.0',
   implements: ['ILink'],
-  requires: [{ slot: 'transport', interface: 'ITransport', min: 1, max: 1, order: 0 }],
-  configSchema: {}
+  requires: [{ slot: 'transport', type: 'ITransport', min: 1, max: 1, order: 0 }],
+  config: {}
 }
 
 function makeDragEvent(type: string, data?: Record<string, string>, clientX = 500, clientY = 300): React.DragEvent {

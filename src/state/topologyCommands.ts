@@ -1,3 +1,4 @@
+import { computeInvalidNodeIds, GraphValidationResult, validateGraph } from '@core/graph/graphValidation'
 import { graphToTopology } from '@core/topology/graphToTopology'
 import { reasonMessage } from '@core/workspace/workspaceContext'
 import { useGraphStore } from '@state/graphStore'
@@ -6,6 +7,20 @@ import { useUIStore } from '@state/uiStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
 import { ipcWorkspaceStore } from '@adapters/IpcWorkspaceStore'
 
+function describeValidation(v: GraphValidationResult): { title: string; items: string[] } {
+  const items: string[] = []
+  for (const cycle of v.cycles) {
+    items.push(`Cycle: ${cycle.join(' → ')}`)
+  }
+  for (const u of v.unfilled) {
+    items.push(`Missing input: ${u.instanceId}.${u.slotName}`)
+  }
+  if (v.invalidEdges.length > 0) {
+    items.push(`${v.invalidEdges.length} invalid edge(s)`)
+  }
+  return { title: 'Cannot export', items }
+}
+
 async function exportTopology(): Promise<void> {
   const workspace = useWorkspaceStore.getState().status
   if (!workspace?.valid) {
@@ -13,11 +28,18 @@ async function exportTopology(): Promise<void> {
     return
   }
   const graph = useGraphStore.getState().graph
+  const validation = validateGraph(graph)
+  if (!validation.valid) {
+    useGraphStore.getState().setFlaggedNodeIds(computeInvalidNodeIds(graph))
+    notify.error(describeValidation(validation))
+    return
+  }
   const topology = JSON.stringify(graphToTopology(graph), null, 2)
   const outcome = await ipcWorkspaceStore.saveTopology(topology)
   if (outcome.status === 'saved') {
     notify.success(`Wrote ${outcome.topologyPath.split('/').pop() ?? outcome.topologyPath}`)
     useGraphStore.getState().markClean()
+    useGraphStore.getState().setFlaggedNodeIds(new Set())
   } else if (outcome.status === 'invalidWorkspace') {
     notify.error(`Export blocked: ${reasonMessage(outcome.reason)}`)
   } else {

@@ -9,15 +9,15 @@ import { makeEdge, makeNode } from '@testing/fixtures'
 import { useCanvasConnection } from './useCanvasConnection'
 
 const srcNode = makeNode('src', {
-  slots: [{ name: 'ILink', direction: 'out', interface: 'ILink', maxConnections: 1 }]
+  slots: [{ name: 'ILink', direction: 'out', type: 'ILink', isArray: true }]
 })
 
 const tgtNode = makeNode('tgt', {
-  slots: [{ name: 'link', direction: 'in', interface: 'ILink', maxConnections: 1 }]
+  slots: [{ name: 'link', direction: 'in', type: 'ILink', isArray: true }]
 })
 
 const incompatibleSrc = makeNode('src', {
-  slots: [{ name: 'ITransport', direction: 'out', interface: 'ITransport', maxConnections: 1 }]
+  slots: [{ name: 'ITransport', direction: 'out', type: 'ITransport', isArray: true }]
 })
 
 function graphWith(nodes = [srcNode, tgtNode], edges = []) {
@@ -153,7 +153,7 @@ describe('useCanvasConnection', () => {
 
     it('keeps edge when reconnect was successful', () => {
       const newTgt = makeNode('tgt2', {
-        slots: [{ name: 'link', direction: 'in', interface: 'ILink', maxConnections: 1 }]
+        slots: [{ name: 'link', direction: 'in', type: 'ILink', isArray: true }]
       })
       const existingEdge = makeEdge('e1', 'src', 'tgt', { sourceSlot: 'ILink', targetSlot: 'link' })
       graphWith([srcNode, tgtNode, newTgt], [existingEdge] as never)
