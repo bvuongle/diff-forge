@@ -143,14 +143,25 @@ async function loadOneRepo(
 ): Promise<RepoLoadResult> {
   const fresh = await fetchOneRepo(fetchFn, repoUrl, token)
   if (fresh.status === 'ok') {
-    await cache.writeRepo(repoUrl, fresh.catalog)
+    await cache.clearRepo(repoUrl)
+    for (const component of fresh.catalog.components) {
+      await cache.writeCache(component)
+    }
     return fresh
   }
-  const cached = await cache.readRepo(repoUrl)
+  const cached = await readRepoFromCache(cache, repoUrl)
   if (cached) {
     return { status: 'stale', url: repoUrl, catalog: cached, reason: fresh.reason }
   }
   return fresh
+}
+
+async function readRepoFromCache(cache: CatalogCache, repoUrl: string): Promise<CatalogDocument | null> {
+  const all = await cache.readCache()
+  if (!all) return null
+  const target = trimSlash(repoUrl).toLowerCase()
+  const components = all.components.filter((c) => trimSlash(c.source).toLowerCase() === target)
+  return components.length > 0 ? { components } : null
 }
 
 async function fetchOneRepo(

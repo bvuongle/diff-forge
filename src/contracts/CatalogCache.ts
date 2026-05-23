@@ -1,8 +1,10 @@
-import type { CatalogDocument } from '@core/catalog/CatalogSchema'
+import type { CatalogComponent, CatalogDocument } from '@core/catalog/CatalogSchema'
 
 type CatalogCache = {
-  readRepo(url: string): Promise<CatalogDocument | null>
-  writeRepo(url: string, catalog: CatalogDocument): Promise<void>
+  writeCache(component: CatalogComponent): Promise<void>
+  readCache(): Promise<CatalogDocument | null>
+  clearRepo(sourceUrl: string): Promise<void>
+  clear(): Promise<void>
 }
 
 export type { CatalogCache }

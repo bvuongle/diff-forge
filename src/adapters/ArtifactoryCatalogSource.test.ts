@@ -2,7 +2,7 @@ import { gzipSync } from 'node:zlib'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import type { CatalogDocument } from '@core/catalog/CatalogSchema'
+import type { CatalogComponent, CatalogDocument } from '@core/catalog/CatalogSchema'
 import type { CatalogCache } from '@contracts/CatalogCache'
 
 import { createArtifactoryCatalogSource } from './ArtifactoryCatalogSource'
@@ -65,16 +65,32 @@ function fragment(type: string, version: string) {
 }
 
 function memoryCache(seed: Record<string, CatalogDocument> = {}): CatalogCache & {
-  store: Map<string, CatalogDocument>
+  components: () => CatalogComponent[]
+  componentsForRepo: (url: string) => CatalogComponent[]
 } {
-  const store = new Map<string, CatalogDocument>(Object.entries(seed))
+  let store: CatalogComponent[] = []
+  for (const doc of Object.values(seed)) {
+    store.push(...doc.components)
+  }
+  const norm = (u: string) => u.replace(/\/+$/, '').toLowerCase()
   return {
-    store,
-    async readRepo(url) {
-      return store.get(url) ?? null
+    components: () => [...store],
+    componentsForRepo: (url) => store.filter((c) => norm(c.source) === norm(url)),
+    async writeCache(component) {
+      const idx = store.findIndex(
+        (c) => norm(c.source) === norm(component.source) && c.type === component.type && c.version === component.version
+      )
+      if (idx >= 0) store[idx] = component
+      else store.push(component)
     },
-    async writeRepo(url, catalog) {
-      store.set(url, catalog)
+    async readCache() {
+      return store.length === 0 ? null : { components: [...store] }
+    },
+    async clearRepo(sourceUrl) {
+      store = store.filter((c) => norm(c.source) !== norm(sourceUrl))
+    },
+    async clear() {
+      store = []
     }
   }
 }
@@ -341,7 +357,7 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
     ]
   }
 
-  it('writes per-repo cache on successful fetch', async () => {
+  it('writes each fetched component to the cache on successful fetch', async () => {
     const cache = memoryCache()
     const source = createArtifactoryCatalogSource({
       env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
@@ -349,9 +365,8 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
       cache
     })
     await source.loadCatalog()
-    expect(cache.store.has(STORAGE_URL)).toBe(true)
-    const stored = cache.store.get(STORAGE_URL)!
-    expect(stored.components.map((c) => c.type).sort()).toEqual(['LinkEth', 'LinkGsm'])
+    const stored = cache.componentsForRepo(STORAGE_URL)
+    expect(stored.map((c) => c.type).sort()).toEqual(['LinkEth', 'LinkGsm'])
   })
 
   it('falls back to cached catalog as stale when fetch fails and cache exists', async () => {
@@ -384,7 +399,7 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
     expect(result.repos[0].status).toBe('failed')
   })
 
-  it('overwrites existing cache on successful refresh', async () => {
+  it('overwrites existing cache on successful refresh (clears stale, writes fresh)', async () => {
     const cache = memoryCache({ [STORAGE_URL]: cachedDoc })
     const source = createArtifactoryCatalogSource({
       env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
@@ -392,8 +407,8 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
       cache
     })
     await source.loadCatalog()
-    const stored = cache.store.get(STORAGE_URL)!
-    expect(stored.components.map((c) => c.type).sort()).toEqual(['LinkEth', 'LinkGsm'])
+    const stored = cache.componentsForRepo(STORAGE_URL)
+    expect(stored.map((c) => c.type).sort()).toEqual(['LinkEth', 'LinkGsm'])
   })
 })
 
