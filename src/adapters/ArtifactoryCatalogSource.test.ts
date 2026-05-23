@@ -109,22 +109,22 @@ const standardRoutes: Routes = {
 }
 
 describe('createArtifactoryCatalogSource - configuration', () => {
-  it('returns unconfigured when DF_ARTIFACTORY_REPOS is missing', async () => {
+  it('returns unconfigured when ARTIFACTORY_REPOS is missing', async () => {
     const source = createArtifactoryCatalogSource({ env: {}, fetch: vi.fn(), cache: memoryCache() })
     const result = await source.loadCatalog()
-    expect(result).toEqual({ status: 'unconfigured', missing: ['DF_ARTIFACTORY_REPOS'] })
+    expect(result).toEqual({ status: 'unconfigured', missing: ['ARTIFACTORY_REPOS'] })
   })
 
-  it('returns unconfigured when DF_ARTIFACTORY_REPOS is empty or whitespace', async () => {
+  it('returns unconfigured when ARTIFACTORY_REPOS is empty or whitespace', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: '   ' },
+      env: { ARTIFACTORY_REPOS: '   ' },
       fetch: vi.fn(),
       cache: memoryCache()
     })
     expect((await source.loadCatalog()).status).toBe('unconfigured')
 
     const source2 = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: ',,  ,' },
+      env: { ARTIFACTORY_REPOS: ',,  ,' },
       fetch: vi.fn(),
       cache: memoryCache()
     })
@@ -133,7 +133,7 @@ describe('createArtifactoryCatalogSource - configuration', () => {
 
   it('flags duplicate URLs as error (ignoring trailing slash and case)', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: 'https://a.example/conan/,https://A.example/conan' },
+      env: { ARTIFACTORY_REPOS: 'https://a.example/conan/,https://A.example/conan' },
       fetch: vi.fn(),
       cache: memoryCache()
     })
@@ -147,7 +147,7 @@ describe('createArtifactoryCatalogSource - configuration', () => {
 describe('createArtifactoryCatalogSource - single repo fetch', () => {
   it('returns ready with merged components on a full successful fetch', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: routedFetch(standardRoutes),
       cache: memoryCache()
     })
@@ -164,7 +164,7 @@ describe('createArtifactoryCatalogSource - single repo fetch', () => {
 
   it('extracts metadata even when tarball nests it under a folder', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: routedFetch({
         [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: ['linketh/1.0.0@noembedded/stable'] }),
         [`${API_BASE}/v2/conans/linketh/1.0.0/noembedded/stable/revisions`]: () =>
@@ -181,7 +181,7 @@ describe('createArtifactoryCatalogSource - single repo fetch', () => {
 
   it('stamps source on every fetched component from the configured repo URL', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: routedFetch({
         [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: ['linketh/1.0.0@noembedded/stable'] }),
         [`${API_BASE}/v2/conans/linketh/1.0.0/noembedded/stable/revisions`]: () =>
@@ -201,7 +201,7 @@ describe('createArtifactoryCatalogSource - single repo fetch', () => {
       [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: [] })
     })
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: fetchFn,
       cache: memoryCache()
     })
@@ -214,7 +214,7 @@ describe('createArtifactoryCatalogSource - single repo fetch', () => {
       [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: [] })
     })
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: API_BASE },
+      env: { ARTIFACTORY_REPOS: API_BASE },
       fetch: fetchFn,
       cache: memoryCache()
     })
@@ -227,7 +227,7 @@ describe('createArtifactoryCatalogSource - single repo fetch', () => {
       [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: [] })
     })
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: `${STORAGE_URL}/` },
+      env: { ARTIFACTORY_REPOS: `${STORAGE_URL}/` },
       fetch: fetchFn,
       cache: memoryCache()
     })
@@ -239,7 +239,7 @@ describe('createArtifactoryCatalogSource - single repo fetch', () => {
 describe('createArtifactoryCatalogSource - failures (no cache)', () => {
   it('returns error when the only repo fails on the search endpoint and no cache exists', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: vi.fn(async () => errorResponse(404, 'Not Found')),
       cache: memoryCache()
     })
@@ -253,7 +253,7 @@ describe('createArtifactoryCatalogSource - failures (no cache)', () => {
 
   it('returns error when the tarball download fails and no cache exists', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: routedFetch({
         [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: ['linketh/1.0.0@noembedded/stable'] }),
         [`${API_BASE}/v2/conans/linketh/1.0.0/noembedded/stable/revisions`]: () =>
@@ -271,7 +271,7 @@ describe('createArtifactoryCatalogSource - failures (no cache)', () => {
 
   it('returns error when diff.metadata.json is missing from the tarball and no cache exists', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: routedFetch({
         [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: ['linketh/1.0.0@noembedded/stable'] }),
         [`${API_BASE}/v2/conans/linketh/1.0.0/noembedded/stable/revisions`]: () =>
@@ -290,7 +290,7 @@ describe('createArtifactoryCatalogSource - failures (no cache)', () => {
 
   it('flags 401 with a token-rejected hint when token is provided', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL, DF_ARTIFACTORY_TOKEN: 'expired' },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL, ARTIFACTORY_TOKEN: 'expired' },
       fetch: vi.fn(async () => errorResponse(401, 'Unauthorized')),
       cache: memoryCache()
     })
@@ -302,7 +302,7 @@ describe('createArtifactoryCatalogSource - failures (no cache)', () => {
 
   it('flags 401 with a token-missing hint when no token', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: vi.fn(async () => errorResponse(401, 'Unauthorized')),
       cache: memoryCache()
     })
@@ -317,7 +317,7 @@ describe('createArtifactoryCatalogSource - failures (no cache)', () => {
       [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: [] })
     })
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL, DF_ARTIFACTORY_TOKEN: 'secret-token' },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL, ARTIFACTORY_TOKEN: 'secret-token' },
       fetch: fetchFn,
       cache: memoryCache()
     })
@@ -332,7 +332,7 @@ describe('createArtifactoryCatalogSource - failures (no cache)', () => {
       [`${API_BASE}/v2/conans/search?q=*`]: () => jsonResponse({ results: [] })
     })
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: fetchFn,
       cache: memoryCache()
     })
@@ -360,7 +360,7 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
   it('writes each fetched component to the cache on successful fetch', async () => {
     const cache = memoryCache()
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: routedFetch(standardRoutes),
       cache
     })
@@ -372,7 +372,7 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
   it('falls back to cached catalog as stale when fetch fails and cache exists', async () => {
     const cache = memoryCache({ [STORAGE_URL]: cachedDoc })
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: vi.fn(async () => errorResponse(500, 'Server Error')),
       cache
     })
@@ -389,7 +389,7 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
   it('returns failed when fetch fails and no cache exists for that repo', async () => {
     const cache = memoryCache()
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: vi.fn(async () => errorResponse(500, 'Server Error')),
       cache
     })
@@ -402,7 +402,7 @@ describe('createArtifactoryCatalogSource - per-repo cache', () => {
   it('overwrites existing cache on successful refresh (clears stale, writes fresh)', async () => {
     const cache = memoryCache({ [STORAGE_URL]: cachedDoc })
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: STORAGE_URL },
+      env: { ARTIFACTORY_REPOS: STORAGE_URL },
       fetch: routedFetch(standardRoutes),
       cache
     })
@@ -430,7 +430,7 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
 
   it('returns partial when some repos succeed and some fail without cache', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: `${REPO_A},${REPO_B}` },
+      env: { ARTIFACTORY_REPOS: `${REPO_A},${REPO_B}` },
       fetch: routedFetch({
         ...repoARoutes(),
         [`${apiB}/v2/conans/search?q=*`]: () => errorResponse(500, 'Server Error')
@@ -460,7 +460,7 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
       ]
     }
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: `${REPO_A},${REPO_B}` },
+      env: { ARTIFACTORY_REPOS: `${REPO_A},${REPO_B}` },
       fetch: routedFetch({
         ...repoARoutes(),
         [`${apiB}/v2/conans/search?q=*`]: () => errorResponse(500, 'Server Error')
@@ -478,7 +478,7 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
 
   it('returns error when all repos fail and none have cache', async () => {
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: 'https://a.example/conan,https://b.example/conan' },
+      env: { ARTIFACTORY_REPOS: 'https://a.example/conan,https://b.example/conan' },
       fetch: vi.fn(async () => errorResponse(500, 'Server Error')),
       cache: memoryCache()
     })
@@ -516,7 +516,7 @@ describe('createArtifactoryCatalogSource - multi-repo aggregation', () => {
       ]
     }
     const source = createArtifactoryCatalogSource({
-      env: { DF_ARTIFACTORY_REPOS: `${REPO_A},${REPO_B}` },
+      env: { ARTIFACTORY_REPOS: `${REPO_A},${REPO_B}` },
       fetch: vi.fn(async () => errorResponse(500, 'Server Error')),
       cache: memoryCache({ [REPO_A]: docA, [REPO_B]: docB })
     })

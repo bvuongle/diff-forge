@@ -7,8 +7,8 @@ import { mergeCatalogs } from '@core/catalog/mergeCatalogs'
 import type { CatalogCache } from '@contracts/CatalogCache'
 import type { CatalogLoadOutcome, CatalogSource, RepoLoadOutcome } from '@contracts/CatalogSource'
 
-const ARTIFACTORY_REPOS = 'DF_ARTIFACTORY_REPOS'
-const ARTIFACTORY_TOKEN = 'DF_ARTIFACTORY_TOKEN'
+const ARTIFACTORY_REPOS = 'ARTIFACTORY_REPOS'
+const ARTIFACTORY_TOKEN = 'ARTIFACTORY_TOKEN'
 const METADATA_FILENAME = 'diff.metadata.json'
 const EXPORT_TARBALL = 'conan_export.tgz'
 

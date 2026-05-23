@@ -1,7 +1,7 @@
 import { CatalogDocumentZ } from '@core/catalog/CatalogSchema'
 import type { CatalogLoadOutcome, CatalogSource } from '@contracts/CatalogSource'
 
-const CATALOG_FILE = 'DF_CATALOG_FILE'
+const CATALOG_FILE = 'CATALOG_FILE'
 
 type ReadFileFn = (path: string) => Promise<string>
 

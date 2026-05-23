@@ -33,7 +33,7 @@ describe('catalogStore', () => {
 
   it('setStatus(unconfigured) clears the catalog', () => {
     useCatalogStore.getState().setStatus({ status: 'ready', catalog: mockCatalog, repos: [] })
-    useCatalogStore.getState().setStatus({ status: 'unconfigured', missing: ['DF_ARTIFACTORY_REPOS'] })
+    useCatalogStore.getState().setStatus({ status: 'unconfigured', missing: ['ARTIFACTORY_REPOS'] })
     expect(useCatalogStore.getState().catalog).toBeNull()
   })
 })
