@@ -38,7 +38,7 @@ jobs:
       - name: Build renderer + main
         run: pnpm build
       - name: Package .deb
-        run: pnpm exec electron-builder --linux deb --publish never
+        run: pnpm exec electron-builder --linux --publish never
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
@@ -72,7 +72,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xvfb
       - name: Install .deb
-        run: sudo apt-get install -y ./release/*.deb
+        run: sudo apt-get install -y ./release/*amd64.deb
       - name: Verify binary exists
         run: |
           test -x /opt/diff-forge/diff-forge
