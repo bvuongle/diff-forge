@@ -103,8 +103,7 @@
       "icon": "src/assets/logo.svg",
       "desktop": {
         "entry": {
-          "Name": "Diff Forge",
-          "Exec": "diff-forge --no-sandbox"
+          "Name": "Diff Forge"
         }
       },
       "target": [
