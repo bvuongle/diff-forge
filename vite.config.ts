@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 
 import react from '@vitejs/plugin-react'
 import { defineConfig, type PluginOption } from 'vite'
-import electron from 'vite-plugin-electron'
+import electron from 'vite-plugin-electron/simple'
 
 const PRELOAD_SRC = resolve(__dirname, 'src/electron/preload.cjs')
 const PRELOAD_OUT_DIR = resolve(__dirname, 'dist-electron')
@@ -47,8 +47,8 @@ export default defineConfig({
   plugins: [
     react(),
     copyPreloadPlugin(),
-    electron([
-      {
+    electron({
+      main: {
         entry: 'src/electron/main.ts',
         vite: {
           resolve: { alias: srcAliases },
@@ -60,7 +60,7 @@ export default defineConfig({
           }
         }
       }
-    ])
+    })
   ],
   build: {
     outDir: 'dist',
