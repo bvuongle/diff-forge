@@ -66,9 +66,10 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
   const handleToggle = useCallback(() => toggleNodeExpanded(id), [id, toggleNodeExpanded])
 
+  const isSelected = selected || selectedNodeIds.has(id)
   const containerClass = [
     'canvas-node',
-    selected && 'canvas-node--selected',
+    isSelected && 'canvas-node--selected',
     isDimmed && 'canvas-node--dimmed',
     isUnresolved && 'canvas-node--unresolved',
     isInvalid && 'canvas-node--invalid'

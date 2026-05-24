@@ -30,13 +30,13 @@ describe('useAppHotkeys', () => {
     vi.restoreAllMocks()
   })
 
-  it('Cmd/Ctrl+S triggers exportTopology', () => {
+  it('Ctrl+S triggers exportTopology', () => {
     renderHook(() => useAppHotkeys())
-    act(() => fireKey({ code: 'KeyS', metaKey: true }))
+    act(() => fireKey({ code: 'KeyS', ctrlKey: true }))
     expect(exportMock).toHaveBeenCalledTimes(1)
   })
 
-  it('Cmd/Ctrl+O triggers requestWorkspaceSwitch', () => {
+  it('Ctrl+O triggers requestWorkspaceSwitch', () => {
     renderHook(() => useAppHotkeys())
     act(() => fireKey({ code: 'KeyO', ctrlKey: true }))
     expect(switchMock).toHaveBeenCalledTimes(1)
@@ -51,7 +51,7 @@ describe('useAppHotkeys', () => {
   it('ignores hotkeys while focus is in a text field', () => {
     renderHook(() => useAppHotkeys())
     const input = document.createElement('input')
-    act(() => fireKey({ code: 'KeyS', metaKey: true, targetElement: input }))
+    act(() => fireKey({ code: 'KeyS', ctrlKey: true, targetElement: input }))
     expect(exportMock).not.toHaveBeenCalled()
   })
 })
