@@ -40,7 +40,6 @@ function useLocalValue(value: unknown, fallback: unknown) {
   useEffect(() => {
     if (focusedRef.current) return
     const next = String(value ?? fallback ?? '')
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocal((prev) => (prev === next ? prev : next))
   }, [value, fallback])
   return { local, setLocal, focusedRef }
