@@ -4,22 +4,22 @@ import { join } from 'node:path'
 
 import { _electron as electron, type ElectronApplication, type Page } from '@playwright/test'
 
-import { type FakeConanServer, startFakeConanServer } from './fakeConanServer'
+import { type MockConanServer, startMockConanServer } from './mockConanServer'
 
 export type PackagedAppHarness = {
   app: ElectronApplication
   page: Page
   workspaceCwd: string
-  server: FakeConanServer
+  server: MockConanServer
   teardown: () => Promise<void>
 }
 
-export async function launchPackagedAppWithFakeCatalog(): Promise<PackagedAppHarness> {
+export async function launchPackagedAppWithMockCatalog(): Promise<PackagedAppHarness> {
   const bin = process.env.DIFF_FORGE_BIN
   if (!bin) throw new Error('DIFF_FORGE_BIN env var is required for the packaged-app project')
 
   const workspaceCwd = mkdtempSync(join(tmpdir(), 'forge-pkg-'))
-  const server = await startFakeConanServer('fake-repo')
+  const server = await startMockConanServer('mock-repo')
 
   const app = await electron.launch({
     executablePath: bin,

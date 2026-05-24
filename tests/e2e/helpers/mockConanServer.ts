@@ -3,13 +3,12 @@ import type { AddressInfo } from 'node:net'
 
 import { FIXTURE_REF, FIXTURE_REVISION, buildConanExportTgz } from './conanFixture'
 
-export type FakeConanServer = {
+export type MockConanServer = {
   url: string
   close: () => Promise<void>
 }
 
 const TGZ = buildConanExportTgz()
-// Conan v2 puts ref segments in URL as name/version/user/channel
 const REF_URL_PATH = FIXTURE_REF.replace('@', '/')
 
 function json(res: ServerResponse, body: unknown) {
@@ -44,7 +43,7 @@ function handle(req: IncomingMessage, res: ServerResponse) {
   notFound(res)
 }
 
-export async function startFakeConanServer(repoName = 'fake-repo'): Promise<FakeConanServer> {
+export async function startMockConanServer(repoName = 'mock-repo'): Promise<MockConanServer> {
   const server = createServer(handle)
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   const addr = server.address() as AddressInfo

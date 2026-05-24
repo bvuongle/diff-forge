@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test'
 
 import { dropCatalogComponent } from './helpers/canvas'
 import { FIXTURE_COMPONENT_TYPE } from './helpers/conanFixture'
-import { launchPackagedAppWithFakeCatalog, type PackagedAppHarness } from './helpers/packagedApp'
+import { launchPackagedAppWithMockCatalog, type PackagedAppHarness } from './helpers/packagedApp'
 
 let harness: PackagedAppHarness
 
@@ -13,7 +13,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.describe('Packaged app — env, catalog fetch, export', () => {
   test.beforeAll(async () => {
-    harness = await launchPackagedAppWithFakeCatalog()
+    harness = await launchPackagedAppWithMockCatalog()
   })
 
   test.afterAll(async () => {
