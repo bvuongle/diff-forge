@@ -101,9 +101,9 @@
     "linux": {
       "category": "Development",
       "desktop": {
-        "Exec": "diff-forge --no-sandbox %U",
         "entry": {
-          "Name": "Diff Forge"
+          "Name": "Diff Forge",
+          "Exec": "diff-forge --no-sandbox %U"
         }
       },
       "target": [
