@@ -88,45 +88,37 @@ const MOCK_RESPONSES = {
   'topology:load': { status: 'notFound' as const }
 }
 
-type WorkerFixtures = {
-  electronApp: ElectronApplication
-}
-
 type TestFixtures = {
+  electronApp: ElectronApplication
   page: Page
 }
 
-export const test = base.extend<TestFixtures, WorkerFixtures>({
-  electronApp: [
-    async ({}, use) => {  // eslint-disable-line no-empty-pattern
-      const installedBin = process.env.DIFF_FORGE_BIN
-      const launchOptions = installedBin
-        ? { executablePath: installedBin, args: ['--no-sandbox'] }
-        : { args: [PROJECT_ROOT, '--no-sandbox'] }
-      const app = await _electron.launch({
-        ...launchOptions,
-        env: { ...process.env, HEADLESS: '1' },
-        timeout: 30_000
-      })
-      await app.evaluate(({ ipcMain }, mocks) => {
-        for (const channel of Object.keys(mocks)) {
-          try {
-            ipcMain.removeHandler(channel)
-          } catch {
-            /* not registered */
-          }
-          ipcMain.handle(channel, () => mocks[channel as keyof typeof mocks])
+export const test = base.extend<TestFixtures>({
+  electronApp: async ({}, use) => {  // eslint-disable-line no-empty-pattern
+    const installedBin = process.env.DIFF_FORGE_BIN
+    const launchOptions = installedBin
+      ? { executablePath: installedBin, args: ['--no-sandbox'] }
+      : { args: [PROJECT_ROOT, '--no-sandbox'] }
+    const app = await _electron.launch({
+      ...launchOptions,
+      env: { ...process.env, HEADLESS: '1' },
+      timeout: 30_000
+    })
+    await app.evaluate(({ ipcMain }, mocks) => {
+      for (const channel of Object.keys(mocks)) {
+        try {
+          ipcMain.removeHandler(channel)
+        } catch {
+          /* not registered */
         }
-      }, MOCK_RESPONSES)
-      await use(app)
-      await app.close()
-    },
-    { scope: 'worker' }
-  ],
+        ipcMain.handle(channel, () => mocks[channel as keyof typeof mocks])
+      }
+    }, MOCK_RESPONSES)
+    await use(app)
+    await app.close()
+  },
   page: async ({ electronApp }, use) => {
     const page = await electronApp.firstWindow({ timeout: 30_000 })
-
-    await page.reload()
     await use(page)
   }
 })
