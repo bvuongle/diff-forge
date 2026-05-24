@@ -102,7 +102,7 @@ export const test = base.extend<TestFixtures>({
     const app = await _electron.launch({
       ...launchOptions,
       env: { ...process.env, HEADLESS: '1' },
-      timeout: 60_000
+      timeout: 30_000
     })
     await app.evaluate(({ ipcMain }, mocks) => {
       for (const channel of Object.keys(mocks)) {
