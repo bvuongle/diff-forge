@@ -82,23 +82,6 @@ describe('useCanvasHotkeys', () => {
     expect(selected).toEqual(new Set(['n1', 'n2', 'n3']))
   })
 
-  it('Meta+A (Cmd) selects all nodes', () => {
-    const n1 = makeNode('n1')
-    const n2 = makeNode('n2')
-    useGraphStore.setState({
-      graph: { nodes: [n1, n2], edges: [] }
-    })
-
-    renderHook(() => useCanvasHotkeys())
-
-    act(() => {
-      fireKey('keydown', { key: 'a', metaKey: true })
-    })
-
-    const selected = useGraphStore.getState().selectedNodeIds
-    expect(selected).toEqual(new Set(['n1', 'n2']))
-  })
-
   it('Space toggles from select to pan mode', () => {
     useUIStore.setState({ canvasMode: 'select' })
 

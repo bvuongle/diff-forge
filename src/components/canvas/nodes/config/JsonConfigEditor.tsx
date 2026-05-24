@@ -11,12 +11,10 @@ function JsonConfigEditor({ config, onSave }: JsonConfigEditorProps) {
   const [text, setText] = useState(() => JSON.stringify(config, null, 2))
   const [error, setError] = useState(false)
 
-  /* eslint-disable react-hooks/set-state-in-effect -- intentional prop-to-state sync */
   useEffect(() => {
     setText(JSON.stringify(config, null, 2))
     setError(false)
   }, [config])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleBlur = () => {
     try {

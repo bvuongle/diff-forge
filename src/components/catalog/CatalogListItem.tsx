@@ -57,11 +57,11 @@ function CatalogListItem({ component }: CatalogListItemProps) {
 function SourceChip({ url }: { url: string }) {
   const onClick = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation()
-    if (!event.metaKey && !event.ctrlKey) return
+    if (!event.ctrlKey) return
     void copyToClipboard(url)
   }
   return (
-    <Tooltip title={`${url}\nCmd/Ctrl+Click to copy`} placement="top">
+    <Tooltip title={`${url}\nCtrl+Click to copy`} placement="top">
       <Chip
         size="small"
         variant="outlined"

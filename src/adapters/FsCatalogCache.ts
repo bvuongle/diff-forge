@@ -58,11 +58,11 @@ function createFsCatalogCache(deps: FsCatalogCacheDeps): CatalogCache {
     },
 
     async clearRepo(sourceUrl) {
-      await rm(repoDir(sourceUrl), { recursive: true, force: true })
+      await rm(repoDir(sourceUrl), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
     },
 
     async clear() {
-      await rm(rootDir, { recursive: true, force: true })
+      await rm(rootDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
     }
   }
 }

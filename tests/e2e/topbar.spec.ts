@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 import { waitForCanvasReady } from './helpers/canvas'
 
@@ -48,9 +48,8 @@ test.describe('App-level hotkeys', () => {
     await waitForCanvasReady(page)
   })
 
-  test('Cmd+S surfaces export feedback notification', async ({ page }) => {
-    const isMac = process.platform === 'darwin'
-    await page.keyboard.press(isMac ? 'Meta+S' : 'Control+S')
-    await expect(page.getByRole('alert').filter({ hasText: /wrote topology\.json/i })).toBeVisible()
+  test('Ctrl+S surfaces export feedback notification', async ({ page }) => {
+    await page.keyboard.press('Control+S')
+    await expect(page.getByRole('alert').filter({ hasText: /wrote .*\.forge\.json/i })).toBeVisible()
   })
 })

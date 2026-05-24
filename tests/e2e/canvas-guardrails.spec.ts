@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 import {
   connectPorts,
@@ -7,7 +7,6 @@ import {
   inPortSel,
   nodeSel,
   outPortSel,
-  selectNode,
   waitForCanvasReady
 } from './helpers/canvas'
 
@@ -18,19 +17,13 @@ test.describe('Ctrl+A selects all nodes', () => {
     await dropCatalogComponent(page, 'MessageSource', { x: 400, y: 450 })
   })
 
-  test.skip('Ctrl+A selects all nodes on canvas', async ({ page }) => {
+  test('Ctrl+A selects all nodes on canvas', async ({ page }) => {
     await page.keyboard.press('Escape')
     await page.locator('body').click()
     await page.locator('body').press('Control+a')
     await expect.poll(() => page.locator('.canvas-node--selected').count()).toBe(2)
   })
 
-  test.skip('Meta+A selects all nodes on Mac', async ({ page }) => {
-    await page.keyboard.press('Escape')
-    await page.locator('body').click()
-    await page.locator('body').press('Meta+a')
-    await expect.poll(() => page.locator('.canvas-node--selected').count()).toBe(2)
-  })
 })
 
 test.describe('Space toggles canvas mode', () => {

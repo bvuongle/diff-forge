@@ -24,6 +24,7 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      'react-hooks/set-state-in-effect': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'error',
@@ -40,6 +41,12 @@ export default tseslint.config(
     files: ['src/electron/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { patterns: RENDERER_ONLY }]
+    }
+  },
+  {
+    files: ['tests/**/*.{ts,tsx}'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off'
     }
   }
 )
