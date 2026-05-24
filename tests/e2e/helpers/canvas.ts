@@ -1,27 +1,6 @@
 import { Page } from '@playwright/test'
 
-export async function installWorkspaceStub(page: Page, projectName = 'test-workspace') {
-  await page.addInitScript((name) => {
-    const status = { valid: true, projectName: name, cwd: `/tmp/${name}` }
-    ;(window as unknown as { electronAPI: unknown }).electronAPI = {
-      workspace: {
-        status: async () => status,
-        openAtPath: async () => ({ status: 'opened', workspace: status })
-      },
-      dialog: {
-        openWorkspace: async () => ({ status: 'opened', workspace: status })
-      },
-      topology: {
-        export: async () => ({ status: 'saved', topologyPath: `/tmp/${name}/topology.json`, projectName: name }),
-        load: async () => ({ status: 'notFound' })
-      }
-    }
-  }, projectName)
-}
-
 export async function waitForCanvasReady(page: Page) {
-  await installWorkspaceStub(page)
-  await page.goto('/')
   await page.waitForSelector('text=Component Catalog')
   await page.waitForSelector('.react-flow__pane')
 }
@@ -76,6 +55,7 @@ export async function dropCatalogComponent(
 export async function connectPorts(page: Page, sourceSelector: string, targetSelector: string) {
   const src = page.locator(sourceSelector)
   const tgt = page.locator(targetSelector)
+  await src.hover()
   const sBox = await src.boundingBox()
   const tBox = await tgt.boundingBox()
   if (!sBox || !tBox) throw new Error('port bounding box missing')
@@ -85,8 +65,10 @@ export async function connectPorts(page: Page, sourceSelector: string, targetSel
   const ty = tBox.y + tBox.height / 2
   await page.mouse.move(sx, sy)
   await page.mouse.down()
-  await page.mouse.move((sx + tx) / 2, (sy + ty) / 2, { steps: 8 })
-  await page.mouse.move(tx, ty, { steps: 8 })
+  await page.waitForTimeout(50)
+  await page.mouse.move((sx + tx) / 2, (sy + ty) / 2, { steps: 12 })
+  await page.mouse.move(tx, ty, { steps: 12 })
+  await page.waitForTimeout(50)
   await page.mouse.up()
 }
 

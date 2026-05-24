@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 import {
   connectPorts,
@@ -7,7 +7,6 @@ import {
   inPortSel,
   nodeSel,
   outPortSel,
-  selectNode,
   waitForCanvasReady
 } from './helpers/canvas'
 

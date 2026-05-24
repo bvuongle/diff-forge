@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 import {
   connectPorts,
@@ -27,13 +27,12 @@ test.describe('Node drag repositioning', () => {
     const startY = boxBefore!.y + boxBefore!.height / 2
     await page.mouse.move(startX, startY)
     await page.mouse.down()
-    await page.mouse.move(startX + 150, startY + 100, { steps: 5 })
+    await page.waitForTimeout(50)
+    await page.mouse.move(startX + 150, startY + 100, { steps: 12 })
     await page.mouse.up()
 
-    const boxAfter = await heading.boundingBox()
-    expect(boxAfter).toBeTruthy()
-    expect(boxAfter!.x).toBeGreaterThan(boxBefore!.x + 50)
-    expect(boxAfter!.y).toBeGreaterThan(boxBefore!.y + 30)
+    await expect.poll(async () => (await heading.boundingBox())?.x ?? 0).toBeGreaterThan(boxBefore!.x + 50)
+    await expect.poll(async () => (await heading.boundingBox())?.y ?? 0).toBeGreaterThan(boxBefore!.y + 30)
   })
 })
 

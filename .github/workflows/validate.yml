@@ -92,7 +92,7 @@ jobs:
       - name: Run packaged-app spec
         env:
           DIFF_FORGE_BIN: /opt/diff-forge/diff-forge
-        run: xvfb-run -a pnpm exec playwright test --project=electron-packaged
+        run: xvfb-run -a pnpm exec playwright test
       - name: Upload screenshots and logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -149,7 +149,7 @@ jobs:
           cd ~/forge
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
-          DIFF_FORGE_BIN=/opt/diff-forge/diff-forge xvfb-run -a pnpm exec playwright test --project=electron-packaged
+          DIFF_FORGE_BIN=/opt/diff-forge/diff-forge xvfb-run -a pnpm exec playwright test
       - name: Copy WSL test-results back to Windows workspace
         if: failure()
         shell: wsl-bash {0}
