@@ -1,5 +1,7 @@
 import { defineConfig } from '@playwright/test'
 
+const RUN_PACKAGED = Boolean(process.env.DIFF_FORGE_BIN)
+
 export default defineConfig({
   testDir: './tests/e2e',
   outputDir: './tests/e2e/test-results',
@@ -11,12 +13,27 @@ export default defineConfig({
     screenshot: 'only-on-failure'
   },
   projects: [
-    { name: 'chromium', use: { browserName: 'chromium' } }
+    {
+      name: 'chromium',
+      testIgnore: /packaged-app\.spec\.ts/,
+      use: { browserName: 'chromium' }
+    },
+    ...(RUN_PACKAGED
+      ? [
+          {
+            name: 'electron-packaged',
+            testMatch: /packaged-app\.spec\.ts/,
+            use: {}
+          }
+        ]
+      : [])
   ],
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 30_000
-  }
+  webServer: RUN_PACKAGED
+    ? undefined
+    : {
+        command: 'pnpm dev',
+        url: 'http://localhost:5173',
+        reuseExistingServer: true,
+        timeout: 30_000
+      }
 })

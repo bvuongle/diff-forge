@@ -28,10 +28,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "prepare": "husky",
-    "dist": "pnpm build && electron-builder",
-    "dist:mac": "pnpm build && electron-builder --mac",
-    "dist:linux": "pnpm build && electron-builder --linux",
-    "dist:win": "pnpm build && electron-builder --win"
+    "dist": "pnpm build && electron-builder --linux deb"
   },
   "dependencies": {
     "@emotion/react": "^11.13.0",
@@ -101,23 +98,6 @@
       "!**/*.{md,map,test.ts,test.tsx,spec.ts,spec.tsx}",
       "!**/{__tests__,__mocks__,test,tests,docs,coverage,.github,.vscode,.idea}/**"
     ],
-    "mac": {
-      "category": "public.app-category.developer-tools",
-      "extendInfo": {
-        "CFBundleDisplayName": "Diff Forge",
-        "CFBundleName": "Diff Forge"
-      },
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["arm64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["arm64"]
-        }
-      ]
-    },
     "linux": {
       "category": "Development",
       "desktop": {
@@ -127,12 +107,8 @@
       },
       "target": [
         {
-          "target": "AppImage",
-          "arch": ["x64", "arm64"]
-        },
-        {
           "target": "deb",
-          "arch": ["x64", "arm64"]
+          "arch": ["x64"]
         }
       ]
     },
@@ -147,20 +123,6 @@
         "libuuid1",
         "libsecret-1-0"
       ]
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "perMachine": false,
-      "shortcutName": "Diff Forge"
     }
   }
 }
