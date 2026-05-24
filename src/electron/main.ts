@@ -17,10 +17,13 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
+    show: !process.env.HEADLESS,
+    paintWhenInitiallyHidden: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      backgroundThrottling: false
     }
   })
 
