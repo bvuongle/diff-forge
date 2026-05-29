@@ -4,11 +4,15 @@ import { Chip, Tooltip } from '@mui/material'
 
 import { notify } from '@state/notificationsStore'
 
-import { sourceLabel } from './sourceLabel'
-
 type SourceChipProps = {
   url: string
   copyable?: boolean
+}
+
+function sourceLabel(url: string): string {
+  const trimmed = url.replace(/\/+$/, '')
+  const last = trimmed.split('/').pop()
+  return last && last.length > 0 ? last : trimmed
 }
 
 function SourceChip({ url, copyable = false }: SourceChipProps) {

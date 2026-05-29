@@ -8,10 +8,12 @@ import { listSources, searchCatalog, type SearchResult } from '@core/catalog/sea
 import { useCatalogStore } from '@state/catalogStore'
 import { useUIStore } from '@state/uiStore'
 
+import { CATALOG_PANEL_WIDTH_PX } from './catalogConstants'
 import { CatalogListItem } from './CatalogListItem'
 import { CollapsibleSection } from './CollapsibleSection'
 import { RefreshCatalogButton } from './RefreshCatalogButton'
 import { SearchInput } from './SearchInput'
+import { SearchModeToggle } from './SearchModeToggle'
 import { SectionHeader } from './SectionHeader'
 import { SourceFilter } from './SourceFilter'
 
@@ -34,22 +36,21 @@ function CatalogPanel() {
     [components, searchQuery, searchMode, sourceFilters]
   )
   const totalCount = result.kind === 'flat' ? result.matches.length : result.provides.length + result.accepts.length
-  const placeholder = searchMode === 'name' ? 'Search by name' : 'Search by interface'
 
   return (
     <Box
       display="flex"
       flexDirection="column"
+      width={CATALOG_PANEL_WIDTH_PX}
       borderRight={1}
       borderColor="var(--panel-border)"
       bgcolor="var(--panel-bg)"
       minHeight={0}
     >
       <Box px={2} pt={2} pb={1}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={0.5} mb={1}>
           <SectionHeader title="Component Catalog" />
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <SourceFilter sources={sources} />
+          <Stack direction="row" spacing={0.5} alignItems="center" flexShrink={0}>
             <RefreshCatalogButton />
             <Tooltip title="Hide catalog">
               <IconButton size="small" onClick={toggleCollapsed} aria-label="Hide catalog">
@@ -58,7 +59,11 @@ function CatalogPanel() {
             </Tooltip>
           </Stack>
         </Stack>
-        <SearchInput placeholder={placeholder} />
+        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+          <SearchInput />
+          <SourceFilter sources={sources} />
+        </Stack>
+        <SearchModeToggle />
       </Box>
       <Divider />
       <Box flex={1} overflow="auto" px={1} py={1} minHeight={0}>

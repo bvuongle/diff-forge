@@ -2,23 +2,11 @@ import { useState } from 'react'
 
 import FilterAltIcon from '@mui/icons-material/FilterAlt'
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined'
-import {
-  Badge,
-  Box,
-  Button,
-  Checkbox,
-  Divider,
-  IconButton,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Badge, Box, Button, Checkbox, Divider, IconButton, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
 
 import { useUIStore } from '@state/uiStore'
 
-import { sourceLabel } from './sourceLabel'
+import { SourceChip } from './SourceChip'
 
 type SourceFilterProps = {
   sources: string[]
@@ -68,9 +56,9 @@ function SourceFilter({ sources }: SourceFilterProps) {
         {sources.map((source) => {
           const checked = sourceFilters.has(source)
           return (
-            <MenuItem key={source} onClick={() => toggle(source)} dense>
+            <MenuItem key={source} onClick={() => toggle(source)} dense sx={{ gap: 1 }}>
               <Checkbox edge="start" size="small" checked={checked} disableRipple sx={{ py: 0 }} />
-              <ListItemText primary={sourceLabel(source)} secondary={source} />
+              <SourceChip url={source} />
             </MenuItem>
           )
         })}
