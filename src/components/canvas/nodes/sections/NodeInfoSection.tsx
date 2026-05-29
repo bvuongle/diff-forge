@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Box, TextField, Typography } from '@mui/material'
 
 import { GraphNode } from '@core/graph/GraphTypes'
+import { SourceChip } from '@catalog/SourceChip'
 
 type NodeInfoSectionProps = {
   node: GraphNode
@@ -62,9 +63,9 @@ export function NodeInfoSection({ node, graphNodes, renameNode }: NodeInfoSectio
           <Typography variant="caption" color="text.secondary">
             Source
           </Typography>
-          <Typography variant="body2" fontSize="0.8rem">
-            {node.source}
-          </Typography>
+          <Box mt={0.25}>
+            <SourceChip url={node.source} copyable />
+          </Box>
         </Box>
       </Box>
     </Box>

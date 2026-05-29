@@ -1,13 +1,10 @@
-import { type MouseEvent } from 'react'
-
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
-import { Box, Chip, ListItemButton, Stack, Tooltip, Typography } from '@mui/material'
+import { Box, Chip, ListItemButton, Stack, Typography } from '@mui/material'
 
 import type { CatalogComponent } from '@core/catalog/CatalogSchema'
-import { notify } from '@state/notificationsStore'
 
 import { setRoundedDragImage } from './setRoundedDragImage'
-import { sourceLabel } from './sourceLabel'
+import { SourceChip } from './SourceChip'
 
 type CatalogListItemProps = {
   component: CatalogComponent
@@ -52,34 +49,6 @@ function CatalogListItem({ component }: CatalogListItemProps) {
       </Stack>
     </ListItemButton>
   )
-}
-
-function SourceChip({ url }: { url: string }) {
-  const onClick = (event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation()
-    if (!event.ctrlKey) return
-    void copyToClipboard(url)
-  }
-  return (
-    <Tooltip title={`${url}\nCtrl+Click to copy`} placement="top">
-      <Chip
-        size="small"
-        variant="outlined"
-        label={sourceLabel(url)}
-        onClick={onClick}
-        sx={{ height: 22, maxWidth: '100%', '& .MuiChip-label': { px: 1 } }}
-      />
-    </Tooltip>
-  )
-}
-
-async function copyToClipboard(url: string) {
-  try {
-    await navigator.clipboard.writeText(url)
-    notify.success('Source URL copied')
-  } catch {
-    notify.error('Copy failed')
-  }
 }
 
 export { CatalogListItem }
