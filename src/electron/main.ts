@@ -7,8 +7,6 @@ import { createArtifactoryCatalogSource } from '../adapters/ArtifactoryCatalogSo
 import { createFsCatalogCache } from '../adapters/FsCatalogCache'
 import { createFsWorkspaceStore } from '../adapters/FsWorkspaceStore'
 
-app.commandLine.appendSwitch('no-sandbox')
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const isDev = process.env.VITE_DEV_SERVER_URL !== undefined
