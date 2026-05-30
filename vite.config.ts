@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, type PluginOption } from 'vite'
 import electron from 'vite-plugin-electron/simple'
 
-const PRELOAD_SRC = resolve(__dirname, 'src/electron/preload.cjs')
+const PRELOAD_SRC = resolve(__dirname, 'electron/preload.cjs')
 const PRELOAD_OUT_DIR = resolve(__dirname, 'dist-electron')
 const PRELOAD_OUT = resolve(PRELOAD_OUT_DIR, 'preload.cjs')
 
@@ -20,7 +20,7 @@ const srcAliases = {
   '@topbar': '/src/components/topbar',
   '@welcome': '/src/components/welcome',
   '@layout': '/src/components/layout',
-  '@testing': '/src/testing'
+  '@testing': '/tests/support'
 }
 
 function copyPreloadPlugin(): PluginOption {
@@ -49,7 +49,7 @@ export default defineConfig({
     copyPreloadPlugin(),
     electron({
       main: {
-        entry: 'src/electron/main.ts',
+        entry: 'electron/main.ts',
         vite: {
           resolve: { alias: srcAliases },
           build: {

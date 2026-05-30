@@ -3,13 +3,11 @@ import { fileURLToPath } from 'url'
 
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 
-import { createArtifactoryCatalogSource } from '../adapters/ArtifactoryCatalogSource'
-import { createFsCatalogCache } from '../adapters/FsCatalogCache'
-import { createFsWorkspaceStore } from '../adapters/FsWorkspaceStore'
+import { createArtifactoryCatalogSource } from '@adapters/ArtifactoryCatalogSource'
+import { createFsCatalogCache } from '@adapters/FsCatalogCache'
+import { createFsWorkspaceStore } from '@adapters/FsWorkspaceStore'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-const isDev = process.env.VITE_DEV_SERVER_URL !== undefined
 
 let mainWindow: BrowserWindow | null = null
 
@@ -27,8 +25,9 @@ function createWindow() {
     }
   })
 
-  if (isDev && process.env.VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
+  const devServerUrl = process.env.VITE_DEV_SERVER_URL
+  if (devServerUrl) {
+    mainWindow.loadURL(devServerUrl)
     mainWindow.webContents.openDevTools()
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))

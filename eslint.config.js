@@ -3,18 +3,11 @@ import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
-const RENDERER_ONLY = [
-  '@canvas/*',
-  '@catalog/*',
-  '@topbar/*',
-  '@layout/*',
-  '@state/*',
-  '@adapters/*',
-  '@contracts/*'
-]
+const RENDERER_SURFACE = ['@canvas/*', '@catalog/*', '@topbar/*', '@welcome/*', '@layout/*', '@state/*']
+const PURE_DOMAIN_FORBIDDEN = [...RENDERER_SURFACE, '@adapters/*', '@contracts/*']
 
 export default tseslint.config(
-  { ignores: ['dist', 'out', 'node_modules', '*.config.*', 'src/electron/preload.cjs'] },
+  { ignores: ['dist', 'out', 'node_modules', '*.config.*', 'electron/preload.cjs'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -32,15 +25,15 @@ export default tseslint.config(
     }
   },
   {
-    files: ['src/domain/**/*.{ts,tsx}'],
+    files: ['src/core/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: RENDERER_ONLY }]
+      'no-restricted-imports': ['error', { patterns: PURE_DOMAIN_FORBIDDEN }]
     }
   },
   {
-    files: ['src/electron/**/*.{ts,tsx}'],
+    files: ['electron/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: RENDERER_ONLY }]
+      'no-restricted-imports': ['error', { patterns: RENDERER_SURFACE }]
     }
   },
   {

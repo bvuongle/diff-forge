@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { makeEdge, makeNode } from '../../testing/fixtures'
+import { makeEdge, makeNode } from '@testing/fixtures'
+
 import { Graph, Slot } from './GraphTypes'
 import { detectCycles, detectUnfilledRequiredSlots, validateGraph } from './graphValidation'
 

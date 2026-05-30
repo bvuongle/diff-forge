@@ -7,7 +7,7 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/testing/setupTests.ts'],
+    setupFiles: ['./tests/support/setupTests.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
@@ -27,7 +27,7 @@ export default defineConfig({
       '@topbar': '/src/components/topbar',
       '@welcome': '/src/components/welcome',
       '@layout': '/src/components/layout',
-      '@testing': '/src/testing'
+      '@testing': '/tests/support'
     }
   }
 })
