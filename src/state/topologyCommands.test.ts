@@ -205,7 +205,7 @@ describe('performWorkspaceSwitch', () => {
 })
 
 describe('requestWorkspaceSwitch', () => {
-  it('opens picker directly when graph is clean', () => {
+  it('opens the workspace selector directly when graph is clean', () => {
     openWorkspaceMock.mockResolvedValue({ status: 'canceled' })
     requestWorkspaceSwitch()
     expect(useUIStore.getState().switchConfirmOpen).toBe(false)

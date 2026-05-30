@@ -48,7 +48,7 @@ async function exportTopology(): Promise<void> {
 }
 
 async function performWorkspaceSwitch(): Promise<void> {
-  const result = await ipcWorkspaceStore.openPicker()
+  const result = await ipcWorkspaceStore.openWorkspaceSelector()
   if (result.status === 'opened') {
     useWorkspaceStore.getState().setStatus(result.workspace)
   } else if (result.status === 'error') {

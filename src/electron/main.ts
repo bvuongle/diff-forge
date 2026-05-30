@@ -1,7 +1,7 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 
 import { createArtifactoryCatalogSource } from '../adapters/ArtifactoryCatalogSource'
 import { createFsCatalogCache } from '../adapters/FsCatalogCache'
@@ -42,10 +42,20 @@ function createWindow() {
 app.on('ready', () => {
   const cache = createFsCatalogCache({ baseDir: app.getPath('userData') })
   const catalogSource = createArtifactoryCatalogSource({ env: process.env, fetch, cache })
-  const workspaceStore = createFsWorkspaceStore({ getMainWindow: () => mainWindow })
+  const workspaceStore = createFsWorkspaceStore({
+    selectDirectory: async () => {
+      if (!mainWindow) return null
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory'],
+        title: 'Select workspace folder'
+      })
+      if (result.canceled || result.filePaths.length === 0) return null
+      return result.filePaths[0]
+    }
+  })
 
   ipcMain.handle('workspace:status', () => workspaceStore.getStatus())
-  ipcMain.handle('dialog:openWorkspace', () => workspaceStore.openPicker())
+  ipcMain.handle('dialog:openWorkspace', () => workspaceStore.openWorkspaceSelector())
   ipcMain.handle('workspace:openAtPath', (_e, payload: { path: string }) =>
     workspaceStore.openAtPath(payload?.path ?? '')
   )

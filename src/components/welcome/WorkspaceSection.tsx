@@ -52,7 +52,7 @@ function WorkspaceSection() {
   const onOpen = async () => {
     setBusy(true)
     try {
-      applyResult(await ipcWorkspaceStore.openPicker())
+      applyResult(await ipcWorkspaceStore.openWorkspaceSelector())
     } finally {
       setBusy(false)
     }

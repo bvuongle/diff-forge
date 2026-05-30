@@ -14,7 +14,7 @@ function createIpcWorkspaceStore(): WorkspaceStore {
       if (bridgeMissing()) return FALLBACK_STATUS
       return window.electronAPI.workspace.status()
     },
-    async openPicker() {
+    async openWorkspaceSelector() {
       if (bridgeMissing()) return { status: 'error', message: BRIDGE_UNAVAILABLE }
       return window.electronAPI.dialog.openWorkspace()
     },

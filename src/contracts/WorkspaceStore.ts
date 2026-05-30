@@ -17,7 +17,7 @@ type OpenWorkspaceOutcome =
 
 type WorkspaceStore = {
   getStatus(): Promise<WorkspaceStatus>
-  openPicker(): Promise<OpenWorkspaceOutcome>
+  openWorkspaceSelector(): Promise<OpenWorkspaceOutcome>
   openAtPath(target: string): Promise<OpenWorkspaceOutcome>
   saveTopology(topology: string): Promise<TopologyExportOutcome>
   loadTopology(): Promise<TopologyLoadOutcome>
