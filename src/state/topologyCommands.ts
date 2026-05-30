@@ -1,4 +1,4 @@
-import { computeInvalidNodeIds, GraphValidationResult, validateGraph } from '@core/graph/graphValidation'
+import { computeInvalidNodeIds, GraphValidationOutcome, validateGraph } from '@core/graph/graphValidation'
 import { graphToTopology } from '@core/topology/graphToTopology'
 import { reasonMessage } from '@core/workspace/workspaceContext'
 import { useGraphStore } from '@state/graphStore'
@@ -7,7 +7,7 @@ import { useUIStore } from '@state/uiStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
 import { ipcWorkspaceStore } from '@adapters/IpcWorkspaceStore'
 
-function describeValidation(v: GraphValidationResult): { title: string; items: string[] } {
+function describeValidation(v: GraphValidationOutcome): { title: string; items: string[] } {
   const items: string[] = []
   for (const cycle of v.cycles) {
     items.push(`Cycle: ${cycle.join(' → ')}`)

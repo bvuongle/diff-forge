@@ -85,15 +85,15 @@ describe('ConfigFieldRenderer', () => {
     })
   })
 
-  describe('int type', () => {
-    it('renders number input', () => {
+  describe('numeric type', () => {
+    it('renders a text input (not a native number input)', () => {
       renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={vi.fn()} />)
       const input = screen.getByLabelText('count') as HTMLInputElement
-      expect(input.type).toBe('number')
+      expect(input.type).toBe('text')
       expect(input.value).toBe('5')
     })
 
-    it('fires onChange with numeric value on blur', () => {
+    it('commits a numeric value on blur', () => {
       const onChange = vi.fn()
       renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
@@ -107,14 +107,14 @@ describe('ConfigFieldRenderer', () => {
     it('commits on Enter key', () => {
       const onChange = vi.fn()
       renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
-      const input = screen.getByLabelText('count') as HTMLInputElement
+      const input = screen.getByLabelText('count')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '42' } })
       fireEvent.keyDown(input, { key: 'Enter' })
       expect(onChange).toHaveBeenCalledWith('count', 42)
     })
 
-    it('skips commit for non-numeric draft (jsdom coerces type=number empty to 0)', () => {
+    it('flags non-numeric input and does not commit', () => {
       const onChange = vi.fn()
       renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
@@ -122,88 +122,68 @@ describe('ConfigFieldRenderer', () => {
       fireEvent.change(input, { target: { value: 'abc' } })
       fireEvent.blur(input)
       expect(onChange).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('uint type', () => {
-    it('renders number input with uint32 bounds', () => {
-      renderWithTheme(<ConfigFieldRenderer fieldName="port" schema={{ type: 'uint' }} value={0} onChange={vi.fn()} />)
-      const input = screen.getByLabelText('port') as HTMLInputElement
-      expect(input.type).toBe('number')
-      expect(input.min).toBe('0')
-      expect(input.max).toBe('4294967295')
+      expect(screen.getByText('Must be a number')).toBeInTheDocument()
     })
 
-    it('applies schema min and max to input', () => {
+    it('flags an out-of-range value against the C++ type range', () => {
+      const onChange = vi.fn()
+      renderWithTheme(
+        <ConfigFieldRenderer fieldName="reliability" schema={{ type: 'uint8' }} value={50} onChange={onChange} />
+      )
+      const input = screen.getByLabelText('reliability')
+      fireEvent.focus(input)
+      fireEvent.change(input, { target: { value: '300' } })
+      fireEvent.blur(input)
+      expect(onChange).not.toHaveBeenCalled()
+      expect(screen.getByText('Must be between 0 and 255')).toBeInTheDocument()
+    })
+
+    it('flags a decimal in an integer field', () => {
+      const onChange = vi.fn()
+      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
+      const input = screen.getByLabelText('count')
+      fireEvent.focus(input)
+      fireEvent.change(input, { target: { value: '1.5' } })
+      fireEvent.blur(input)
+      expect(onChange).not.toHaveBeenCalled()
+      expect(screen.getByText('Must be an integer')).toBeInTheDocument()
+    })
+
+    it('respects a schema-tightened range', () => {
+      const onChange = vi.fn()
       renderWithTheme(
         <ConfigFieldRenderer
           fieldName="port"
           schema={{ type: 'uint', min: 1, max: 65535 }}
           value={8080}
-          onChange={vi.fn()}
+          onChange={onChange}
         />
       )
-      const input = screen.getByLabelText('port') as HTMLInputElement
-      expect(input.min).toBe('1')
-      expect(input.max).toBe('65535')
+      const input = screen.getByLabelText('port')
+      fireEvent.focus(input)
+      fireEvent.change(input, { target: { value: '70000' } })
+      fireEvent.blur(input)
+      expect(onChange).not.toHaveBeenCalled()
+      expect(screen.getByText('Must be between 1 and 65535')).toBeInTheDocument()
     })
   })
 
-  describe('uint8 type', () => {
-    it('renders number input with uint8 bounds', () => {
-      renderWithTheme(
-        <ConfigFieldRenderer fieldName="reliability" schema={{ type: 'uint8' }} value={95} onChange={vi.fn()} />
-      )
-      const input = screen.getByLabelText('reliability') as HTMLInputElement
-      expect(input.type).toBe('number')
-      expect(input.min).toBe('0')
-      expect(input.max).toBe('255')
-    })
+  describe('live-after-first-blur', () => {
+    it('stays silent while typing before the first blur, then validates live', () => {
+      const onChange = vi.fn()
+      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
+      const input = screen.getByLabelText('count')
 
-    it('schema min/max overrides type defaults', () => {
-      renderWithTheme(
-        <ConfigFieldRenderer
-          fieldName="reliability"
-          schema={{ type: 'uint8', min: 10, max: 100 }}
-          value={50}
-          onChange={vi.fn()}
-        />
-      )
-      const input = screen.getByLabelText('reliability') as HTMLInputElement
-      expect(input.min).toBe('10')
-      expect(input.max).toBe('100')
-    })
-  })
+      fireEvent.focus(input)
+      fireEvent.change(input, { target: { value: 'abc' } })
+      expect(screen.queryByText('Must be a number')).toBeNull()
 
-  describe('int16 type', () => {
-    it('renders number input with int16 bounds', () => {
-      renderWithTheme(
-        <ConfigFieldRenderer fieldName="offset" schema={{ type: 'int16' }} value={0} onChange={vi.fn()} />
-      )
-      const input = screen.getByLabelText('offset') as HTMLInputElement
-      expect(input.min).toBe('-32768')
-      expect(input.max).toBe('32767')
-    })
-  })
+      fireEvent.blur(input)
+      expect(screen.getByText('Must be a number')).toBeInTheDocument()
 
-  describe('float type', () => {
-    it('renders number input with step=any', () => {
-      renderWithTheme(
-        <ConfigFieldRenderer fieldName="threshold" schema={{ type: 'float' }} value={1.5} onChange={vi.fn()} />
-      )
-      const input = screen.getByLabelText('threshold') as HTMLInputElement
-      expect(input.type).toBe('number')
-      expect(input.step).toBe('any')
-    })
-  })
-
-  describe('double type', () => {
-    it('renders number input with step=any', () => {
-      renderWithTheme(
-        <ConfigFieldRenderer fieldName="precision" schema={{ type: 'double' }} value={3.14} onChange={vi.fn()} />
-      )
-      const input = screen.getByLabelText('precision') as HTMLInputElement
-      expect(input.step).toBe('any')
+      fireEvent.focus(input)
+      fireEvent.change(input, { target: { value: '12' } })
+      expect(screen.queryByText('Must be a number')).toBeNull()
     })
   })
 })

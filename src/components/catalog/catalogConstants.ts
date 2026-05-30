@@ -1,2 +1,0 @@
-export const CATALOG_COLLAPSED_BAR_WIDTH_PX = 36
-export const CATALOG_PANEL_WIDTH_PX = 280

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { Alert, Box, Divider, IconButton, List, Stack, Tooltip, Typography } from '@mui/material'
 
 import type { CatalogComponent } from '@core/catalog/CatalogSchema'
@@ -8,7 +9,6 @@ import { listSources, searchCatalog, type SearchResult } from '@core/catalog/sea
 import { useCatalogStore } from '@state/catalogStore'
 import { useUIStore } from '@state/uiStore'
 
-import { CATALOG_PANEL_WIDTH_PX } from './catalogConstants'
 import { CatalogListItem } from './CatalogListItem'
 import { CollapsibleSection } from './CollapsibleSection'
 import { RefreshCatalogButton } from './RefreshCatalogButton'
@@ -23,6 +23,8 @@ function CatalogPanel() {
   const searchQuery = useUIStore((s) => s.searchQuery)
   const searchMode = useUIStore((s) => s.searchMode)
   const sourceFilters = useUIStore((s) => s.sourceFilters)
+
+  const collapsed = useUIStore((s) => s.catalogPanelCollapsed)
   const toggleCollapsed = useUIStore((s) => s.toggleCatalogPanelCollapsed)
 
   const loading = status.status === 'loading'
@@ -38,63 +40,84 @@ function CatalogPanel() {
   const totalCount = result.kind === 'flat' ? result.matches.length : result.provides.length + result.accepts.length
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      width={CATALOG_PANEL_WIDTH_PX}
-      borderRight={1}
-      borderColor="var(--panel-border)"
-      bgcolor="var(--panel-bg)"
-      minHeight={0}
-    >
-      <Box px={2} pt={2} pb={1}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={0.5} mb={1}>
-          <SectionHeader title="Component Catalog" />
-          <Stack direction="row" spacing={0.5} alignItems="center" flexShrink={0}>
-            <RefreshCatalogButton />
-            <Tooltip title="Hide catalog">
-              <IconButton size="small" onClick={toggleCollapsed} aria-label="Hide catalog">
-                <ChevronLeftIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-        </Stack>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
-          <SearchInput />
-          <SourceFilter sources={sources} />
-        </Stack>
-        <SearchModeToggle />
-      </Box>
-      <Divider />
-      <Box flex={1} overflow="auto" px={1} py={1} minHeight={0}>
-        {loading && (
-          <Typography variant="body2" color="text.secondary" px={1}>
-            Loading catalog...
-          </Typography>
-        )}
-        {errorMessage && (
-          <Typography variant="body2" color="error" px={1}>
-            {errorMessage}
-          </Typography>
-        )}
-        {!loading && !errorMessage && (
-          <Stack spacing={1}>
-            {warningMessage && <DismissibleWarning key={warningMessage} message={warningMessage} />}
-            <ResultsView result={result} />
-          </Stack>
-        )}
-      </Box>
-      <Divider />
-      <Box px={2} py={1.5}>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="caption" color="text.secondary">
-            Components
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {totalCount}
-          </Typography>
-        </Stack>
-      </Box>
+    <Box flex={1} display="grid" gridTemplateColumns="auto 1fr" minHeight={0}>
+      {collapsed ? (
+        <Box
+          width={36}
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          pt={1}
+          borderRight={1}
+          borderColor="var(--panel-border)"
+          bgcolor="var(--panel-bg)"
+        >
+          <Tooltip title="Show catalog" placement="right">
+            <IconButton size="small" onClick={toggleCollapsed} aria-label="Show catalog">
+              <ChevronRightIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ) : (
+        <Box
+          display="flex"
+          flexDirection="column"
+          width={280}
+          borderRight={1}
+          borderColor="var(--panel-border)"
+          bgcolor="var(--panel-bg)"
+          minHeight={0}
+        >
+          <Box px={2} pt={2} pb={1}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" gap={0.5} mb={1}>
+              <SectionHeader title="Component Catalog" />
+              <Stack direction="row" spacing={0.5} alignItems="center" flexShrink={0}>
+                <RefreshCatalogButton />
+                <Tooltip title="Hide catalog">
+                  <IconButton size="small" onClick={toggleCollapsed} aria-label="Hide catalog">
+                    <ChevronLeftIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Stack>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+              <SearchInput />
+              <SourceFilter sources={sources} />
+            </Stack>
+            <SearchModeToggle />
+          </Box>
+          <Divider />
+          <Box flex={1} overflow="auto" px={1} py={1} minHeight={0}>
+            {loading && (
+              <Typography variant="body2" color="text.secondary" px={1}>
+                Loading catalog...
+              </Typography>
+            )}
+            {errorMessage && (
+              <Typography variant="body2" color="error" px={1}>
+                {errorMessage}
+              </Typography>
+            )}
+            {!loading && !errorMessage && (
+              <Stack spacing={1}>
+                {warningMessage && <DismissibleWarning key={warningMessage} message={warningMessage} />}
+                <ResultsView result={result} />
+              </Stack>
+            )}
+          </Box>
+          <Divider />
+          <Box px={2} py={1.5}>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="caption" color="text.secondary">
+                Components
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {totalCount}
+              </Typography>
+            </Stack>
+          </Box>
+        </Box>
+      )}
     </Box>
   )
 }
