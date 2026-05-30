@@ -5,8 +5,8 @@ import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import { CatalogComponent } from '@core/catalog/CatalogSchema'
 import { GraphNode } from '@core/graph/GraphTypes'
 
-import { ConfigFieldRenderer } from '../config/ConfigFieldRenderer'
-import { JsonConfigEditor } from '../config/JsonConfigEditor'
+import { FieldConfiguration } from '../configuration/FieldConfiguration'
+import { JsonConfiguration } from '../configuration/JsonConfiguration'
 
 type NodeConfigurationSectionProps = {
   node: GraphNode
@@ -47,11 +47,11 @@ export function NodeConfigurationSection({ node, catalogComponent, updateNodeCon
           </ToggleButton>
         </ToggleButtonGroup>
       </Box>
-      <Box className="config-scroll">
+      <Box className="configuration-body">
         {configTab === 'fields' ? (
           <Box display="flex" flexDirection="column" gap={1.5} marginTop={1}>
             {configEntries.map(([name, schema]) => (
-              <ConfigFieldRenderer
+              <FieldConfiguration
                 key={name}
                 fieldName={name}
                 schema={schema}
@@ -61,7 +61,7 @@ export function NodeConfigurationSection({ node, catalogComponent, updateNodeCon
             ))}
           </Box>
         ) : (
-          <JsonConfigEditor config={node.configData} onSave={(cfg) => updateNodeConfig(node.id, cfg)} />
+          <JsonConfiguration config={node.configData} onSave={(cfg) => updateNodeConfig(node.id, cfg)} />
         )}
       </Box>
     </Box>

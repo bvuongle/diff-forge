@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 
 import { TextField } from '@mui/material'
 
-type JsonConfigEditorProps = {
+type JsonConfigurationProps = {
   config: Record<string, unknown>
   onSave: (config: Record<string, unknown>) => void
 }
 
-function JsonConfigEditor({ config, onSave }: JsonConfigEditorProps) {
+function JsonConfiguration({ config, onSave }: JsonConfigurationProps) {
   const [text, setText] = useState(() => JSON.stringify(config, null, 2))
   const [error, setError] = useState(false)
 
@@ -46,4 +46,4 @@ function JsonConfigEditor({ config, onSave }: JsonConfigEditorProps) {
   )
 }
 
-export { JsonConfigEditor }
+export { JsonConfiguration }

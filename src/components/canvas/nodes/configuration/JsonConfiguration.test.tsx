@@ -3,19 +3,19 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '@testing/test-utils'
 
-import { JsonConfigEditor } from './JsonConfigEditor'
+import { JsonConfiguration } from './JsonConfiguration'
 
-describe('JsonConfigEditor', () => {
+describe('JsonConfiguration', () => {
   it('renders textarea with JSON content', () => {
     const config = { count: 3, content: 'hello' }
-    renderWithTheme(<JsonConfigEditor config={config} onSave={vi.fn()} />)
+    renderWithTheme(<JsonConfiguration config={config} onSave={vi.fn()} />)
     const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
     expect(textarea.value).toBe(JSON.stringify(config, null, 2))
   })
 
   it('calls onSave with parsed JSON on blur', () => {
     const onSave = vi.fn()
-    renderWithTheme(<JsonConfigEditor config={{ a: 1 }} onSave={onSave} />)
+    renderWithTheme(<JsonConfiguration config={{ a: 1 }} onSave={onSave} />)
     const textarea = screen.getByRole('textbox')
     fireEvent.change(textarea, { target: { value: '{"a":2}' } })
     fireEvent.blur(textarea)
@@ -24,7 +24,7 @@ describe('JsonConfigEditor', () => {
 
   it('shows error on invalid JSON blur', () => {
     const onSave = vi.fn()
-    renderWithTheme(<JsonConfigEditor config={{}} onSave={onSave} />)
+    renderWithTheme(<JsonConfiguration config={{}} onSave={onSave} />)
     const textarea = screen.getByRole('textbox')
     fireEvent.change(textarea, { target: { value: '{invalid' } })
     fireEvent.blur(textarea)
@@ -34,17 +34,17 @@ describe('JsonConfigEditor', () => {
 
   it('clears error state when config prop changes', () => {
     const onSave = vi.fn()
-    const { rerender } = renderWithTheme(<JsonConfigEditor config={{}} onSave={onSave} />)
+    const { rerender } = renderWithTheme(<JsonConfiguration config={{}} onSave={onSave} />)
     const textarea = screen.getByRole('textbox')
     fireEvent.change(textarea, { target: { value: '{bad' } })
     fireEvent.blur(textarea)
     expect(screen.getByText('Invalid JSON')).toBeTruthy()
-    rerender(<JsonConfigEditor config={{ newKey: 'val' }} onSave={onSave} />)
+    rerender(<JsonConfiguration config={{ newKey: 'val' }} onSave={onSave} />)
     expect(screen.queryByText('Invalid JSON')).toBeNull()
   })
 
   it('renders empty object config', () => {
-    renderWithTheme(<JsonConfigEditor config={{}} onSave={vi.fn()} />)
+    renderWithTheme(<JsonConfiguration config={{}} onSave={vi.fn()} />)
     const textarea = screen.getByRole('textbox') as HTMLTextAreaElement
     expect(textarea.value).toBe('{}')
   })

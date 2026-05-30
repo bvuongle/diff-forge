@@ -169,14 +169,12 @@
   padding: 0 6px;
 }
 
-.config-scroll {
-  max-height: 180px;
-  overflow-y: auto;
+.configuration-body {
   position: relative;
   z-index: 2;
 }
 
-/* ── ConfigFieldRenderer ───────────────────────────────── */
+/* ── FieldConfiguration ────────────────────────────────── */
 
 .config-bool-label.MuiFormControlLabel-root {
   margin-left: 0;
@@ -186,7 +184,7 @@
   font-size: 0.8rem;
 }
 
-/* ── JsonConfigEditor ──────────────────────────────────── */
+/* ── JsonConfiguration ─────────────────────────────────── */
 
 .json-editor .MuiInputBase-root {
   font-family: monospace;

@@ -6,7 +6,7 @@ import { ConfigValueSchema } from '@core/catalog/CatalogSchema'
 import { numericBound } from '@core/catalog/configBounds'
 import { validateConfigValue } from '@core/catalog/configValidation'
 
-type ConfigFieldRendererProps = {
+type FieldConfigurationProps = {
   fieldName: string
   schema: ConfigValueSchema
   value: unknown
@@ -25,7 +25,7 @@ function useLocalValue(value: unknown, fallback: unknown) {
   return { local, setLocal, focusedRef }
 }
 
-function ConfigFieldRendererImpl({ fieldName, schema, value, onChange }: ConfigFieldRendererProps) {
+function FieldConfigurationImpl({ fieldName, schema, value, onChange }: FieldConfigurationProps) {
   if (schema.type === 'bool') {
     return (
       <FormControlLabel
@@ -45,7 +45,7 @@ function ConfigFieldRendererImpl({ fieldName, schema, value, onChange }: ConfigF
   return <ValidatedField fieldName={fieldName} schema={schema} value={value} onChange={onChange} />
 }
 
-function ValidatedField({ fieldName, schema, value, onChange }: ConfigFieldRendererProps) {
+function ValidatedField({ fieldName, schema, value, onChange }: FieldConfigurationProps) {
   const { local, setLocal, focusedRef } = useLocalValue(value, schema.default)
   const [error, setError] = useState<string | null>(null)
   const touchedRef = useRef(false)
@@ -104,6 +104,6 @@ function ValidatedField({ fieldName, schema, value, onChange }: ConfigFieldRende
   )
 }
 
-const ConfigFieldRenderer = memo(ConfigFieldRendererImpl)
+const FieldConfiguration = memo(FieldConfigurationImpl)
 
-export { ConfigFieldRenderer }
+export { FieldConfiguration }

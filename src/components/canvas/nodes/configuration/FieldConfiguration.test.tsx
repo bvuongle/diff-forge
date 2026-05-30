@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '@testing/test-utils'
 
-import { ConfigFieldRenderer } from './ConfigFieldRenderer'
+import { FieldConfiguration } from './FieldConfiguration'
 
-describe('ConfigFieldRenderer', () => {
+describe('FieldConfiguration', () => {
   describe('string type', () => {
     it('renders text input with field name as label', () => {
       const onChange = vi.fn()
       renderWithTheme(
-        <ConfigFieldRenderer fieldName="content" schema={{ type: 'string' }} value="hello" onChange={onChange} />
+        <FieldConfiguration fieldName="content" schema={{ type: 'string' }} value="hello" onChange={onChange} />
       )
       const input = screen.getByLabelText('content') as HTMLInputElement
       expect(input.value).toBe('hello')
@@ -19,7 +19,7 @@ describe('ConfigFieldRenderer', () => {
     it('fires onChange with string value on blur', () => {
       const onChange = vi.fn()
       renderWithTheme(
-        <ConfigFieldRenderer fieldName="content" schema={{ type: 'string' }} value="" onChange={onChange} />
+        <FieldConfiguration fieldName="content" schema={{ type: 'string' }} value="" onChange={onChange} />
       )
       const input = screen.getByLabelText('content')
       fireEvent.focus(input)
@@ -31,7 +31,7 @@ describe('ConfigFieldRenderer', () => {
 
     it('uses default when value is undefined', () => {
       renderWithTheme(
-        <ConfigFieldRenderer
+        <FieldConfiguration
           fieldName="content"
           schema={{ type: 'string', default: 'fallback' }}
           value={undefined}
@@ -46,7 +46,7 @@ describe('ConfigFieldRenderer', () => {
   describe('bool type', () => {
     it('renders a switch with field name label', () => {
       renderWithTheme(
-        <ConfigFieldRenderer fieldName="enabled" schema={{ type: 'bool' }} value={true} onChange={vi.fn()} />
+        <FieldConfiguration fieldName="enabled" schema={{ type: 'bool' }} value={true} onChange={vi.fn()} />
       )
       expect(screen.getByText('enabled')).toBeTruthy()
       const toggle = screen.getByRole('switch') as HTMLInputElement
@@ -56,7 +56,7 @@ describe('ConfigFieldRenderer', () => {
     it('fires onChange with boolean value on toggle', () => {
       const onChange = vi.fn()
       renderWithTheme(
-        <ConfigFieldRenderer fieldName="enabled" schema={{ type: 'bool' }} value={true} onChange={onChange} />
+        <FieldConfiguration fieldName="enabled" schema={{ type: 'bool' }} value={true} onChange={onChange} />
       )
       const toggle = screen.getByRole('switch')
       fireEvent.click(toggle)
@@ -65,7 +65,7 @@ describe('ConfigFieldRenderer', () => {
 
     it('defaults to false when value and default are undefined', () => {
       renderWithTheme(
-        <ConfigFieldRenderer fieldName="enabled" schema={{ type: 'bool' }} value={undefined} onChange={vi.fn()} />
+        <FieldConfiguration fieldName="enabled" schema={{ type: 'bool' }} value={undefined} onChange={vi.fn()} />
       )
       const toggle = screen.getByRole('switch') as HTMLInputElement
       expect(toggle.checked).toBe(false)
@@ -73,7 +73,7 @@ describe('ConfigFieldRenderer', () => {
 
     it('uses schema default when value is undefined', () => {
       renderWithTheme(
-        <ConfigFieldRenderer
+        <FieldConfiguration
           fieldName="enabled"
           schema={{ type: 'bool', default: true }}
           value={undefined}
@@ -87,7 +87,7 @@ describe('ConfigFieldRenderer', () => {
 
   describe('numeric type', () => {
     it('renders a text input (not a native number input)', () => {
-      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={vi.fn()} />)
+      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={vi.fn()} />)
       const input = screen.getByLabelText('count') as HTMLInputElement
       expect(input.type).toBe('text')
       expect(input.value).toBe('5')
@@ -95,7 +95,7 @@ describe('ConfigFieldRenderer', () => {
 
     it('commits a numeric value on blur', () => {
       const onChange = vi.fn()
-      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
+      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '10' } })
@@ -106,7 +106,7 @@ describe('ConfigFieldRenderer', () => {
 
     it('commits on Enter key', () => {
       const onChange = vi.fn()
-      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
+      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '42' } })
@@ -116,7 +116,7 @@ describe('ConfigFieldRenderer', () => {
 
     it('flags non-numeric input and does not commit', () => {
       const onChange = vi.fn()
-      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
+      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: 'abc' } })
@@ -128,7 +128,7 @@ describe('ConfigFieldRenderer', () => {
     it('flags an out-of-range value against the C++ type range', () => {
       const onChange = vi.fn()
       renderWithTheme(
-        <ConfigFieldRenderer fieldName="reliability" schema={{ type: 'uint8' }} value={50} onChange={onChange} />
+        <FieldConfiguration fieldName="reliability" schema={{ type: 'uint8' }} value={50} onChange={onChange} />
       )
       const input = screen.getByLabelText('reliability')
       fireEvent.focus(input)
@@ -140,7 +140,7 @@ describe('ConfigFieldRenderer', () => {
 
     it('flags a decimal in an integer field', () => {
       const onChange = vi.fn()
-      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
+      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '1.5' } })
@@ -152,7 +152,7 @@ describe('ConfigFieldRenderer', () => {
     it('respects a schema-tightened range', () => {
       const onChange = vi.fn()
       renderWithTheme(
-        <ConfigFieldRenderer
+        <FieldConfiguration
           fieldName="port"
           schema={{ type: 'uint', min: 1, max: 65535 }}
           value={8080}
@@ -171,7 +171,7 @@ describe('ConfigFieldRenderer', () => {
   describe('live-after-first-blur', () => {
     it('stays silent while typing before the first blur, then validates live', () => {
       const onChange = vi.fn()
-      renderWithTheme(<ConfigFieldRenderer fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
+      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
       const input = screen.getByLabelText('count')
 
       fireEvent.focus(input)
