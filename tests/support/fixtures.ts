@@ -32,7 +32,7 @@ function makeCatalog(overrides?: Partial<CatalogComponent>): CatalogComponent {
     source: 'diff_broker',
     version: '1.0.0',
     implements: ['ILink'],
-    requires: [{ slot: 'transport', type: 'ITransport', isArray: false }],
+    requires: [{ name: 'transport', type: 'ITransport', isArray: false }],
     config: {},
     ...overrides
   }

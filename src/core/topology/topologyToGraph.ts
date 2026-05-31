@@ -167,7 +167,7 @@ function assignEdgesForEntry(
         sourceNodeId: depId,
         sourceSlot: sourceSlotName,
         targetNodeId: entry.id,
-        targetSlot: req.slot
+        targetSlot: req.name
       })
     }
   }

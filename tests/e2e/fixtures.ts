@@ -30,8 +30,8 @@ const MOCK_CATALOG = {
         version: '1.0.0',
         implements: ['IProcessable'],
         requires: [
-          { slot: 'link', type: 'ILink', isArray: false },
-          { slot: 'backupLink', type: 'ILink', isArray: false }
+          { name: 'link', type: 'ILink', isArray: false },
+          { name: 'backupLink', type: 'ILink', isArray: false }
         ],
         config: {
           count: { type: 'uint32' as const, min: 1, max: 1000, default: 10 },
@@ -44,8 +44,8 @@ const MOCK_CATALOG = {
         version: '1.0.0',
         implements: ['IMonitorable'],
         requires: [
-          { slot: 'workers', type: 'IProcessable', isArray: true },
-          { slot: 'monitors', type: 'IMonitorable', isArray: true }
+          { name: 'workers', type: 'IProcessable', isArray: true },
+          { name: 'monitors', type: 'IMonitorable', isArray: true }
         ],
         config: {}
       },

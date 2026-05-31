@@ -11,7 +11,7 @@ const component: CatalogComponent = {
   source: 'https://artifactory.example.com/repo/diff',
   version: '2.0.0',
   implements: ['ILink'],
-  requires: [{ slot: 'modem', type: 'IModem', isArray: false }],
+  requires: [{ name: 'modem', type: 'IModem', isArray: false }],
   config: { linkReliability: { type: 'uint8', min: 0, max: 100 } }
 }
 

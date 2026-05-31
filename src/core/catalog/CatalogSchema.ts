@@ -27,7 +27,7 @@ const ConfigValueSchemaZ = z.object({
 })
 
 const CatalogRequirementZ = z.object({
-  slot: z.string(),
+  name: z.string(),
   type: z.string(),
   isArray: z.boolean().optional().default(false)
 })

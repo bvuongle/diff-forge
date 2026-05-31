@@ -18,7 +18,7 @@ describe('topologyToGraph', () => {
   const msgCatalog = makeCatalog({
     type: 'MessageSource',
     implements: [],
-    requires: [{ slot: 'transport', type: 'ILink', isArray: false }]
+    requires: [{ name: 'transport', type: 'ILink', isArray: false }]
   })
 
   it('builds nodes with slots from catalog', () => {
@@ -123,7 +123,7 @@ describe('topologyToGraph', () => {
     const routerCatalog = makeCatalog({
       type: 'Router',
       implements: ['IRoutable'],
-      requires: [{ slot: 'links', type: 'ILink', isArray: true }]
+      requires: [{ name: 'links', type: 'ILink', isArray: true }]
     })
     const topology: Topology = [
       { type: 'LinkSat', id: 'linkSat0', version: '1.0.0', source: 'diff_broker', dependencies: [], config: {} },
@@ -154,8 +154,8 @@ describe('topologyToGraph', () => {
       type: 'Dispatcher',
       implements: [],
       requires: [
-        { slot: 'routable', type: 'IRoutable', isArray: false },
-        { slot: 'processable', type: 'IProcessable', isArray: false }
+        { name: 'routable', type: 'IRoutable', isArray: false },
+        { name: 'processable', type: 'IProcessable', isArray: false }
       ]
     })
     const topology: Topology = [
@@ -228,8 +228,8 @@ describe('topologyToGraph', () => {
       type: 'MessageSource',
       implements: [],
       requires: [
-        { slot: 'primary', type: 'ILink', isArray: false },
-        { slot: 'backup', type: 'ILink', isArray: false }
+        { name: 'primary', type: 'ILink', isArray: false },
+        { name: 'backup', type: 'ILink', isArray: false }
       ]
     })
     const topology: Topology = [
