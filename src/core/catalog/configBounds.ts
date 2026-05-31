@@ -21,9 +21,5 @@ function numericBound(type: ConfigValueType): NumericBound | undefined {
   return NUMERIC_BOUNDS[type]
 }
 
-function isNumericType(type: ConfigValueType): boolean {
-  return numericBound(type) !== undefined
-}
-
-export { NUMERIC_BOUNDS, numericBound, isNumericType }
+export { numericBound }
 export type { NumericBound }

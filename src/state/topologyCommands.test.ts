@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { GraphNode } from '@core/graph/GraphTypes'
+import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { useNotificationsStore } from '@state/notificationsStore'
 import { exportTopology, performWorkspaceSwitch, requestWorkspaceSwitch } from '@state/topologyCommands'
@@ -31,6 +33,7 @@ beforeEach(() => {
   })
   useNotificationsStore.setState({ notifications: [] })
   useUIStore.setState({ switchConfirmOpen: false })
+  useCatalogStore.setState({ status: { status: 'loading' }, catalog: null })
 })
 
 afterEach(() => {
@@ -68,6 +71,42 @@ describe('exportTopology', () => {
     const last = useNotificationsStore.getState().notifications.at(-1)
     expect(last?.severity).toBe('error')
     expect(last?.message).toMatch(/disk full/)
+  })
+
+  it('blocks export when a committed config value is out of range', async () => {
+    useCatalogStore.setState({
+      status: { status: 'loading' },
+      catalog: {
+        components: [
+          {
+            type: 'LinkGsm',
+            version: '1.0.0',
+            source: 'repo',
+            implements: [],
+            requires: [],
+            config: { count: { type: 'uint8', min: 0, max: 100 } }
+          }
+        ]
+      }
+    })
+    const node = {
+      id: 'n1',
+      instanceId: 'gsm0',
+      componentType: 'LinkGsm',
+      version: '1.0.0',
+      source: 'repo',
+      configData: { count: 300 },
+      slots: [],
+      position: { x: 0, y: 0 }
+    } as unknown as GraphNode
+    useGraphStore.setState({ graph: { nodes: [node], edges: [] } })
+    await exportTopology()
+    expect(exportMock).not.toHaveBeenCalled()
+    const last = useNotificationsStore.getState().notifications.at(-1)
+    expect(last?.severity).toBe('error')
+    const msg = last?.message as { title: string; items: string[] }
+    expect(msg.items.some((i) => /config field/i.test(i))).toBe(true)
+    expect(useGraphStore.getState().flaggedNodeIds.has('n1')).toBe(true)
   })
 
   it('blocks export and reports cycle members when a cycle exists', async () => {

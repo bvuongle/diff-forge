@@ -9,7 +9,7 @@ import { useConnection, type NodeProps } from '@xyflow/react'
 import { useCatalogStore } from '@state/catalogStore'
 import { useGraphStore } from '@state/graphStore'
 import { useUIStore } from '@state/uiStore'
-import { NODE_MIN_WIDTH_COMPACT, NODE_MIN_WIDTH_EXPANDED } from '@canvas/canvasConstants'
+import { NODE_COLLAPSE_TIMEOUT_MS, NODE_MIN_WIDTH_COMPACT, NODE_MIN_WIDTH_EXPANDED } from '@canvas/canvasConstants'
 import type { CanvasNode } from '@canvas/canvasTypes'
 
 import { getConnectionCounts, getEdgeSourceMap, isNodeDimmed } from './nodeUtils'
@@ -79,7 +79,6 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
 
   return (
     <Box className={containerClass} sx={{ minWidth }}>
-      {/* Header */}
       <Box className="canvas-node__header">
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
@@ -90,7 +89,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
                 <WarningAmberIcon
                   fontSize="small"
                   aria-label="Unresolved component"
-                  sx={{ color: 'var(--accent-amber, #f59e0b)', fontSize: '1rem' }}
+                  sx={{ color: 'var(--accent-amber)', fontSize: '1rem' }}
                 />
               </Tooltip>
             )}
@@ -108,7 +107,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
         </IconButton>
       </Box>
 
-      <Collapse in={isExpanded && !!catalogComponent} timeout={220} mountOnEnter unmountOnExit>
+      <Collapse in={isExpanded && !!catalogComponent} timeout={NODE_COLLAPSE_TIMEOUT_MS} mountOnEnter unmountOnExit>
         {catalogComponent ? (
           <Box className="canvas-node__expanded nodrag nowheel nopan" onClick={(e) => e.stopPropagation()}>
             <NodeInfoSection node={graphNode} graphNodes={graphNodes} renameNode={renameNode} />
@@ -127,7 +126,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
               </Box>
             )}
 
-            <Divider sx={{ my: 1.5 }} />
+            <Divider className="canvas-node__divider" />
 
             <Typography variant="caption" color="text.secondary" fontWeight={600} className="section-heading">
               REQUIREMENTS
@@ -143,7 +142,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
               />
             </Box>
 
-            <Divider sx={{ my: 1.5 }} />
+            <Divider className="canvas-node__divider" />
             <NodeConfigurationSection
               node={graphNode}
               catalogComponent={catalogComponent}
@@ -153,7 +152,7 @@ function CanvasNodeComponent({ data, selected, id }: NodeProps<CanvasNode>) {
         ) : null}
       </Collapse>
 
-      <Collapse in={!isExpanded} timeout={220} mountOnEnter unmountOnExit>
+      <Collapse in={!isExpanded} timeout={NODE_COLLAPSE_TIMEOUT_MS} mountOnEnter unmountOnExit>
         <Box className="canvas-node__compact">
           <NodeRequirementsSection
             nodeId={id}

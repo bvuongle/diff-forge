@@ -32,14 +32,10 @@ function SourceChip({ url, copyable = false }: SourceChipProps) {
       <Chip
         size="small"
         variant="outlined"
+        className="diff-source-chip"
         label={sourceLabel(url)}
         onClick={onClick}
-        sx={{
-          height: 22,
-          maxWidth: '100%',
-          cursor: copyable ? 'pointer' : 'default',
-          '& .MuiChip-label': { px: 1 }
-        }}
+        sx={{ cursor: copyable ? 'pointer' : 'default' }}
       />
     </Tooltip>
   )

@@ -7,7 +7,7 @@ type UnfilledSlot = {
   slotName: string
 }
 
-type GraphValidationOutcome = {
+type GraphValidationResult = {
   valid: boolean
   cycles: string[][]
   unfilled: UnfilledSlot[]
@@ -79,7 +79,7 @@ function detectUnfilledRequiredSlots(graph: Graph): UnfilledSlot[] {
   return unfilled
 }
 
-function validateGraph(graph: Graph): GraphValidationOutcome {
+function validateGraph(graph: Graph): GraphValidationResult {
   const cycles = detectCycles(graph)
   const unfilled = detectUnfilledRequiredSlots(graph)
   const invalidEdges = graph.edges.filter((edge) => isEdgeInvalid(edge, graph.nodes)).map((edge) => edge.id)
@@ -92,8 +92,8 @@ function validateGraph(graph: Graph): GraphValidationOutcome {
   }
 }
 
-function computeInvalidNodeIds(graph: Graph): Set<string> {
-  const result = validateGraph(graph)
+function computeInvalidNodeIds(graph: Graph, precomputed?: GraphValidationResult): Set<string> {
+  const result = precomputed ?? validateGraph(graph)
   const ids = new Set<string>()
   for (const cycle of result.cycles) {
     for (const id of cycle) ids.add(id)
@@ -110,4 +110,4 @@ function computeInvalidNodeIds(graph: Graph): Set<string> {
 }
 
 export { computeInvalidNodeIds, detectCycles, detectUnfilledRequiredSlots, validateGraph }
-export type { GraphValidationOutcome, UnfilledSlot }
+export type { GraphValidationResult, UnfilledSlot }

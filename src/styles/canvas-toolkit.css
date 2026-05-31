@@ -1,3 +1,7 @@
+.canvas-toolkit .MuiSvgIcon-root {
+  font-size: 16px;
+}
+
 .canvas-toolkit {
   display: flex;
   align-items: center;

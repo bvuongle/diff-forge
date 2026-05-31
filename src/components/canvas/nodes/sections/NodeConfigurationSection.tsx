@@ -49,19 +49,13 @@ export function NodeConfigurationSection({ node, catalogComponent, updateNodeCon
       </Box>
       <Box className="configuration-body">
         {configTab === 'fields' ? (
-          <Box display="flex" flexDirection="column" gap={1.5} marginTop={1}>
-            {configEntries.map(([name, schema]) => (
-              <FieldConfiguration
-                key={name}
-                fieldName={name}
-                schema={schema}
-                value={node.configData[name]}
-                onChange={handleConfigField}
-              />
-            ))}
-          </Box>
+          <FieldConfiguration config={node.configData} schema={catalogComponent.config} onChange={handleConfigField} />
         ) : (
-          <JsonConfiguration config={node.configData} onSave={(cfg) => updateNodeConfig(node.id, cfg)} />
+          <JsonConfiguration
+            config={node.configData}
+            schema={catalogComponent.config}
+            onSave={(cfg) => updateNodeConfig(node.id, cfg)}
+          />
         )}
       </Box>
     </Box>

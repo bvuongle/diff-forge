@@ -4,7 +4,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { Badge, Box, IconButton, Popover, Stack, Tooltip, Typography } from '@mui/material'
 
-import type { RepoLoadOutcome } from '@contracts/CatalogSource'
+import type { RepoLoadResult } from '@contracts/CatalogSource'
 import { useCatalogStore, type CatalogStatus } from '@state/catalogStore'
 
 function CatalogHealthIndicator() {
@@ -59,7 +59,7 @@ function buildTooltip(failed: number, stale: number): string {
   return parts.join(', ')
 }
 
-function RepoGroup({ title, repos }: { title: string; repos: RepoLoadOutcome[] }) {
+function RepoGroup({ title, repos }: { title: string; repos: RepoLoadResult[] }) {
   return (
     <>
       <Typography variant="subtitle2" gutterBottom>
@@ -68,10 +68,10 @@ function RepoGroup({ title, repos }: { title: string; repos: RepoLoadOutcome[] }
       <Stack spacing={1}>
         {repos.map((repo) => (
           <Box key={repo.url}>
-            <Typography variant="body2" fontWeight={600} sx={{ wordBreak: 'break-all' }}>
+            <Typography variant="body2" fontWeight={600} className="diff-repo__url">
               {repo.url}
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word' }}>
+            <Typography variant="caption" color="text.secondary" className="diff-repo__reason">
               {repo.status === 'failed' || repo.status === 'stale' ? repo.reason : ''}
             </Typography>
           </Box>
@@ -81,7 +81,7 @@ function RepoGroup({ title, repos }: { title: string; repos: RepoLoadOutcome[] }
   )
 }
 
-function problemRepos(status: CatalogStatus): RepoLoadOutcome[] {
+function problemRepos(status: CatalogStatus): RepoLoadResult[] {
   if (status.status !== 'ready' && status.status !== 'partial' && status.status !== 'error') return []
   return status.repos.filter((r) => r.status === 'failed' || r.status === 'stale')
 }

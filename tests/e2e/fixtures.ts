@@ -70,7 +70,7 @@ const MOCK_WORKSPACE_STATUS = {
   cwd: '/tmp/test-workspace'
 }
 
-const MOCK_OPEN_OUTCOME = {
+const MOCK_OPEN_RESULT = {
   status: 'opened' as const,
   workspace: MOCK_WORKSPACE_STATUS
 }
@@ -78,8 +78,8 @@ const MOCK_OPEN_OUTCOME = {
 const MOCK_RESPONSES = {
   'catalog:load': MOCK_CATALOG,
   'workspace:status': MOCK_WORKSPACE_STATUS,
-  'dialog:openWorkspace': MOCK_OPEN_OUTCOME,
-  'workspace:openAtPath': MOCK_OPEN_OUTCOME,
+  'dialog:openWorkspace': MOCK_OPEN_RESULT,
+  'workspace:openAtPath': MOCK_OPEN_RESULT,
   'topology:export': {
     status: 'saved' as const,
     topologyPath: '/tmp/test-workspace/test-workspace.forge.json',

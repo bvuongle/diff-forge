@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ConfigValueSchema } from './CatalogSchema'
-import { validateConfigValue } from './configValidation'
+import type { Graph } from '@core/graph/GraphTypes'
+
+import type { CatalogComponent, ConfigValueSchema } from './CatalogSchema'
+import { validateConfig, validateConfigValue, validateNodeConfigs } from './configValidation'
 
 const schema = (s: ConfigValueSchema) => s
 
@@ -88,5 +90,76 @@ describe('validateConfigValue', () => {
         error: 'Must be at most 10'
       })
     })
+  })
+})
+
+describe('validateConfig', () => {
+  const objSchema: Record<string, ConfigValueSchema> = {
+    count: { type: 'uint8', min: 0, max: 100 },
+    label: { type: 'string' }
+  }
+
+  it('returns no errors when every value is valid', () => {
+    expect(validateConfig(objSchema, { count: 50, label: 'ok' })).toEqual([])
+  })
+
+  it('flags out-of-range and wrong-typed values', () => {
+    expect(validateConfig(objSchema, { count: 300, label: 5 })).toEqual([
+      { field: 'count', error: 'Must be between 0 and 100' },
+      { field: 'label', error: 'Must be text' }
+    ])
+  })
+
+  it('flags fields not declared in the schema', () => {
+    expect(validateConfig(objSchema, { extra: 1 })).toEqual([{ field: 'extra', error: 'Unknown field' }])
+  })
+})
+
+describe('validateNodeConfigs', () => {
+  const catalog: CatalogComponent[] = [
+    {
+      type: 'LinkGsm',
+      version: '1.0.0',
+      source: 'repo',
+      implements: [],
+      requires: [],
+      config: { count: { type: 'uint8', min: 0, max: 100 } }
+    }
+  ]
+
+  it('reports a violation per offending node, tagged with node and instance ids', () => {
+    const graph = {
+      nodes: [
+        {
+          id: 'n1',
+          instanceId: 'gsm0',
+          componentType: 'LinkGsm',
+          version: '1.0.0',
+          source: 'repo',
+          configData: { count: 300 }
+        }
+      ],
+      edges: []
+    } as unknown as Graph
+    expect(validateNodeConfigs(graph, catalog)).toEqual([
+      { nodeId: 'n1', instanceId: 'gsm0', field: 'count', error: 'Must be between 0 and 100' }
+    ])
+  })
+
+  it('skips nodes with no matching catalog entry', () => {
+    const graph = {
+      nodes: [
+        {
+          id: 'n1',
+          instanceId: 'x',
+          componentType: 'Ghost',
+          version: '9.9.9',
+          source: 'repo',
+          configData: { count: 300 }
+        }
+      ],
+      edges: []
+    } as unknown as Graph
+    expect(validateNodeConfigs(graph, catalog)).toEqual([])
   })
 })

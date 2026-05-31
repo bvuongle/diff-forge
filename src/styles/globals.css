@@ -8,6 +8,8 @@
   --text-secondary: #57606a;
   --accent-blue: #0969da;
   --accent-blue-light: #ddf4ff;
+  --accent-amber: #f59e0b;
+  --accent-red: #dc2626;
   --input-background: #f3f3f5;
   --chip-bg: #e8eaed;
   --port-connected: #22c55e;
@@ -18,6 +20,49 @@
 
 * {
   box-sizing: border-box;
+}
+
+.diff-catalog-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.diff-source-chip.MuiChip-root {
+  height: 22px;
+  max-width: 100%;
+}
+
+.diff-source-chip .MuiChip-label {
+  padding: 0 8px;
+}
+
+.diff-repo__url {
+  word-break: break-all;
+}
+
+.diff-repo__reason {
+  word-break: break-word;
+}
+
+.diff-notif-host {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  pointer-events: none;
+}
+
+.diff-notif-list {
+  margin: 0;
+  padding-left: 20px;
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.diff-notif-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 html,

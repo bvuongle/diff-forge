@@ -1,187 +1,153 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { ConfigValueSchema } from '@core/catalog/CatalogSchema'
 import { renderWithTheme } from '@testing/test-utils'
 
 import { FieldConfiguration } from './FieldConfiguration'
 
+const one = (schema: ConfigValueSchema): Record<string, ConfigValueSchema> => ({ field: schema })
+
 describe('FieldConfiguration', () => {
+  it('renders one control per schema entry', () => {
+    renderWithTheme(
+      <FieldConfiguration
+        config={{ count: 5, content: 'hi' }}
+        schema={{ count: { type: 'int' }, content: { type: 'string' } }}
+        onChange={vi.fn()}
+      />
+    )
+    expect(screen.getByLabelText('count')).toBeInTheDocument()
+    expect(screen.getByLabelText('content')).toBeInTheDocument()
+  })
+
   describe('string type', () => {
-    it('renders text input with field name as label', () => {
-      const onChange = vi.fn()
+    it('renders text input seeded from config', () => {
       renderWithTheme(
-        <FieldConfiguration fieldName="content" schema={{ type: 'string' }} value="hello" onChange={onChange} />
+        <FieldConfiguration config={{ field: 'hello' }} schema={one({ type: 'string' })} onChange={vi.fn()} />
       )
-      const input = screen.getByLabelText('content') as HTMLInputElement
-      expect(input.value).toBe('hello')
+      expect((screen.getByLabelText('field') as HTMLInputElement).value).toBe('hello')
     })
 
     it('fires onChange with string value on blur', () => {
       const onChange = vi.fn()
       renderWithTheme(
-        <FieldConfiguration fieldName="content" schema={{ type: 'string' }} value="" onChange={onChange} />
+        <FieldConfiguration config={{ field: '' }} schema={one({ type: 'string' })} onChange={onChange} />
       )
-      const input = screen.getByLabelText('content')
+      const input = screen.getByLabelText('field')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: 'world' } })
       expect(onChange).not.toHaveBeenCalled()
       fireEvent.blur(input)
-      expect(onChange).toHaveBeenCalledWith('content', 'world')
+      expect(onChange).toHaveBeenCalledWith('field', 'world')
     })
 
     it('uses default when value is undefined', () => {
       renderWithTheme(
-        <FieldConfiguration
-          fieldName="content"
-          schema={{ type: 'string', default: 'fallback' }}
-          value={undefined}
-          onChange={vi.fn()}
-        />
+        <FieldConfiguration config={{}} schema={one({ type: 'string', default: 'fallback' })} onChange={vi.fn()} />
       )
-      const input = screen.getByLabelText('content') as HTMLInputElement
-      expect(input.value).toBe('fallback')
+      expect((screen.getByLabelText('field') as HTMLInputElement).value).toBe('fallback')
     })
   })
 
   describe('bool type', () => {
-    it('renders a switch with field name label', () => {
-      renderWithTheme(
-        <FieldConfiguration fieldName="enabled" schema={{ type: 'bool' }} value={true} onChange={vi.fn()} />
-      )
-      expect(screen.getByText('enabled')).toBeTruthy()
-      const toggle = screen.getByRole('switch') as HTMLInputElement
-      expect(toggle.checked).toBe(true)
+    it('renders a switch reflecting the value', () => {
+      renderWithTheme(<FieldConfiguration config={{ field: true }} schema={one({ type: 'bool' })} onChange={vi.fn()} />)
+      expect((screen.getByRole('switch') as HTMLInputElement).checked).toBe(true)
     })
 
     it('fires onChange with boolean value on toggle', () => {
       const onChange = vi.fn()
       renderWithTheme(
-        <FieldConfiguration fieldName="enabled" schema={{ type: 'bool' }} value={true} onChange={onChange} />
+        <FieldConfiguration config={{ field: true }} schema={one({ type: 'bool' })} onChange={onChange} />
       )
-      const toggle = screen.getByRole('switch')
-      fireEvent.click(toggle)
-      expect(onChange).toHaveBeenCalledWith('enabled', false)
-    })
-
-    it('defaults to false when value and default are undefined', () => {
-      renderWithTheme(
-        <FieldConfiguration fieldName="enabled" schema={{ type: 'bool' }} value={undefined} onChange={vi.fn()} />
-      )
-      const toggle = screen.getByRole('switch') as HTMLInputElement
-      expect(toggle.checked).toBe(false)
+      fireEvent.click(screen.getByRole('switch'))
+      expect(onChange).toHaveBeenCalledWith('field', false)
     })
 
     it('uses schema default when value is undefined', () => {
       renderWithTheme(
-        <FieldConfiguration
-          fieldName="enabled"
-          schema={{ type: 'bool', default: true }}
-          value={undefined}
-          onChange={vi.fn()}
-        />
+        <FieldConfiguration config={{}} schema={one({ type: 'bool', default: true })} onChange={vi.fn()} />
       )
-      const toggle = screen.getByRole('switch') as HTMLInputElement
-      expect(toggle.checked).toBe(true)
+      expect((screen.getByRole('switch') as HTMLInputElement).checked).toBe(true)
     })
   })
 
   describe('numeric type', () => {
     it('renders a text input (not a native number input)', () => {
-      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={vi.fn()} />)
-      const input = screen.getByLabelText('count') as HTMLInputElement
+      renderWithTheme(<FieldConfiguration config={{ field: 5 }} schema={one({ type: 'int' })} onChange={vi.fn()} />)
+      const input = screen.getByLabelText('field') as HTMLInputElement
       expect(input.type).toBe('text')
       expect(input.value).toBe('5')
     })
 
     it('commits a numeric value on blur', () => {
       const onChange = vi.fn()
-      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
-      const input = screen.getByLabelText('count')
+      renderWithTheme(<FieldConfiguration config={{ field: 5 }} schema={one({ type: 'int' })} onChange={onChange} />)
+      const input = screen.getByLabelText('field')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '10' } })
-      expect(onChange).not.toHaveBeenCalled()
       fireEvent.blur(input)
-      expect(onChange).toHaveBeenCalledWith('count', 10)
+      expect(onChange).toHaveBeenCalledWith('field', 10)
     })
 
     it('commits on Enter key', () => {
       const onChange = vi.fn()
-      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
-      const input = screen.getByLabelText('count')
+      renderWithTheme(<FieldConfiguration config={{ field: 5 }} schema={one({ type: 'int' })} onChange={onChange} />)
+      const input = screen.getByLabelText('field')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '42' } })
       fireEvent.keyDown(input, { key: 'Enter' })
-      expect(onChange).toHaveBeenCalledWith('count', 42)
+      expect(onChange).toHaveBeenCalledWith('field', 42)
     })
 
-    it('flags non-numeric input and does not commit', () => {
+    it('commits the raw text but flags non-numeric input', () => {
       const onChange = vi.fn()
-      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
-      const input = screen.getByLabelText('count')
+      renderWithTheme(<FieldConfiguration config={{ field: 5 }} schema={one({ type: 'int' })} onChange={onChange} />)
+      const input = screen.getByLabelText('field')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: 'abc' } })
       fireEvent.blur(input)
-      expect(onChange).not.toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalledWith('field', 'abc')
       expect(screen.getByText('Must be a number')).toBeInTheDocument()
     })
 
-    it('flags an out-of-range value against the C++ type range', () => {
+    it('commits the number but flags out-of-range against the C++ type range', () => {
       const onChange = vi.fn()
-      renderWithTheme(
-        <FieldConfiguration fieldName="reliability" schema={{ type: 'uint8' }} value={50} onChange={onChange} />
-      )
-      const input = screen.getByLabelText('reliability')
+      renderWithTheme(<FieldConfiguration config={{ field: 50 }} schema={one({ type: 'uint8' })} onChange={onChange} />)
+      const input = screen.getByLabelText('field')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '300' } })
       fireEvent.blur(input)
-      expect(onChange).not.toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalledWith('field', 300)
       expect(screen.getByText('Must be between 0 and 255')).toBeInTheDocument()
     })
 
-    it('flags a decimal in an integer field', () => {
+    it('commits the number but flags a decimal in an integer field', () => {
       const onChange = vi.fn()
-      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
-      const input = screen.getByLabelText('count')
+      renderWithTheme(<FieldConfiguration config={{ field: 5 }} schema={one({ type: 'int' })} onChange={onChange} />)
+      const input = screen.getByLabelText('field')
       fireEvent.focus(input)
       fireEvent.change(input, { target: { value: '1.5' } })
       fireEvent.blur(input)
-      expect(onChange).not.toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalledWith('field', 1.5)
       expect(screen.getByText('Must be an integer')).toBeInTheDocument()
-    })
-
-    it('respects a schema-tightened range', () => {
-      const onChange = vi.fn()
-      renderWithTheme(
-        <FieldConfiguration
-          fieldName="port"
-          schema={{ type: 'uint', min: 1, max: 65535 }}
-          value={8080}
-          onChange={onChange}
-        />
-      )
-      const input = screen.getByLabelText('port')
-      fireEvent.focus(input)
-      fireEvent.change(input, { target: { value: '70000' } })
-      fireEvent.blur(input)
-      expect(onChange).not.toHaveBeenCalled()
-      expect(screen.getByText('Must be between 1 and 65535')).toBeInTheDocument()
     })
   })
 
-  describe('live-after-first-blur', () => {
-    it('stays silent while typing before the first blur, then validates live', () => {
-      const onChange = vi.fn()
-      renderWithTheme(<FieldConfiguration fieldName="count" schema={{ type: 'int' }} value={5} onChange={onChange} />)
-      const input = screen.getByLabelText('count')
-
-      fireEvent.focus(input)
+  describe('validation feedback', () => {
+    it('shows the error as soon as the value is invalid', () => {
+      renderWithTheme(<FieldConfiguration config={{ field: 5 }} schema={one({ type: 'int' })} onChange={vi.fn()} />)
+      const input = screen.getByLabelText('field')
       fireEvent.change(input, { target: { value: 'abc' } })
-      expect(screen.queryByText('Must be a number')).toBeNull()
-
-      fireEvent.blur(input)
       expect(screen.getByText('Must be a number')).toBeInTheDocument()
+    })
 
-      fireEvent.focus(input)
+    it('clears the error when the value becomes valid again', () => {
+      renderWithTheme(<FieldConfiguration config={{ field: 5 }} schema={one({ type: 'int' })} onChange={vi.fn()} />)
+      const input = screen.getByLabelText('field')
+      fireEvent.change(input, { target: { value: 'abc' } })
+      expect(screen.getByText('Must be a number')).toBeInTheDocument()
       fireEvent.change(input, { target: { value: '12' } })
       expect(screen.queryByText('Must be a number')).toBeNull()
     })

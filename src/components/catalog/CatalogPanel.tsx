@@ -159,7 +159,7 @@ function ResultsView({ result }: { result: SearchResult }) {
 
 function ComponentList({ components }: { components: CatalogComponent[] }) {
   return (
-    <List dense disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <List dense disablePadding className="diff-catalog-results">
       {components.map((component) => (
         <CatalogListItem key={`${component.source}-${component.type}-${component.version}`} component={component} />
       ))}

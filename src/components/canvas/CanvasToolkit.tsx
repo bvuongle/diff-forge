@@ -28,7 +28,6 @@ import {
 
 const EXPORT_BACKGROUND = '#f8f9fa'
 const EXPORT_FILENAME = 'diff-forge-canvas.png'
-const ICON_SIZE = 16
 const ZOOM_PRESETS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]
 
 function downloadImage(dataUrl: string) {
@@ -109,7 +108,7 @@ function CanvasToolkit() {
               aria-label="Select mode"
               aria-pressed={canvasMode === 'select'}
             >
-              <NearMeIcon sx={{ fontSize: ICON_SIZE }} />
+              <NearMeIcon />
             </button>
           </Tooltip>
           <Tooltip title="Pan (Space)">
@@ -120,7 +119,7 @@ function CanvasToolkit() {
               aria-label="Pan mode"
               aria-pressed={canvasMode === 'pan'}
             >
-              <PanToolIcon sx={{ fontSize: ICON_SIZE }} />
+              <PanToolIcon />
             </button>
           </Tooltip>
         </div>
@@ -135,7 +134,7 @@ function CanvasToolkit() {
               onClick={() => zoomOut({ duration: 120 })}
               aria-label="Zoom out"
             >
-              <RemoveIcon sx={{ fontSize: ICON_SIZE }} />
+              <RemoveIcon />
             </button>
           </Tooltip>
           <Tooltip title="Zoom presets">
@@ -156,12 +155,12 @@ function CanvasToolkit() {
               onClick={() => zoomIn({ duration: 120 })}
               aria-label="Zoom in"
             >
-              <AddIcon sx={{ fontSize: ICON_SIZE }} />
+              <AddIcon />
             </button>
           </Tooltip>
           <Tooltip title="Fit to view">
             <button type="button" className="canvas-toolkit__btn" onClick={handleFit} aria-label="Fit to view">
-              <CenterFocusStrongIcon sx={{ fontSize: ICON_SIZE }} />
+              <CenterFocusStrongIcon />
             </button>
           </Tooltip>
         </div>
@@ -176,12 +175,12 @@ function CanvasToolkit() {
               onClick={handleExpandAll}
               aria-label="Expand all nodes"
             >
-              <UnfoldMoreIcon sx={{ fontSize: ICON_SIZE }} />
+              <UnfoldMoreIcon />
             </button>
           </Tooltip>
           <Tooltip title="Collapse all">
             <button type="button" className="canvas-toolkit__btn" onClick={collapseAll} aria-label="Collapse all nodes">
-              <UnfoldLessIcon sx={{ fontSize: ICON_SIZE }} />
+              <UnfoldLessIcon />
             </button>
           </Tooltip>
           <Tooltip title={snapToGrid ? 'Snap: on' : 'Snap: off'}>
@@ -192,7 +191,7 @@ function CanvasToolkit() {
               aria-label="Toggle snap to grid"
               aria-pressed={snapToGrid}
             >
-              {snapToGrid ? <GridOnIcon sx={{ fontSize: ICON_SIZE }} /> : <GridOffIcon sx={{ fontSize: ICON_SIZE }} />}
+              {snapToGrid ? <GridOnIcon /> : <GridOffIcon />}
             </button>
           </Tooltip>
           <Tooltip title={animateEdges ? 'Edge animation: on' : 'Edge animation: off'}>
@@ -203,7 +202,7 @@ function CanvasToolkit() {
               aria-label="Toggle edge animation"
               aria-pressed={animateEdges}
             >
-              <BoltIcon sx={{ fontSize: ICON_SIZE }} />
+              <BoltIcon />
             </button>
           </Tooltip>
         </div>
@@ -217,7 +216,7 @@ function CanvasToolkit() {
             onClick={handleTakeImage}
             aria-label="Export canvas as image"
           >
-            <CameraAltIcon sx={{ fontSize: ICON_SIZE }} />
+            <CameraAltIcon />
           </button>
         </Tooltip>
       </div>

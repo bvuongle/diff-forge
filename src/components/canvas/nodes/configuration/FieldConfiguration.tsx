@@ -1,12 +1,28 @@
 import { ChangeEvent, KeyboardEvent, memo, useEffect, useRef, useState } from 'react'
 
-import { FormControlLabel, Switch, TextField } from '@mui/material'
+import { Box, FormControlLabel, Switch, TextField } from '@mui/material'
 
 import { ConfigValueSchema } from '@core/catalog/CatalogSchema'
 import { numericBound } from '@core/catalog/configBounds'
 import { validateConfigValue } from '@core/catalog/configValidation'
 
 type FieldConfigurationProps = {
+  config: Record<string, unknown>
+  schema: Record<string, ConfigValueSchema>
+  onChange: (name: string, value: unknown) => void
+}
+
+function FieldConfiguration({ config, schema, onChange }: FieldConfigurationProps) {
+  return (
+    <Box display="flex" flexDirection="column" gap={1.5} marginTop={1}>
+      {Object.entries(schema).map(([name, fieldSchema]) => (
+        <ConfigField key={name} fieldName={name} schema={fieldSchema} value={config[name]} onChange={onChange} />
+      ))}
+    </Box>
+  )
+}
+
+type ConfigFieldProps = {
   fieldName: string
   schema: ConfigValueSchema
   value: unknown
@@ -25,7 +41,7 @@ function useLocalValue(value: unknown, fallback: unknown) {
   return { local, setLocal, focusedRef }
 }
 
-function FieldConfigurationImpl({ fieldName, schema, value, onChange }: FieldConfigurationProps) {
+function ConfigFieldImpl({ fieldName, schema, value, onChange }: ConfigFieldProps) {
   if (schema.type === 'bool') {
     return (
       <FormControlLabel
@@ -45,37 +61,16 @@ function FieldConfigurationImpl({ fieldName, schema, value, onChange }: FieldCon
   return <ValidatedField fieldName={fieldName} schema={schema} value={value} onChange={onChange} />
 }
 
-function ValidatedField({ fieldName, schema, value, onChange }: FieldConfigurationProps) {
+function ValidatedField({ fieldName, schema, value, onChange }: ConfigFieldProps) {
   const { local, setLocal, focusedRef } = useLocalValue(value, schema.default)
-  const [error, setError] = useState<string | null>(null)
-  const touchedRef = useRef(false)
 
   const bound = numericBound(schema.type)
   const inputMode = bound ? (bound.integer ? 'numeric' : 'decimal') : 'text'
 
-  useEffect(() => {
-    if (!focusedRef.current) setError(null)
-  }, [value, focusedRef])
+  const result = validateConfigValue(schema, local)
+  const error = result.ok ? null : result.error
 
-  const evaluate = (text: string) => {
-    if (text.trim() === '') return { error: null, value: text, commit: !bound }
-    const outcome = validateConfigValue(schema, text)
-    if (outcome.ok) return { error: null, value: outcome.value, commit: true }
-    return { error: outcome.error, value: undefined, commit: false }
-  }
-
-  const commit = () => {
-    touchedRef.current = true
-    const result = evaluate(local)
-    setError(result.error)
-    if (result.commit) onChange(fieldName, result.value)
-  }
-
-  const onChangeText = (e: ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.value
-    setLocal(next)
-    if (touchedRef.current) setError(evaluate(next).error)
-  }
+  const commit = () => onChange(fieldName, result.ok ? result.value : parseRaw(local, bound != null))
 
   return (
     <TextField
@@ -99,11 +94,18 @@ function ValidatedField({ fieldName, schema, value, onChange }: FieldConfigurati
           commit()
         }
       }}
-      onChange={onChangeText}
+      onChange={(e: ChangeEvent<HTMLInputElement>) => setLocal(e.target.value)}
     />
   )
 }
 
-const FieldConfiguration = memo(FieldConfigurationImpl)
+function parseRaw(text: string, numeric: boolean): unknown {
+  if (!numeric) return text
+  const trimmed = text.trim()
+  const num = Number(trimmed)
+  return trimmed !== '' && Number.isFinite(num) ? num : text
+}
+
+const ConfigField = memo(ConfigFieldImpl)
 
 export { FieldConfiguration }

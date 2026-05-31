@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { CatalogComponentZ, type CatalogComponent, type CatalogDocument } from '@core/catalog/CatalogSchema'
 import { mergeCatalogs } from '@core/catalog/mergeCatalogs'
 import type { CatalogCache } from '@contracts/CatalogCache'
-import type { CatalogLoadOutcome, CatalogSource, RepoLoadOutcome } from '@contracts/CatalogSource'
+import type { CatalogLoadResult, CatalogSource, RepoLoadResult } from '@contracts/CatalogSource'
 
 const ARTIFACTORY_REPOS = 'ARTIFACTORY_REPOS'
 const ARTIFACTORY_TOKEN = 'ARTIFACTORY_TOKEN'
@@ -28,7 +28,7 @@ type ArtifactoryConfig =
 type RepoLoadOk = { status: 'ok'; url: string; catalog: CatalogDocument }
 type RepoLoadStale = { status: 'stale'; url: string; catalog: CatalogDocument; reason: string }
 type RepoLoadFailed = { status: 'failed'; url: string; reason: string }
-type RepoLoadResult = RepoLoadOk | RepoLoadStale | RepoLoadFailed
+type RepoFetchResult = RepoLoadOk | RepoLoadStale | RepoLoadFailed
 
 const SearchResponseZ = z.object({
   results: z.array(z.string())
@@ -47,7 +47,7 @@ const RevisionsResponseZ = z.object({
 
 function createArtifactoryCatalogSource(deps: Deps): CatalogSource {
   return {
-    async loadCatalog(): Promise<CatalogLoadOutcome> {
+    async loadCatalog(): Promise<CatalogLoadResult> {
       const config = parseConfig(deps.env)
       if (config.status === 'unconfigured') return { status: 'unconfigured', missing: config.missing }
       if (config.status === 'invalid') return { status: 'error', message: config.message, repos: [] }
@@ -56,7 +56,7 @@ function createArtifactoryCatalogSource(deps: Deps): CatalogSource {
         config.repoUrls.map((url) => loadOneRepo(deps.fetch, deps.cache, url, config.token))
       )
 
-      const repos: RepoLoadOutcome[] = results.map(toRepoOutcome)
+      const repos: RepoLoadResult[] = results.map(toRepoResult)
       const loaded = results.filter((r): r is RepoLoadOk | RepoLoadStale => r.status !== 'failed')
       const failed = results.filter((r): r is RepoLoadFailed => r.status === 'failed')
       const stale = results.filter((r): r is RepoLoadStale => r.status === 'stale')
@@ -129,7 +129,7 @@ function normalizeUrl(url: string): string {
   return url.replace(/\/+$/, '').toLowerCase()
 }
 
-function toRepoOutcome(result: RepoLoadResult): RepoLoadOutcome {
+function toRepoResult(result: RepoFetchResult): RepoLoadResult {
   if (result.status === 'ok') return { url: result.url, status: 'ok' }
   if (result.status === 'stale') return { url: result.url, status: 'stale', reason: result.reason }
   return { url: result.url, status: 'failed', reason: result.reason }
@@ -140,7 +140,7 @@ async function loadOneRepo(
   cache: CatalogCache,
   repoUrl: string,
   token: string | null
-): Promise<RepoLoadResult> {
+): Promise<RepoFetchResult> {
   const fresh = await fetchOneRepo(fetchFn, repoUrl, token)
   if (fresh.status === 'ok') {
     await cache.clearRepo(repoUrl)

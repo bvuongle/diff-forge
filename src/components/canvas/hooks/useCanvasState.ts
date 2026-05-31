@@ -19,28 +19,20 @@ function useCanvasState() {
         if (graph.nodes !== lastGraphNodes.current) {
           const selected = useGraphStore.getState().selectedNodeIds
           setCanvasNodes((nds) => {
-            const next = toCanvasNodes(graph.nodes).map((newNode) => {
-              const existing = nds.find((n) => n.id === newNode.id)
-              if (existing) {
-                return { ...newNode, selected: selected.has(newNode.id) }
-              }
-              return newNode
-            })
-            return next
+            const ids = new Set(nds.map((n) => n.id))
+            return toCanvasNodes(graph.nodes).map((newNode) =>
+              ids.has(newNode.id) ? { ...newNode, selected: selected.has(newNode.id) } : newNode
+            )
           })
           lastGraphNodes.current = graph.nodes
         }
         if (graph.edges !== lastGraphEdges.current) {
           const selected = useGraphStore.getState().selectedEdgeIds
           setCanvasEdges((eds) => {
-            const next = toCanvasEdges(graph.edges).map((newEdge) => {
-              const existing = eds.find((e) => e.id === newEdge.id)
-              if (existing) {
-                return { ...newEdge, selected: selected.has(newEdge.id) }
-              }
-              return newEdge
-            })
-            return next
+            const ids = new Set(eds.map((e) => e.id))
+            return toCanvasEdges(graph.edges).map((newEdge) =>
+              ids.has(newEdge.id) ? { ...newEdge, selected: selected.has(newEdge.id) } : newEdge
+            )
           })
           lastGraphEdges.current = graph.edges
         }
@@ -54,7 +46,7 @@ function useCanvasState() {
     return unsub
   }, [setCanvasNodes, setCanvasEdges])
 
-  return { canvasNodes, setCanvasNodes, onNodesChange, canvasEdges, setCanvasEdges, onEdgesChange }
+  return { canvasNodes, onNodesChange, canvasEdges, onEdgesChange }
 }
 
 export { useCanvasState }

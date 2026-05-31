@@ -4,9 +4,9 @@ import path from 'path'
 
 import { checkWorkspace } from '@core/workspace/workspaceContext'
 import type {
-  OpenWorkspaceOutcome,
-  TopologyExportOutcome,
-  TopologyLoadOutcome,
+  OpenWorkspaceResult,
+  TopologyExportResult,
+  TopologyLoadResult,
   WorkspaceStore
 } from '@contracts/WorkspaceStore'
 
@@ -41,7 +41,7 @@ function createFsWorkspaceStore(deps: FsWorkspaceStoreDeps): WorkspaceStore {
       return checkWorkspace(process.cwd(), homedir())
     },
 
-    async openWorkspaceSelector(): Promise<OpenWorkspaceOutcome> {
+    async openWorkspaceSelector(): Promise<OpenWorkspaceResult> {
       try {
         const selected = await deps.selectDirectory()
         if (selected === null) return { status: 'canceled' }
@@ -52,7 +52,7 @@ function createFsWorkspaceStore(deps: FsWorkspaceStoreDeps): WorkspaceStore {
       }
     },
 
-    async openAtPath(target: string): Promise<OpenWorkspaceOutcome> {
+    async openAtPath(target: string): Promise<OpenWorkspaceResult> {
       const raw = target.trim()
       if (!raw) return { status: 'error', message: 'Path is empty' }
       const expanded = expandTilde(raw)
@@ -73,7 +73,7 @@ function createFsWorkspaceStore(deps: FsWorkspaceStoreDeps): WorkspaceStore {
       }
     },
 
-    async saveTopology(topology: string): Promise<TopologyExportOutcome> {
+    async saveTopology(topology: string): Promise<TopologyExportResult> {
       const status = checkWorkspace(process.cwd(), homedir())
       if (!status.valid) return { status: 'invalidWorkspace', reason: status.reason }
 
@@ -86,7 +86,7 @@ function createFsWorkspaceStore(deps: FsWorkspaceStoreDeps): WorkspaceStore {
       }
     },
 
-    async loadTopology(): Promise<TopologyLoadOutcome> {
+    async loadTopology(): Promise<TopologyLoadResult> {
       const status = checkWorkspace(process.cwd(), homedir())
       if (!status.valid) return { status: 'notFound' }
 
