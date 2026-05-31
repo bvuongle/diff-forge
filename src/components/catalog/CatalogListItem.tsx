@@ -1,5 +1,5 @@
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
-import { Box, Chip, ListItemButton, Stack, Typography } from '@mui/material'
+import { Box, Chip, ListItemButton, Stack, Tooltip, Typography } from '@mui/material'
 
 import type { CatalogComponent } from '@core/catalog/CatalogSchema'
 
@@ -28,6 +28,19 @@ function setRoundedDragImage(event: React.DragEvent) {
   requestAnimationFrame(() => document.body.removeChild(clone))
 }
 
+function schemaTooltip(component: CatalogComponent) {
+  const schema = {
+    implements: component.implements,
+    requires: component.requires,
+    config: component.config
+  }
+  return (
+    <Box component="pre" sx={{ m: 0, fontFamily: 'monospace', fontSize: '0.7rem', whiteSpace: 'pre-wrap' }}>
+      {JSON.stringify(schema, null, 2)}
+    </Box>
+  )
+}
+
 function CatalogListItem({ component }: CatalogListItemProps) {
   return (
     <ListItemButton
@@ -49,21 +62,28 @@ function CatalogListItem({ component }: CatalogListItemProps) {
         }
       }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="center" width="100%">
-        <WidgetsOutlinedIcon fontSize="small" sx={{ color: 'var(--text-secondary)' }} />
-        <Box flex={1} minWidth={0}>
-          <Typography variant="subtitle2" fontWeight={600} noWrap>
-            {component.type}
-          </Typography>
-          <Stack direction="row" spacing={0.5} alignItems="center" mt={0.5} flexWrap="wrap" useFlexGap>
-            <Chip
-              size="small"
-              label={`v${component.version}`}
-              sx={{ bgcolor: 'var(--input-background)', height: 22 }}
-            />
-            <SourceChip url={component.source} />
+      <Stack direction="row" spacing={1} alignItems="flex-start" width="100%">
+        <Tooltip
+          title={schemaTooltip(component)}
+          placement="right"
+          enterDelay={400}
+          slotProps={{ tooltip: { sx: { maxWidth: 360 } } }}
+        >
+          <Stack direction="row" spacing={1.5} alignItems="center" flex={1} minWidth={0}>
+            <WidgetsOutlinedIcon fontSize="small" sx={{ color: 'var(--text-secondary)' }} />
+            <Box flex={1} minWidth={0}>
+              <Typography variant="subtitle2" fontWeight={600} noWrap>
+                {component.type}
+              </Typography>
+              <Chip
+                size="small"
+                label={`v${component.version}`}
+                sx={{ mt: 0.5, bgcolor: 'var(--input-background)', height: 22 }}
+              />
+            </Box>
           </Stack>
-        </Box>
+        </Tooltip>
+        <SourceChip url={component.source} />
       </Stack>
     </ListItemButton>
   )

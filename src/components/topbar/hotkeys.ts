@@ -60,8 +60,12 @@ const HOTKEY_SECTIONS: HotkeySection[] = [
         combos: [{ chips: ['Drag'], note: 'card from sidebar' }]
       },
       {
-        description: 'Inspect component metadata',
-        combos: [{ chips: ['Click'], note: 'on card' }]
+        description: 'View component schema',
+        combos: [{ chips: ['Hover'], note: 'over card' }]
+      },
+      {
+        description: 'Switch search mode (name / interface)',
+        combos: [{ chips: ['Ctrl', 'M'] }]
       }
     ]
   }

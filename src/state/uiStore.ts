@@ -29,6 +29,7 @@ type UIStore = {
   setSearchQuery: (query: string) => void
   searchMode: SearchMode
   setSearchMode: (mode: SearchMode) => void
+  toggleSearchMode: () => void
   sourceFilters: Set<string>
   toggleSourceFilter: (source: string) => void
   clearSourceFilters: () => void
@@ -53,6 +54,7 @@ const useUIStore = create<UIStore>((set) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   searchMode: 'name',
   setSearchMode: (mode) => set({ searchMode: mode }),
+  toggleSearchMode: () => set((s) => ({ searchMode: s.searchMode === 'name' ? 'interface' : 'name' })),
   sourceFilters: new Set(),
   toggleSourceFilter: (source) =>
     set((s) => {

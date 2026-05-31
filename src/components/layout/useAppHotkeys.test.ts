@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useUIStore } from '@state/uiStore'
 import { useAppHotkeys } from '@layout/useAppHotkeys'
 
 const exportMock = vi.fn()
@@ -24,6 +25,7 @@ describe('useAppHotkeys', () => {
   beforeEach(() => {
     exportMock.mockReset()
     switchMock.mockReset()
+    useUIStore.setState({ searchMode: 'name' })
   })
 
   afterEach(() => {
@@ -53,5 +55,18 @@ describe('useAppHotkeys', () => {
     const input = document.createElement('input')
     act(() => fireKey({ code: 'KeyS', ctrlKey: true, targetElement: input }))
     expect(exportMock).not.toHaveBeenCalled()
+  })
+
+  it('Ctrl+M toggles the search mode', () => {
+    renderHook(() => useAppHotkeys())
+    act(() => fireKey({ code: 'KeyM', ctrlKey: true }))
+    expect(useUIStore.getState().searchMode).toBe('interface')
+  })
+
+  it('Ctrl+M toggles search mode even while focus is in the search field', () => {
+    renderHook(() => useAppHotkeys())
+    const input = document.createElement('input')
+    act(() => fireKey({ code: 'KeyM', ctrlKey: true, targetElement: input }))
+    expect(useUIStore.getState().searchMode).toBe('interface')
   })
 })
