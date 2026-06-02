@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { TextField } from '@mui/material'
+import { Box, TextField } from '@mui/material'
 
 import type { ConfigValueSchema } from '@core/catalog/CatalogSchema'
 import { validateConfig } from '@core/catalog/configValidation'
@@ -11,26 +11,25 @@ type JsonConfigurationProps = {
   onSave: (config: Record<string, unknown>) => void
 }
 
-function deriveError(text: string, schema: Record<string, ConfigValueSchema>): string | null {
+function deriveErrors(text: string, schema: Record<string, ConfigValueSchema>): string[] {
   let parsed: unknown
   try {
     parsed = JSON.parse(text)
   } catch {
-    return 'Invalid JSON'
+    return ['Invalid JSON']
   }
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return 'Invalid JSON'
-  const errors = validateConfig(schema, parsed as Record<string, unknown>)
-  return errors.length > 0 ? errors.map((e) => `${e.field}: ${e.error}`).join('; ') : null
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return ['Invalid JSON']
+  return validateConfig(schema, parsed as Record<string, unknown>).map((e) => `${e.field}: ${e.error}`)
 }
 
 function JsonConfiguration({ config, schema, onSave }: JsonConfigurationProps) {
   const [text, setText] = useState(() => JSON.stringify(config, null, 2))
-  const [error, setError] = useState<string | null>(null)
+  const [errors, setErrors] = useState<string[]>([])
 
   useEffect(() => {
     const next = JSON.stringify(config, null, 2)
     setText(next)
-    setError(deriveError(next, schema))
+    setErrors(deriveErrors(next, schema))
   }, [config, schema])
 
   const handleBlur = () => {
@@ -38,15 +37,15 @@ function JsonConfiguration({ config, schema, onSave }: JsonConfigurationProps) {
     try {
       parsed = JSON.parse(text)
     } catch {
-      setError('Invalid JSON')
+      setErrors(['Invalid JSON'])
       return
     }
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      setError('Invalid JSON')
+      setErrors(['Invalid JSON'])
       return
     }
     const obj = parsed as Record<string, unknown>
-    setError(deriveError(text, schema))
+    setErrors(deriveErrors(text, schema))
     onSave(obj)
   }
 
@@ -59,8 +58,18 @@ function JsonConfiguration({ config, schema, onSave }: JsonConfigurationProps) {
       value={text}
       onChange={(e) => setText(e.target.value)}
       onBlur={handleBlur}
-      error={error != null}
-      helperText={error ?? undefined}
+      error={errors.length > 0}
+      helperText={
+        errors.length > 0 ? (
+          <Box component="span" className="json-editor__errors">
+            {errors.map((message) => (
+              <Box component="span" key={message} className="json-editor__error">
+                {message}
+              </Box>
+            ))}
+          </Box>
+        ) : undefined
+      }
       className="json-editor"
     />
   )

@@ -195,3 +195,12 @@
   font-family: monospace;
   font-size: 0.75rem;
 }
+
+.json-editor__errors {
+  display: flex;
+  flex-direction: column;
+}
+
+.json-editor__error {
+  overflow-wrap: anywhere;
+}
