@@ -25,3 +25,8 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
+
+.diff-welcome__alert {
+  width: 100%;
+  text-align: left;
+}

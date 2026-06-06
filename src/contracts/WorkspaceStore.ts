@@ -1,26 +1,26 @@
 import type { WorkspaceInvalidReason, WorkspaceStatus } from '@core/workspace/WorkspaceTypes'
 
-type TopologyExportOutcome =
+type TopologyExportResult =
   | { status: 'saved'; topologyPath: string; name: string }
   | { status: 'invalidWorkspace'; reason: WorkspaceInvalidReason }
   | { status: 'error'; message: string }
 
-type TopologyLoadOutcome =
+type TopologyLoadResult =
   | { status: 'loaded'; topology: string; topologyPath: string }
   | { status: 'notFound' }
   | { status: 'error'; message: string }
 
-type OpenWorkspaceOutcome =
+type OpenWorkspaceResult =
   | { status: 'opened'; workspace: WorkspaceStatus }
   | { status: 'canceled' }
   | { status: 'error'; message: string }
 
 type WorkspaceStore = {
   getStatus(): Promise<WorkspaceStatus>
-  openPicker(): Promise<OpenWorkspaceOutcome>
-  openAtPath(target: string): Promise<OpenWorkspaceOutcome>
-  saveTopology(topology: string): Promise<TopologyExportOutcome>
-  loadTopology(): Promise<TopologyLoadOutcome>
+  openWorkspaceSelector(): Promise<OpenWorkspaceResult>
+  openAtPath(target: string): Promise<OpenWorkspaceResult>
+  saveTopology(topology: string): Promise<TopologyExportResult>
+  loadTopology(): Promise<TopologyLoadResult>
 }
 
-export type { WorkspaceStore, TopologyExportOutcome, TopologyLoadOutcome, OpenWorkspaceOutcome }
+export type { WorkspaceStore, TopologyExportResult, TopologyLoadResult, OpenWorkspaceResult }

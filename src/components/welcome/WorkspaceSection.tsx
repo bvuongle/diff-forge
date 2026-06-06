@@ -5,7 +5,7 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 import { Box, Button, Chip, Divider, Stack, TextField, Typography } from '@mui/material'
 
 import { reasonMessage } from '@core/workspace/workspaceContext'
-import type { OpenWorkspaceOutcome } from '@contracts/WorkspaceStore'
+import type { OpenWorkspaceResult } from '@contracts/WorkspaceStore'
 import { notify } from '@state/notificationsStore'
 import { useWorkspaceStore } from '@state/workspaceStore'
 import { ipcWorkspaceStore } from '@adapters/IpcWorkspaceStore'
@@ -41,7 +41,7 @@ function WorkspaceSection() {
     )
   }
 
-  const applyResult = (result: OpenWorkspaceOutcome) => {
+  const applyResult = (result: OpenWorkspaceResult) => {
     if (result.status === 'opened') {
       setStatus(result.workspace)
     } else if (result.status === 'error') {
@@ -52,7 +52,7 @@ function WorkspaceSection() {
   const onOpen = async () => {
     setBusy(true)
     try {
-      applyResult(await ipcWorkspaceStore.openPicker())
+      applyResult(await ipcWorkspaceStore.openWorkspaceSelector())
     } finally {
       setBusy(false)
     }

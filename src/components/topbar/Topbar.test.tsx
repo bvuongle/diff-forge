@@ -73,7 +73,7 @@ describe('Topbar', () => {
     expect(openWorkspaceMock).not.toHaveBeenCalled()
   })
 
-  it('proceeds to picker after user confirms discard', async () => {
+  it('proceeds to the workspace selector after user confirms discard', async () => {
     useGraphStore.setState({ dirty: true })
     openWorkspaceMock.mockResolvedValue({ status: 'canceled' })
     renderWithTheme(<Topbar />)

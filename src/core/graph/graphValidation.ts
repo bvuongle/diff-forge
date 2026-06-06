@@ -92,8 +92,8 @@ function validateGraph(graph: Graph): GraphValidationResult {
   }
 }
 
-function computeInvalidNodeIds(graph: Graph): Set<string> {
-  const result = validateGraph(graph)
+function computeInvalidNodeIds(graph: Graph, precomputed?: GraphValidationResult): Set<string> {
+  const result = precomputed ?? validateGraph(graph)
   const ids = new Set<string>()
   for (const cycle of result.cycles) {
     for (const id of cycle) ids.add(id)

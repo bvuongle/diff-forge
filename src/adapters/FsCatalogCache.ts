@@ -95,9 +95,8 @@ async function listOptional(target: string): Promise<string[] | null> {
   try {
     return await readdir(target)
   } catch (err) {
-    if (err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT') {
-      return null
-    }
+    const code = err instanceof Error && 'code' in err ? (err as NodeJS.ErrnoException).code : ''
+    if (code === 'ENOENT' || code === 'ENOTDIR') return null
     throw err
   }
 }

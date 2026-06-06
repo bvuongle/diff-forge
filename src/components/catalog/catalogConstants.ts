@@ -1,1 +1,0 @@
-export const CATALOG_COLLAPSED_BAR_WIDTH_PX = 36

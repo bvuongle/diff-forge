@@ -6,7 +6,13 @@ type SectionHeaderProps = {
 
 function SectionHeader({ title }: SectionHeaderProps) {
   return (
-    <Typography variant="overline" color="text.secondary" letterSpacing={1} sx={{ fontSize: '0.7rem' }}>
+    <Typography
+      variant="overline"
+      color="text.secondary"
+      letterSpacing={1}
+      noWrap
+      sx={{ fontSize: '0.7rem', minWidth: 0 }}
+    >
       {title.toUpperCase()}
     </Typography>
   )

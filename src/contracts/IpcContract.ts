@@ -1,22 +1,22 @@
 import type { WorkspaceStatus } from '@core/workspace/WorkspaceTypes'
 
-import type { CatalogLoadOutcome } from './CatalogSource'
-import type { OpenWorkspaceOutcome, TopologyExportOutcome, TopologyLoadOutcome } from './WorkspaceStore'
+import type { CatalogLoadResult } from './CatalogSource'
+import type { OpenWorkspaceResult, TopologyExportResult, TopologyLoadResult } from './WorkspaceStore'
 
 type HostApi = {
   workspace: {
     status: () => Promise<WorkspaceStatus>
-    openAtPath: (payload: { path: string }) => Promise<OpenWorkspaceOutcome>
+    openAtPath: (payload: { path: string }) => Promise<OpenWorkspaceResult>
   }
   dialog: {
-    openWorkspace: () => Promise<OpenWorkspaceOutcome>
+    openWorkspace: () => Promise<OpenWorkspaceResult>
   }
   topology: {
-    export: (payload: { topology: string }) => Promise<TopologyExportOutcome>
-    load: () => Promise<TopologyLoadOutcome>
+    export: (payload: { topology: string }) => Promise<TopologyExportResult>
+    load: () => Promise<TopologyLoadResult>
   }
   catalog: {
-    load: () => Promise<CatalogLoadOutcome>
+    load: () => Promise<CatalogLoadResult>
   }
 }
 

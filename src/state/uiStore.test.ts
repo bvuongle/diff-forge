@@ -35,6 +35,14 @@ describe('uiStore', () => {
       useUIStore.getState().setSearchMode('interface')
       expect(useUIStore.getState().searchMode).toBe('interface')
     })
+
+    it('toggleSearchMode flips between name and interface', () => {
+      expect(useUIStore.getState().searchMode).toBe('name')
+      useUIStore.getState().toggleSearchMode()
+      expect(useUIStore.getState().searchMode).toBe('interface')
+      useUIStore.getState().toggleSearchMode()
+      expect(useUIStore.getState().searchMode).toBe('name')
+    })
   })
 
   describe('sourceFilters', () => {

@@ -6,7 +6,7 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { Alert, Box, Button, Chip, CircularProgress, Stack, Tooltip, Typography } from '@mui/material'
 
-import type { RepoLoadOutcome } from '@contracts/CatalogSource'
+import type { RepoLoadResult } from '@contracts/CatalogSource'
 import { useCatalogStore } from '@state/catalogStore'
 import { notify } from '@state/notificationsStore'
 import { ipcCatalogSource } from '@adapters/IpcCatalogSource'
@@ -49,7 +49,7 @@ function CatalogSection() {
 
   if (status.status === 'partial') {
     return (
-      <Alert severity="warning" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
+      <Alert severity="warning" variant="outlined" className="diff-welcome__alert">
         <Stack spacing={1}>
           <Typography variant="body2">
             {status.catalog.components.length} components loaded. {status.message}
@@ -66,7 +66,7 @@ function CatalogSection() {
 
   if (status.status === 'unconfigured') {
     return (
-      <Alert severity="warning" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
+      <Alert severity="warning" variant="outlined" className="diff-welcome__alert">
         <Typography variant="subtitle2" gutterBottom>
           Catalog source is unconfigured
         </Typography>
@@ -94,7 +94,7 @@ function CatalogSection() {
   }
 
   return (
-    <Alert severity="error" variant="outlined" sx={{ width: '100%', textAlign: 'left' }}>
+    <Alert severity="error" variant="outlined" className="diff-welcome__alert">
       <Stack spacing={1}>
         <Typography variant="body2">{status.message}</Typography>
         <ProblemReposList repos={collectProblems(status.repos)} />
@@ -106,9 +106,9 @@ function CatalogSection() {
   )
 }
 
-function collectProblems(repos: RepoLoadOutcome[]): ProblemRepo[] {
+function collectProblems(repos: RepoLoadResult[]): ProblemRepo[] {
   return repos
-    .filter((r): r is RepoLoadOutcome & { status: 'stale' | 'failed' } => r.status !== 'ok')
+    .filter((r): r is RepoLoadResult & { status: 'stale' | 'failed' } => r.status !== 'ok')
     .map((r) => ({ url: r.url, reason: r.reason, kind: r.status }))
 }
 
@@ -118,11 +118,16 @@ function ProblemReposList({ repos }: { repos: ProblemRepo[] }) {
     <Box component="ul" sx={{ m: 0, pl: 3 }}>
       {repos.map((repo) => (
         <Box component="li" key={repo.url} sx={{ mb: 0.5 }}>
-          <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
+          <Typography variant="body2" className="diff-repo__url">
             {repo.url} {repo.kind === 'stale' ? '(cached)' : ''}
           </Typography>
           {repo.reason && (
-            <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-word', display: 'block' }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              className="diff-repo__reason"
+              sx={{ display: 'block' }}
+            >
               {repo.reason}
             </Typography>
           )}
@@ -161,7 +166,7 @@ function RefreshButton({
   )
 }
 
-function RepoStatusList({ repos }: { repos: RepoLoadOutcome[] }) {
+function RepoStatusList({ repos }: { repos: RepoLoadResult[] }) {
   if (repos.length === 0) return null
   return (
     <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
@@ -178,7 +183,7 @@ function repoLabel(url: string): string {
   return last && last.length > 0 ? last : trimmed
 }
 
-function RepoChip({ repo }: { repo: RepoLoadOutcome }) {
+function RepoChip({ repo }: { repo: RepoLoadResult }) {
   const label = repoLabel(repo.url)
   const tooltipTitle = repo.status === 'ok' ? repo.url : `${repo.url}\n${repo.reason}`
   const { color, icon } = chipPresentation(repo.status)
@@ -189,7 +194,7 @@ function RepoChip({ repo }: { repo: RepoLoadOutcome }) {
   )
 }
 
-function chipPresentation(repoStatus: RepoLoadOutcome['status']): {
+function chipPresentation(repoStatus: RepoLoadResult['status']): {
   color: 'success' | 'warning' | 'error'
   icon: React.ReactElement
 } {

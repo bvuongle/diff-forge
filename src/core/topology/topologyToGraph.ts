@@ -6,7 +6,7 @@ import { Topology, TopologyDependency, TopologyEntry } from '@core/topology/Topo
 const AUTO_LAYOUT_COLUMN_WIDTH = 320
 const AUTO_LAYOUT_ROW_HEIGHT = 180
 
-type TopologyParseOutcome = { status: 'parsed'; topology: Topology } | { status: 'error'; message: string }
+type TopologyParseResult = { status: 'parsed'; topology: Topology } | { status: 'error'; message: string }
 
 function isDependency(value: unknown): value is TopologyDependency {
   if (typeof value === 'string') return true
@@ -28,7 +28,7 @@ function isTopology(data: unknown): data is Topology {
   )
 }
 
-function parseTopology(json: string): TopologyParseOutcome {
+function parseTopology(json: string): TopologyParseResult {
   let data: unknown
   try {
     data = JSON.parse(json)
@@ -167,7 +167,7 @@ function assignEdgesForEntry(
         sourceNodeId: depId,
         sourceSlot: sourceSlotName,
         targetNodeId: entry.id,
-        targetSlot: req.slot
+        targetSlot: req.name
       })
     }
   }
@@ -200,4 +200,4 @@ function topologyToGraph(topology: Topology, catalog: CatalogComponent[]): { gra
 }
 
 export { AUTO_LAYOUT_COLUMN_WIDTH, AUTO_LAYOUT_ROW_HEIGHT, isTopology, layoutByLevels, parseTopology, topologyToGraph }
-export type { TopologyParseOutcome }
+export type { TopologyParseResult }

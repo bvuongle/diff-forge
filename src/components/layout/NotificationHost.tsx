@@ -14,13 +14,8 @@ function NotificationHost() {
     <Stack
       spacing={1}
       alignItems="flex-end"
-      sx={{
-        position: 'fixed',
-        bottom: 24,
-        right: 24,
-        zIndex: (theme) => theme.zIndex.snackbar,
-        pointerEvents: 'none'
-      }}
+      className="diff-notif-host"
+      sx={{ zIndex: (theme) => theme.zIndex.snackbar }}
     >
       {notifications.map((n) => (
         <AutoDismissAlert
@@ -62,17 +57,7 @@ function AutoDismissAlert({ id, message, severity, duration, onDismiss }: AutoDi
       {isList ? (
         <>
           <AlertTitle sx={{ mb: 0.5 }}>{message.title}</AlertTitle>
-          <Box
-            component="ul"
-            sx={{
-              m: 0,
-              pl: 2.5,
-              maxHeight: 180,
-              overflowY: 'auto',
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': { width: 0, height: 0 }
-            }}
-          >
+          <Box component="ul" className="diff-notif-list">
             {message.items.map((item, i) => (
               <li key={i}>{item}</li>
             ))}

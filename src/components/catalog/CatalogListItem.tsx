@@ -1,16 +1,44 @@
-import { type MouseEvent } from 'react'
-
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined'
 import { Box, Chip, ListItemButton, Stack, Tooltip, Typography } from '@mui/material'
 
 import type { CatalogComponent } from '@core/catalog/CatalogSchema'
-import { notify } from '@state/notificationsStore'
 
-import { setRoundedDragImage } from './setRoundedDragImage'
-import { sourceLabel } from './sourceLabel'
+import { SourceChip } from './SourceChip'
 
 type CatalogListItemProps = {
   component: CatalogComponent
+}
+
+function setRoundedDragImage(event: React.DragEvent) {
+  const OFFSCREEN_TOP_PX = -9999
+  const DRAG_IMAGE_BORDER_RADIUS_PX = 8
+  const DRAG_IMAGE_ANCHOR_Y_PX = 20
+
+  const el = event.currentTarget as HTMLElement
+  const clone = el.cloneNode(true) as HTMLElement
+  Object.assign(clone.style, {
+    position: 'absolute',
+    top: `${OFFSCREEN_TOP_PX}px`,
+    borderRadius: `${DRAG_IMAGE_BORDER_RADIUS_PX}px`,
+    overflow: 'hidden',
+    width: `${el.offsetWidth}px`
+  })
+  document.body.appendChild(clone)
+  event.dataTransfer.setDragImage(clone, el.offsetWidth / 2, DRAG_IMAGE_ANCHOR_Y_PX)
+  requestAnimationFrame(() => document.body.removeChild(clone))
+}
+
+function schemaTooltip(component: CatalogComponent) {
+  const schema = {
+    implements: component.implements,
+    requires: component.requires,
+    config: component.config
+  }
+  return (
+    <Box component="pre" sx={{ m: 0, fontFamily: 'monospace', fontSize: '0.7rem', whiteSpace: 'pre-wrap' }}>
+      {JSON.stringify(schema, null, 2)}
+    </Box>
+  )
 }
 
 function CatalogListItem({ component }: CatalogListItemProps) {
@@ -34,52 +62,31 @@ function CatalogListItem({ component }: CatalogListItemProps) {
         }
       }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="center" width="100%">
-        <WidgetsOutlinedIcon fontSize="small" sx={{ color: 'var(--text-secondary)' }} />
-        <Box flex={1} minWidth={0}>
-          <Typography variant="subtitle2" fontWeight={600} noWrap>
-            {component.type}
-          </Typography>
-          <Stack direction="row" spacing={0.5} alignItems="center" mt={0.5} flexWrap="wrap" useFlexGap>
-            <Chip
-              size="small"
-              label={`v${component.version}`}
-              sx={{ bgcolor: 'var(--input-background)', height: 22 }}
-            />
-            <SourceChip url={component.source} />
+      <Stack direction="row" spacing={1} alignItems="flex-start" width="100%">
+        <Tooltip
+          title={schemaTooltip(component)}
+          placement="right"
+          enterDelay={400}
+          slotProps={{ tooltip: { sx: { maxWidth: 360 } } }}
+        >
+          <Stack direction="row" spacing={1.5} alignItems="center" flex={1} minWidth={0}>
+            <WidgetsOutlinedIcon fontSize="small" sx={{ color: 'var(--text-secondary)' }} />
+            <Box flex={1} minWidth={0}>
+              <Typography variant="subtitle2" fontWeight={600} noWrap>
+                {component.type}
+              </Typography>
+              <Chip
+                size="small"
+                label={`v${component.version}`}
+                sx={{ mt: 0.5, bgcolor: 'var(--input-background)', height: 22 }}
+              />
+            </Box>
           </Stack>
-        </Box>
+        </Tooltip>
+        <SourceChip url={component.source} />
       </Stack>
     </ListItemButton>
   )
-}
-
-function SourceChip({ url }: { url: string }) {
-  const onClick = (event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation()
-    if (!event.ctrlKey) return
-    void copyToClipboard(url)
-  }
-  return (
-    <Tooltip title={`${url}\nCtrl+Click to copy`} placement="top">
-      <Chip
-        size="small"
-        variant="outlined"
-        label={sourceLabel(url)}
-        onClick={onClick}
-        sx={{ height: 22, maxWidth: '100%', '& .MuiChip-label': { px: 1 } }}
-      />
-    </Tooltip>
-  )
-}
-
-async function copyToClipboard(url: string) {
-  try {
-    await navigator.clipboard.writeText(url)
-    notify.success('Source URL copied')
-  } catch {
-    notify.error('Copy failed')
-  }
 }
 
 export { CatalogListItem }

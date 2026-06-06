@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 
 import type { CatalogDocument } from '@core/catalog/CatalogSchema'
-import type { CatalogLoadOutcome } from '@contracts/CatalogSource'
+import type { CatalogLoadResult } from '@contracts/CatalogSource'
 
-type CatalogStatus = CatalogLoadOutcome | { status: 'loading' }
+type CatalogStatus = CatalogLoadResult | { status: 'loading' }
 
 type CatalogStore = {
   status: CatalogStatus

@@ -16,7 +16,7 @@ function buildSlots(component: CatalogComponent): Slot[] {
 
   for (const req of component.requires) {
     slots.push({
-      name: req.slot,
+      name: req.name,
       type: req.type,
       direction: 'in',
       isArray: req.isArray

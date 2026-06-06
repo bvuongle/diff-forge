@@ -26,7 +26,7 @@ const messageSource: CatalogComponent = {
   source: 'message_source',
   version: '1.0.0',
   implements: ['IMessageProducer'],
-  requires: [{ slot: 'links', type: 'ILink', isArray: false }],
+  requires: [{ name: 'links', type: 'ILink', isArray: false }],
   config: {}
 }
 

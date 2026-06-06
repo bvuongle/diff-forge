@@ -30,8 +30,8 @@ const MOCK_CATALOG = {
         version: '1.0.0',
         implements: ['IProcessable'],
         requires: [
-          { slot: 'link', type: 'ILink', isArray: false },
-          { slot: 'backupLink', type: 'ILink', isArray: false }
+          { name: 'link', type: 'ILink', isArray: false },
+          { name: 'backupLink', type: 'ILink', isArray: false }
         ],
         config: {
           count: { type: 'uint32' as const, min: 1, max: 1000, default: 10 },
@@ -44,8 +44,8 @@ const MOCK_CATALOG = {
         version: '1.0.0',
         implements: ['IMonitorable'],
         requires: [
-          { slot: 'workers', type: 'IProcessable', isArray: true },
-          { slot: 'monitors', type: 'IMonitorable', isArray: true }
+          { name: 'workers', type: 'IProcessable', isArray: true },
+          { name: 'monitors', type: 'IMonitorable', isArray: true }
         ],
         config: {}
       },
@@ -70,7 +70,7 @@ const MOCK_WORKSPACE_STATUS = {
   cwd: '/tmp/test-workspace'
 }
 
-const MOCK_OPEN_OUTCOME = {
+const MOCK_OPEN_RESULT = {
   status: 'opened' as const,
   workspace: MOCK_WORKSPACE_STATUS
 }
@@ -78,8 +78,8 @@ const MOCK_OPEN_OUTCOME = {
 const MOCK_RESPONSES = {
   'catalog:load': MOCK_CATALOG,
   'workspace:status': MOCK_WORKSPACE_STATUS,
-  'dialog:openWorkspace': MOCK_OPEN_OUTCOME,
-  'workspace:openAtPath': MOCK_OPEN_OUTCOME,
+  'dialog:openWorkspace': MOCK_OPEN_RESULT,
+  'workspace:openAtPath': MOCK_OPEN_RESULT,
   'topology:export': {
     status: 'saved' as const,
     topologyPath: '/tmp/test-workspace/test-workspace.forge.json',

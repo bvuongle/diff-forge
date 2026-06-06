@@ -1,5 +1,5 @@
 import { CatalogDocumentZ } from '@core/catalog/CatalogSchema'
-import type { CatalogLoadOutcome, CatalogSource } from '@contracts/CatalogSource'
+import type { CatalogLoadResult, CatalogSource } from '@contracts/CatalogSource'
 
 const CATALOG_FILE = 'CATALOG_FILE'
 
@@ -12,7 +12,7 @@ type FileCatalogSourceDeps = {
 
 function createFileCatalogSource(deps: FileCatalogSourceDeps): CatalogSource {
   return {
-    async loadCatalog(): Promise<CatalogLoadOutcome> {
+    async loadCatalog(): Promise<CatalogLoadResult> {
       const filePath = deps.env[CATALOG_FILE]?.trim()
       if (!filePath) return { status: 'unconfigured', missing: [CATALOG_FILE] }
 
